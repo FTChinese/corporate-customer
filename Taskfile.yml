@@ -3,8 +3,7 @@ version: '2'
 vars:
   BUILD_DIR: build
   BINARY: copr-customer
-  VERSION: {sh: git describe --tags}
-  LDFLAGS: -ldflags "-w -s -X main.version={{.VERSION}} -X main.buildAt={{now | date "2006-01-02T15:04:05Z07:00"}}"
+  LDFLAGS: -ldflags "-w -s -X main.buildAt={{now | date "2006-01-02T15:04:05Z07:00"}}"
 
 tasks:
   build:

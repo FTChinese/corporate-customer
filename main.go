@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/FTChinese/corporate-customer/controllers"
+	"github.com/FTChinese/corporate-customer/database"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -10,7 +12,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"gitlab.com/ftchinese/corp/database"
 	"net/http"
 	"os"
 )
@@ -66,6 +67,8 @@ func main() {
 		emailConn.User,
 		emailConn.Pass)
 
+	signinRouter := controllers.NewSignInRouter(db, post)
+
 	e := echo.New()
 	e.Renderer = MustNewRenderer(config)
 	e.HTTPErrorHandler = errorHandler
@@ -86,6 +89,8 @@ func main() {
 	e.GET("/", func(context echo.Context) error {
 		return context.Render(http.StatusOK, "base.html", nil)
 	})
+
+	e.GET("/login", signinRouter.GetLogin)
 
 	e.Logger.Fatal(e.Start(":3100"))
 }

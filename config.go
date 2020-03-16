@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/FTChinese/corporate-customer/database"
 	"github.com/spf13/viper"
-	"gitlab.com/ftchinese/corp/database"
 	"os"
 )
 
