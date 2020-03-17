@@ -1,11 +1,11 @@
 package views
 
 import (
-	"github.com/FTChinese/corporate-customer/models"
+	"github.com/FTChinese/corporate-customer/models/admin"
 	"github.com/flosch/pongo2"
 )
 
-func BuildLoginForm(value models.Login) Form {
+func BuildLoginForm(value admin.Login) Form {
 	return Form{
 		Disabled: false,
 		Action:   "",
@@ -37,8 +37,14 @@ func BuildLoginForm(value models.Login) Form {
 	}
 }
 
-func BuildLoginPage(value models.Login) pongo2.Context {
+func BuildLoginPage(value admin.Login) pongo2.Context {
+	form := BuildLoginForm(value)
+
+	if value.Errors != nil {
+		form = form.WithErrors(value.Errors)
+	}
+
 	return pongo2.Context{
-		"form": BuildLoginForm(value),
+		"form": form,
 	}
 }
