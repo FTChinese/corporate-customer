@@ -68,13 +68,16 @@ func main() {
 		emailConn.Pass)
 
 	signinRouter := controllers.NewSignInRouter(db, post)
+	readersRouter := controllers.NewReadersRouter(db, post)
 
 	e := echo.New()
 	e.Renderer = MustNewRenderer(config)
 	e.HTTPErrorHandler = errorHandler
 
 	if !isProduction {
-		e.Static("/", "build/dev")
+		e.Static("/css", "client/node_modules/bootstrap/dist/css")
+		e.Static("/js", "client/node_modules/bootstrap.native/dist")
+		e.Static("/static", "build/dev")
 	}
 
 	e.Use(middleware.Logger())
@@ -87,10 +90,23 @@ func main() {
 	//e.Use(middleware.CSRF())
 
 	e.GET("/", func(context echo.Context) error {
-		return context.Render(http.StatusOK, "base.html", nil)
+		return context.Render(http.StatusOK, "home.html", nil)
 	})
 
 	e.GET("/login", signinRouter.GetLogin)
+	e.POST("/login", signinRouter.PostLogin)
+
+	pwResetGroup := e.Group("/password-reset")
+	pwResetGroup.GET("/", signinRouter.GetResetPassword)
+	pwResetGroup.POST("/", signinRouter.PostResetPassword)
+
+	pwResetGroup.GET("/letter", signinRouter.GetForgotPassword)
+	pwResetGroup.POST("/letter", signinRouter.PostResetPassword)
+
+	pwResetGroup.GET("/token/:token", signinRouter.VerifyPasswordToken)
+
+	e.GET("/readers", readersRouter.GetUserList)
+	//readersGroup := e.Group("/readers")
 
 	e.Logger.Fatal(e.Start(":3100"))
 }
