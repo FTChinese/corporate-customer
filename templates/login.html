@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h4 class="text-center">企业客户管理员登录</h4>
+<h4 class="text-center">FT中文网B2B订阅</h4>
 
 <form method="post">
 
@@ -20,15 +20,17 @@
                value="true"
                checked>
 
-        <label for="rememberMe">Remember Me</label>
+        <label for="rememberMe">记住我</label>
 
     </div>
 
     {% include "partials/button.html" %}
 </form>
 
-<div class="mt-4">
+<div class="d-flex justify-content-between mt-4">
     <a href="/forgot-password">忘记密码？</a>
+    <a href="/signup">创建账号</a>
 </div>
 
+<div class="mt-4 text-muted">B2B账号与登录FT中文网的账号不同，该账号仅用于管理您所属机构的订阅成员，并不能登录FT中文网。不过，您可以使用登录FT中文网的邮箱创建B2B账号。</div>
 {% endblock %}

@@ -1,0 +1,34 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between">
+    <h3>成员列表</h3>
+    <div>
+        <a class="btn btn-primary" href="#">添加新订阅用户</a>
+    </div>
+</div>
+
+
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">邮箱</th>
+        <th scope="col">订阅状态</th>
+        <th scope="col">截止日期</th>
+        <th scope="col">会员版本</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for reader in readers %}
+    <tr>
+        <td><a href="/readers/{{reader.FtcID}}">{{reader.Email}}</a></td>
+        <td>{{reader.SubsStatus}}</td>
+        <td>{{reader.ExpireDate}}</td>
+        <td>{{reader.Tier}}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
