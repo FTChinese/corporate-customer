@@ -1,8 +1,7 @@
-package models
+package validator
 
 import (
 	"fmt"
-	"github.com/FTChinese/go-rest/render"
 	"github.com/asaskevich/govalidator"
 	"log"
 	"strings"
@@ -37,12 +36,6 @@ func MaxStringLength(str string, max int) bool {
 	strLength := utf8.RuneCountInString(str)
 	return strLength <= max
 }
-
-const (
-	msgTooLong  = "The length of %s should not exceed %d chars"
-	msgTooShort = "The length of %s should not less than %d chars"
-	msgLenRange = "The length of %s must be within %d to %d chars"
-)
 
 type Validator struct {
 	fieldName  string
@@ -90,58 +83,34 @@ func (v *Validator) URL() *Validator {
 	return v
 }
 
-func (v *Validator) Validate(value string) *render.ValidationError {
+func (v *Validator) Validate(value string) string {
 	if v.isEmail && v.isURL {
 		log.Fatal("The validated value cannot be both an email and url")
 	}
 
 	if v.isRequired && !Required(value) {
-		return &render.ValidationError{
-			Message: "Missing required field",
-			Field:   v.fieldName,
-			Code:    render.CodeMissingField,
-		}
+		return v.fieldName + "不能为空"
 	}
 
 	if v.min > 0 && v.max > 0 && !StringInLength(value, v.min, v.max) {
-		return &render.ValidationError{
-			Message: fmt.Sprintf(msgLenRange, v.fieldName, v.min, v.max),
-			Field:   v.fieldName,
-			Code:    render.CodeInvalid,
-		}
+		return fmt.Sprintf("%s只允许%d～%d个字符。已输入%d个字符。", v.fieldName, v.min, v.max, len(value))
 	}
 
 	if v.min > 0 && !MinStringLength(value, v.min) {
-		return &render.ValidationError{
-			Message: fmt.Sprintf(msgTooShort, v.fieldName, v.min),
-			Field:   v.fieldName,
-			Code:    render.CodeInvalid,
-		}
+		return fmt.Sprintf("%s不得少于%d个字符", v.fieldName, v.min)
 	}
 
 	if v.max > 0 && !MaxStringLength(value, v.max) {
-		return &render.ValidationError{
-			Message: fmt.Sprintf(msgTooLong, v.fieldName, v.max),
-			Field:   v.fieldName,
-			Code:    render.CodeInvalid,
-		}
+		return fmt.Sprintf("%s不得超过%d个字符", v.fieldName, v.max)
 	}
 
 	if v.isEmail && !govalidator.IsEmail(value) {
-		return &render.ValidationError{
-			Message: "Invalid email address",
-			Field:   v.fieldName,
-			Code:    render.CodeInvalid,
-		}
+		return fmt.Sprintf("%s不是有效的邮箱地址", value)
 	}
 
 	if v.isURL && !govalidator.IsURL(value) {
-		return &render.ValidationError{
-			Message: "Invalid URL",
-			Field:   v.fieldName,
-			Code:    render.CodeInvalid,
-		}
+		return "请输入有效的URL"
 	}
 
-	return nil
+	return ""
 }
