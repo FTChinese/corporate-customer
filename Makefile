@@ -1,5 +1,5 @@
 BUILD_DIR := build
-BINARY := corp-customer
+BINARY := b2b
 
 LINUX_BIN := $(BUILD_DIR)/linux/$(BINARY)
 
