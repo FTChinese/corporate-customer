@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"github.com/FTChinese/corporate-customer/models/validator"
+	"github.com/FTChinese/b2b/models/validator"
 	"strings"
 )
 

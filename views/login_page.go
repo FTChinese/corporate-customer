@@ -1,7 +1,7 @@
 package views
 
 import (
-	"github.com/FTChinese/corporate-customer/models/admin"
+	"github.com/FTChinese/b2b/models/admin"
 	"github.com/flosch/pongo2"
 )
 

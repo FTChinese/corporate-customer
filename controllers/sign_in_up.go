@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/FTChinese/corporate-customer/models/admin"
-	"github.com/FTChinese/corporate-customer/views"
+	"github.com/FTChinese/b2b/models/admin"
+	"github.com/FTChinese/b2b/views"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"

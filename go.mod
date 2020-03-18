@@ -1,4 +1,4 @@
-module github.com/FTChinese/corporate-customer
+module github.com/FTChinese/b2b
 
 go 1.13
 

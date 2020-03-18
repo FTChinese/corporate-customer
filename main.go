@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/FTChinese/corporate-customer/controllers"
-	"github.com/FTChinese/corporate-customer/database"
+	"github.com/FTChinese/b2b/controllers"
+	"github.com/FTChinese/b2b/database"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -67,7 +67,7 @@ func main() {
 		emailConn.User,
 		emailConn.Pass)
 
-	signinRouter := controllers.NewSignInRouter(db, post)
+	signInRouter := controllers.NewSignInRouter(db, post)
 	readersRouter := controllers.NewReadersRouter(db, post)
 
 	e := echo.New()
@@ -93,17 +93,17 @@ func main() {
 		return context.Render(http.StatusOK, "home.html", nil)
 	})
 
-	e.GET("/login", signinRouter.GetLogin)
-	e.POST("/login", signinRouter.PostLogin)
+	e.GET("/login", signInRouter.GetLogin)
+	e.POST("/login", signInRouter.PostLogin)
 
 	pwResetGroup := e.Group("/password-reset")
-	pwResetGroup.GET("/", signinRouter.GetResetPassword)
-	pwResetGroup.POST("/", signinRouter.PostResetPassword)
+	pwResetGroup.GET("/", signInRouter.GetResetPassword)
+	pwResetGroup.POST("/", signInRouter.PostResetPassword)
 
-	pwResetGroup.GET("/letter", signinRouter.GetForgotPassword)
-	pwResetGroup.POST("/letter", signinRouter.PostResetPassword)
+	pwResetGroup.GET("/letter", signInRouter.GetForgotPassword)
+	pwResetGroup.POST("/letter", signInRouter.PostResetPassword)
 
-	pwResetGroup.GET("/token/:token", signinRouter.VerifyPasswordToken)
+	pwResetGroup.GET("/token/:token", signInRouter.VerifyPasswordToken)
 
 	e.GET("/readers", readersRouter.GetUserList)
 	//readersGroup := e.Group("/readers")

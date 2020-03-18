@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/FTChinese/corporate-customer/database"
+	"github.com/FTChinese/b2b/database"
 	"github.com/spf13/viper"
 	"os"
 )
@@ -45,7 +45,7 @@ func MustGetEmailConn() database.Conn {
 }
 
 func MustGetSessionKey() string {
-	k := viper.GetString("web_app.superyard.echo_session")
+	k := viper.GetString("web_app.b2b.echo_session")
 
 	if k == "" {
 		logger.Error("Echo session key not found")
