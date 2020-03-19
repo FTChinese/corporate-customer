@@ -4,7 +4,9 @@ import (
 	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/views"
 	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -36,7 +38,29 @@ func (router SignInRouter) PostLogin(c echo.Context) error {
 		return c.Render(http.StatusOK, "login.html", data)
 	}
 
-	return c.Redirect(http.StatusFound, "/")
+	sess, _ := session.Get(sessionKey, c)
+	sess.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 7,
+		HttpOnly: false,
+	}
+
+	sess.Values[loggedInKey] = l.Email
+	sess.Save(c.Request(), c.Response())
+
+	return c.Redirect(http.StatusFound, SiteMap.Home)
+}
+
+func (router SignInRouter) LogOut(c echo.Context) error {
+	sess, _ := session.Get(sessionKey, c)
+	sess.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   -1, // A zero or negative number will expire the cookie immediately. If both Expires and Max-Age are set, Max-Age has precedence.
+		HttpOnly: false,
+	}
+	sess.Save(c.Request(), c.Response())
+
+	return c.Redirect(http.StatusFound, SiteMap.Login)
 }
 
 func (router SignInRouter) GetForgotPassword(c echo.Context) error {
