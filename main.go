@@ -91,9 +91,9 @@ func main() {
 
 	e.GET("/", func(context echo.Context) error {
 		return context.Render(http.StatusOK, "home.html", nil)
-	}, controllers.IsLoggedIn)
+	}, controllers.NotLoggedIn)
 
-	e.GET("/login", signInRouter.GetLogin)
+	e.GET("/login", signInRouter.GetLogin, controllers.AlreadyLoggedIn)
 	e.POST("/login", signInRouter.PostLogin)
 
 	e.GET("/logout", signInRouter.LogOut)
@@ -107,7 +107,7 @@ func main() {
 
 	pwResetGroup.GET("/token/:token", signInRouter.VerifyPasswordToken)
 
-	e.GET("/readers", readersRouter.GetUserList, controllers.IsLoggedIn)
+	e.GET("/readers", readersRouter.GetUserList, controllers.NotLoggedIn)
 	//readersGroup := e.Group("/readers")
 
 	e.Logger.Fatal(e.Start(":3100"))

@@ -20,13 +20,19 @@ var SiteMap = struct {
 	Login: "/login",
 }
 
-func IsLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
+func IgnoreFavicon(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		logger.Infof("Path: %s", c.Path())
-
 		if c.Path() == "/favicon.ico" {
 			return nil
 		}
+
+		return next(c)
+	}
+}
+
+func NotLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		logger.Infof("Path: %s", c.Path())
 
 		sess, err := session.Get(sessionKey, c)
 
@@ -38,8 +44,33 @@ func IsLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 		logger.Infof("Session values: %+v", sess.Values)
 
 		_, ok := sess.Values[loggedInKey]
+		// Not logged in
 		if !ok {
+			// Allow a non-logged-in user to access login page.
+			if c.Path() == SiteMap.Login {
+				return next(c)
+			}
+			// Redirect user to login from any other page.
 			return c.Redirect(http.StatusFound, SiteMap.Login)
+		}
+
+		return next(c)
+	}
+}
+
+func AlreadyLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		sess, err := session.Get(sessionKey, c)
+
+		if err != nil {
+			return c.Redirect(http.StatusFound, SiteMap.Login)
+		}
+
+		_, ok := sess.Values[loggedInKey]
+		// Logged in
+		if ok && c.Path() == SiteMap.Login {
+			// Redirect user to home page if it is trying to access login page.
+			return c.Redirect(http.StatusFound, SiteMap.Home)
 		}
 
 		return next(c)
