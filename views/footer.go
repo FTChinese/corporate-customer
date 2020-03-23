@@ -1,18 +1,16 @@
 package views
 
-type FooterItem struct {
-	Text string
-	Href string
-}
+import "github.com/FTChinese/b2b/widget"
+
 type FooterColumn struct {
 	Title string
-	Items []FooterItem
+	Items []widget.Link
 }
 
 var Footer = []FooterColumn{
 	{
 		Title: "支持",
-		Items: []FooterItem{
+		Items: []widget.Link{
 			{
 				Text: "关于我们",
 				Href: "http://www.ftchinese.com/m/corp/aboutus.html",
@@ -33,7 +31,7 @@ var Footer = []FooterColumn{
 	},
 	{
 		Title: "法律事务",
-		Items: []FooterItem{
+		Items: []widget.Link{
 			{
 				Text: "服务条款",
 				Href: "http://www.ftchinese.com/m/corp/service.html",
@@ -46,7 +44,7 @@ var Footer = []FooterColumn{
 	},
 	{
 		Title: "服务",
-		Items: []FooterItem{
+		Items: []widget.Link{
 			{
 				Text: "广告业务",
 				Href: "http://www.ftchinese.com/m/corp/sales.html",
@@ -71,7 +69,7 @@ var Footer = []FooterColumn{
 	},
 	{
 		Title: "关注我们",
-		Items: []FooterItem{
+		Items: []widget.Link{
 			{
 				Text: "微信",
 				Href: "http://www.ftchinese.com/m/corp/follow.html",
@@ -96,7 +94,7 @@ var Footer = []FooterColumn{
 	},
 	{
 		Title: "FT产品",
-		Items: []FooterItem{
+		Items: []widget.Link{
 
 			{
 				Text: "FT研究院",
@@ -122,7 +120,7 @@ var Footer = []FooterColumn{
 	},
 	{
 		Title: "移动应用",
-		Items: []FooterItem{
+		Items: []widget.Link{
 			{
 				Text: "安卓",
 				Href: "http://app.ftchinese.com/androidmobile.html",
