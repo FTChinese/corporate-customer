@@ -12,14 +12,6 @@ var logger = logrus.WithField("package", "controllers")
 const sessionKey = "_ftc_b2b"
 const loggedInKey = "account"
 
-var SiteMap = struct {
-	Home  string
-	Login string
-}{
-	Home:  "/",
-	Login: "/login",
-}
-
 func IgnoreFavicon(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if c.Path() == "/favicon.ico" {
@@ -30,7 +22,8 @@ func IgnoreFavicon(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func NotLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
+// RequireLoggedIn router prevents access is user is not logged in.
+func RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		logger.Infof("Path: %s", c.Path())
 
@@ -58,7 +51,8 @@ func NotLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func AlreadyLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
+// RedirectIfLoggedIn hides pages that are only available if user is not logged in, such as login, sign-up, forgot password, etc..
+func RedirectIfLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sess, err := session.Get(sessionKey, c)
 
