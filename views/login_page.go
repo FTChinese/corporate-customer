@@ -2,18 +2,18 @@ package views
 
 import (
 	"github.com/FTChinese/b2b/models/admin"
-	"github.com/flosch/pongo2"
+	"github.com/FTChinese/b2b/widget"
 )
 
-func BuildLoginForm(value admin.Login) Form {
-	return Form{
+func NewLoginForm(value admin.Login) widget.Form {
+	return widget.Form{
 		Disabled: false,
 		Action:   "",
-		Fields: []FormField{
+		Fields: []widget.FormControl{
 			{
 				Label:       "邮箱",
 				ID:          "email",
-				Type:        InputTypeEmail,
+				Type:        widget.ControlTypeEmail,
 				Name:        "email",
 				Value:       value.Email,
 				Placeholder: "admin@example.org",
@@ -22,29 +22,17 @@ func BuildLoginForm(value admin.Login) Form {
 			{
 				Label:    "密码",
 				ID:       "password",
-				Type:     InputTypePassword,
+				Type:     widget.ControlTypePassword,
 				Name:     "password",
 				Value:    "",
 				Required: true,
 			},
 		},
-		SubmitBtn: Button{
-			DisableWith: "正在登录",
+		SubmitBtn: widget.Button{
+			DisableWith: "正在登录...",
 			Text:        "登录",
 		},
-		CancelBtn: Link{},
-		DeleteBtn: Link{},
-	}
-}
-
-func BuildLoginPage(value admin.Login) pongo2.Context {
-	form := BuildLoginForm(value)
-
-	if value.Errors != nil {
-		form = form.WithErrors(value.Errors)
-	}
-
-	return pongo2.Context{
-		"form": form,
+		CancelBtn: widget.Link{},
+		DeleteBtn: widget.Link{},
 	}
 }
