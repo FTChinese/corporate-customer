@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// TeamForm is the form data submitted to create a Team.
 type TeamForm struct {
 	Name         string `form:"name"`
 	InvoiceTitle string `form:"invoiceTitle"`
@@ -33,6 +34,9 @@ func (f *TeamForm) BuildTeam() Team {
 	}
 }
 
+// Team represents an existing b2b entity.
+// An admin account can create teams.
+// A team can purchase licences.
 type Team struct {
 	ID           string      `db:"team_id"`
 	Name         string      `db:"name"`

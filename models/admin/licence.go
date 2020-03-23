@@ -6,6 +6,16 @@ import (
 	"github.com/guregu/null"
 )
 
+// Licence is the subscription a team purchased.
+// A team can purchase multiple licences, as they often do.
+// After purchasing licences, the team can send
+// invitations to team member for a specific licence.
+// Once a team member accepts the invitation, this licence
+// is assigned to this member and cannot be reassigned
+// unless it is revoked.
+// When a licence is revoked, backup reader's current
+// current membership status and delete that row, clear
+// the AssigneeID field.
 type Licence struct {
 	ID         string      `db:"licence_id"`
 	Tier       enum.Tier   `db:"tier"`
