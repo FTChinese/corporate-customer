@@ -67,7 +67,7 @@ func main() {
 		emailConn.User,
 		emailConn.Pass)
 
-	signInRouter := controllers.NewSignInRouter(db, post)
+	signInRouter := controllers.NewBarrierRouter(db, post)
 	readersRouter := controllers.NewReadersRouter(db, post)
 
 	e := echo.New()
@@ -91,23 +91,37 @@ func main() {
 
 	e.GET("/", func(context echo.Context) error {
 		return context.Render(http.StatusOK, "home.html", nil)
-	}, controllers.NotLoggedIn)
+	}, controllers.RequireLoggedIn)
 
-	e.GET("/login", signInRouter.GetLogin, controllers.AlreadyLoggedIn)
-	e.POST("/login", signInRouter.PostLogin)
+	// Show login page.
+	e.GET(controllers.SiteMap.Login, signInRouter.GetLogin, controllers.RedirectIfLoggedIn)
+	// Handle login: verify password, set session, cookie, etc..
+	e.POST(controllers.SiteMap.Login, signInRouter.PostLogin)
 
-	e.GET("/logout", signInRouter.LogOut)
+	e.GET(controllers.SiteMap.SignUp, signInRouter.GetSignUp, controllers.RedirectIfLoggedIn)
+	e.POST(controllers.SiteMap.SignUp, signInRouter.PostSignUp)
 
-	pwResetGroup := e.Group("/password-reset")
-	pwResetGroup.GET("/", signInRouter.GetResetPassword)
-	pwResetGroup.POST("/", signInRouter.PostResetPassword)
+	// Clear all cookies.
+	e.GET(controllers.SiteMap.LogOut, signInRouter.LogOut)
 
+	// Show resetting-password page.
+	e.GET(controllers.SiteMap.ForgotPassword, signInRouter.GetResetPassword)
+	// Handle resetting password
+	e.POST(controllers.SiteMap.ForgotPassword, signInRouter.PostResetPassword)
+
+	pwResetGroup := e.Group(controllers.SiteMap.ForgotPassword)
+	// Ask user to enter email address in case password forgotten.
 	pwResetGroup.GET("/letter", signInRouter.GetForgotPassword)
+	// Sending forgot-password email
 	pwResetGroup.POST("/letter", signInRouter.PostResetPassword)
 
+	// Verify forgot-password token.
+	// If valid, redirect to /forgot-password.
+	// If invalid, redirect to /forgot-password/letter to ask
+	// user to enter email again.
 	pwResetGroup.GET("/token/:token", signInRouter.VerifyPasswordToken)
 
-	e.GET("/readers", readersRouter.GetUserList, controllers.NotLoggedIn)
+	e.GET("/readers", readersRouter.GetUserList, controllers.RequireLoggedIn)
 	//readersGroup := e.Group("/readers")
 
 	e.Logger.Fatal(e.Start(":3100"))
