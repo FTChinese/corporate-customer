@@ -8,6 +8,7 @@ import (
 func NewSignUpForm(value admin.SignUp) widget.Form {
 	return widget.Form{
 		Disabled: false,
+		Method:   widget.MethodPost,
 		Action:   "",
 		Fields: []widget.FormControl{
 			{
@@ -36,10 +37,9 @@ func NewSignUpForm(value admin.SignUp) widget.Form {
 				Required: true,
 			},
 		},
-		SubmitBtn: widget.Button{
-			DisableWith: "正在创建...",
-			Text:        "创建账号",
-		},
+		SubmitBtn: widget.PrimaryBlockBtn.
+			SetName("创建账号").
+			SetDisabledText("正在创建..."),
 		CancelBtn: widget.Link{},
 		DeleteBtn: widget.Link{},
 	}
