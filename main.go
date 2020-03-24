@@ -67,7 +67,7 @@ func main() {
 		emailConn.User,
 		emailConn.Pass)
 
-	signInRouter := controllers.NewBarrierRouter(db, post)
+	barrierRouter := controllers.NewBarrierRouter(db, post)
 	readersRouter := controllers.NewReadersRouter(db, post)
 
 	e := echo.New()
@@ -94,32 +94,32 @@ func main() {
 	}, controllers.RequireLoggedIn)
 
 	// Show login page.
-	e.GET(controllers.SiteMap.Login, signInRouter.GetLogin, controllers.RedirectIfLoggedIn)
+	e.GET(controllers.SiteMap.Login, barrierRouter.GetLogin, controllers.RedirectIfLoggedIn)
 	// Handle login: verify password, set session, cookie, etc..
-	e.POST(controllers.SiteMap.Login, signInRouter.PostLogin)
+	e.POST(controllers.SiteMap.Login, barrierRouter.PostLogin)
 
-	e.GET(controllers.SiteMap.SignUp, signInRouter.GetSignUp, controllers.RedirectIfLoggedIn)
-	e.POST(controllers.SiteMap.SignUp, signInRouter.PostSignUp)
+	e.GET(controllers.SiteMap.SignUp, barrierRouter.GetSignUp, controllers.RedirectIfLoggedIn)
+	e.POST(controllers.SiteMap.SignUp, barrierRouter.PostSignUp)
 
 	// Clear all cookies.
-	e.GET(controllers.SiteMap.LogOut, signInRouter.LogOut)
+	e.GET(controllers.SiteMap.LogOut, barrierRouter.LogOut)
 
 	// Show resetting-password page.
-	e.GET(controllers.SiteMap.ForgotPassword, signInRouter.GetResetPassword)
+	e.GET(controllers.SiteMap.ForgotPassword, barrierRouter.GetResetPassword)
 	// Handle resetting password
-	e.POST(controllers.SiteMap.ForgotPassword, signInRouter.PostResetPassword)
+	e.POST(controllers.SiteMap.ForgotPassword, barrierRouter.PostResetPassword)
 
 	pwResetGroup := e.Group(controllers.SiteMap.ForgotPassword)
 	// Ask user to enter email address in case password forgotten.
-	pwResetGroup.GET("/letter", signInRouter.GetForgotPassword)
+	pwResetGroup.GET("/letter", barrierRouter.GetForgotPassword)
 	// Sending forgot-password email
-	pwResetGroup.POST("/letter", signInRouter.PostForgotPassword)
+	pwResetGroup.POST("/letter", barrierRouter.PostForgotPassword)
 
 	// Verify forgot-password token.
 	// If valid, redirect to /forgot-password.
 	// If invalid, redirect to /forgot-password/letter to ask
 	// user to enter email again.
-	pwResetGroup.GET("/token/:token", signInRouter.VerifyPasswordToken)
+	pwResetGroup.GET("/token/:token", barrierRouter.VerifyPasswordToken)
 
 	e.GET("/readers", readersRouter.GetUserList, controllers.RequireLoggedIn)
 	//readersGroup := e.Group("/readers")
