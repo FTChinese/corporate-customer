@@ -5,6 +5,24 @@ import (
 	"strings"
 )
 
+type Identity struct {
+	Email  string `form:"email"`
+	Errors map[string]string
+}
+
+func (i *Identity) Sanitize() {
+	i.Email = strings.TrimSpace(i.Email)
+}
+
+func (i Identity) Validate() bool {
+	msg := validator.New("邮箱").Required().Email().Validate(i.Email)
+	if msg != "" {
+		i.Errors["email"] = msg
+	}
+
+	return len(i.Errors) == 0
+}
+
 type Login struct {
 	Email    string `form:"email"`
 	Password string `form:"password"`
