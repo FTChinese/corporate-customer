@@ -113,7 +113,7 @@ func main() {
 	// Ask user to enter email address in case password forgotten.
 	pwResetGroup.GET("/letter", signInRouter.GetForgotPassword)
 	// Sending forgot-password email
-	pwResetGroup.POST("/letter", signInRouter.PostResetPassword)
+	pwResetGroup.POST("/letter", signInRouter.PostForgotPassword)
 
 	// Verify forgot-password token.
 	// If valid, redirect to /forgot-password.
