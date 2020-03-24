@@ -11,6 +11,14 @@ Make sure you have a configuration file under you home directory: `~/config/api.
     pass = "" # string, your db password
 ```
 
+### Go get
+
+Enable GOPROXY environment variable so that `go build` command could visit an accessible module server.
+
+Linux/Max: `export GOPROXY=https://goproxy.io`
+
+For windows, open your terminal `$Env:GOPROXY=https://goproxy.io`
+
 ### Front-end Assets
 
 Run command: `cd client && npm install && npm run build`
