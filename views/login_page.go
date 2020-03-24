@@ -8,6 +8,7 @@ import (
 func NewLoginForm(value admin.Login) widget.Form {
 	return widget.Form{
 		Disabled: false,
+		Method:   widget.MethodPost,
 		Action:   "",
 		Fields: []widget.FormControl{
 			{
@@ -28,10 +29,9 @@ func NewLoginForm(value admin.Login) widget.Form {
 				Required: true,
 			},
 		},
-		SubmitBtn: widget.Button{
-			DisableWith: "正在登录...",
-			Text:        "登录",
-		},
+		SubmitBtn: widget.PrimaryBlockBtn.
+			SetName("登录").
+			SetDisabledText("正在登录..."),
 		CancelBtn: widget.Link{},
 		DeleteBtn: widget.Link{},
 	}
