@@ -24,11 +24,11 @@
 
     </div>
 
-    {% include "partials/button.html" %}
+    {% include "partials/button.html" with button=form.SubmitBtn %}
 </form>
 
 <div class="d-flex justify-content-between mt-4">
-    <a href="/forgot-password">忘记密码？</a>
+    <a href="/forgot-password/letter">忘记密码？</a>
     <a href="/signup">创建账号</a>
 </div>
 

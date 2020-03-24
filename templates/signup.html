@@ -4,15 +4,6 @@
 
 <h4 class="text-center">创建B2B订阅管理员账号</h4>
 
-<form method="post">
-
-    {% for input in form.Fields %}
-    <div class="form-group">
-        {% include "partials/text-field.html" %}
-    </div>
-    {% endfor %}
-
-    {% include "partials/button.html" %}
-</form>
+{% include "partials/text-form.html" %}
 
 {% endblock %}
