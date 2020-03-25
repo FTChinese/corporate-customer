@@ -9,7 +9,7 @@ import (
 // An account might manage multiple teams/organizations.
 // Currently we allow only one team per account.
 type Account struct {
-	ID          string      `db:"account_id"`
+	ID          string      `db:"admin_id"`
 	Email       string      `db:"email"`
 	DisplayName null.String `db:"display_name"`
 	CreatedUTC  chrono.Time `db:"created_utc"`
