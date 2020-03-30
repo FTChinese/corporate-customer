@@ -1,29 +1,78 @@
 package admin
 
 import (
-	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
+	"github.com/google/uuid"
 )
 
+// Login is used to verify user's credentials.
 type Login struct {
-	Email    string
-	Password string
+	Email    string `db:"admin_id"`
+	Password string `db:"password"`
+}
+
+// NewLogin creates a new instance of  Login from input data.
+func NewLogin(a AccountForm) Login {
+	return Login{
+		Email:    a.Email,
+		Password: a.Password,
+	}
+}
+
+// Verifier holds email verification data.
+type Verifier struct {
+	ID    string `db:"admin_id"`
+	Token string `db:"token"`
+}
+
+// NewVerifier creates a new verification token for a new user
+// if id is empty, or regenerate a token for existing user
+// if id is provided.
+func NewVerifier(id string) (Verifier, error) {
+	token, err := rand.Hex(32)
+	if err != nil {
+		return Verifier{}, err
+	}
+
+	if id == "" {
+		id = uuid.New().String()
+	}
+	return Verifier{
+		ID:    id,
+		Token: token,
+	}, nil
 }
 
 // SignUp is user's sign up data.
 type SignUp struct {
-	ID           string `db:"admin_id"`
-	Email        string `db:"email"`
-	Password     string `db:"password"`
-	Verification string `db:"vrf_token"`
+	Verifier
+	Login
 }
 
+// SignUp creates a new instance of SignUp from input data.
+func NewSignUp(a AccountForm) (SignUp, error) {
+
+	v, err := NewVerifier("")
+	if err != nil {
+		return SignUp{}, err
+	}
+
+	return SignUp{
+		Verifier: v,
+		Login: Login{
+			Email:    a.Email,
+			Password: a.Password,
+		},
+	}, nil
+}
+
+// PasswordResetter holds the token to identify password resetting owner.
 type PasswordResetter struct {
-	Token string `db:"token"`
 	Email string `db:"email"`
+	Token string `db:"token"`
 }
 
-func NewPasswordReseter(email string) (PasswordResetter, error) {
+func NewPasswordResetter(email string) (PasswordResetter, error) {
 	token, err := rand.Hex(32)
 	if err != nil {
 		return PasswordResetter{}, err
@@ -32,12 +81,6 @@ func NewPasswordReseter(email string) (PasswordResetter, error) {
 		Token: token,
 		Email: email,
 	}, nil
-}
-
-type PasswordResettingAccount struct {
-	Account                // The account whose password will be reset
-	ExpiresIn  int64       `db:"expires_in"`  // Token duration.
-	CreatedUTC chrono.Time `db:"created_utc"` // Token creation time
 }
 
 // Credentials is used to update user's password.
