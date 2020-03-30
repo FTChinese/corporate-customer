@@ -96,25 +96,3 @@ func (a *AccountForm) ValidatePasswordReset() bool {
 
 	return len(a.Errors) == 0
 }
-
-// Login creates Login type from input data
-func (a AccountForm) NewLogin() Login {
-	return Login{
-		Email:    a.Email,
-		Password: a.Password,
-	}
-}
-
-// SignUp create SignUp type from input data.
-func (a AccountForm) NewSignUp() (SignUp, error) {
-	token, err := rand.Hex(32)
-	if err != nil {
-		return SignUp{}, err
-	}
-	return SignUp{
-		ID:           uuid.New().String(),
-		Email:        a.Email,
-		Password:     a.Password,
-		Verification: token,
-	}, nil
-}
