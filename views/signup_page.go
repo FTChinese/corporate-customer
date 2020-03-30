@@ -5,7 +5,7 @@ import (
 	"github.com/FTChinese/b2b/widget"
 )
 
-func NewSignUpForm(value admin.SignUp) widget.Form {
+func NewSignUpForm(value admin.AccountForm) widget.Form {
 	return widget.Form{
 		Disabled: false,
 		Method:   widget.MethodPost,

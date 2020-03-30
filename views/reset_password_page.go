@@ -5,7 +5,7 @@ import (
 	"github.com/FTChinese/b2b/widget"
 )
 
-func NewResetLetterForm(i admin.Identity) widget.Form {
+func NewResetLetterForm(a admin.AccountForm) widget.Form {
 	return widget.Form{
 		Disabled: false,
 		Method:   widget.MethodPost,
@@ -16,7 +16,7 @@ func NewResetLetterForm(i admin.Identity) widget.Form {
 				ID:          "email",
 				Type:        widget.ControlTypeEmail,
 				Name:        "email",
-				Value:       i.Email,
+				Value:       a.Email,
 				Placeholder: "admin@example.org",
 				Required:    true,
 			},

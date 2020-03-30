@@ -9,21 +9,21 @@ import (
 
 func (router BarrierRouter) GetSignUp(c echo.Context) error {
 	ctx := views.NewCtxBuilder().
-		WithForm(views.NewSignUpForm(admin.SignUp{})).
+		WithForm(views.NewSignUpForm(admin.AccountForm{})).
 		Build()
 
 	return c.Render(http.StatusOK, "signup.html", ctx)
 }
 
 func (router BarrierRouter) PostSignUp(c echo.Context) error {
-	var s admin.SignUp
-	if err := c.Bind(&s); err != nil {
+	var af admin.AccountForm
+	if err := c.Bind(&af); err != nil {
 		return err
 	}
 
-	if ok := s.Sanitize().Validate(); !ok {
+	if ok := af.ValidateSignUp(); !ok {
 		ctx := views.NewCtxBuilder().
-			WithForm(views.NewSignUpForm(s)).
+			WithForm(views.NewSignUpForm(af)).
 			Build()
 
 		return c.Render(http.StatusOK, "signup.html", ctx)
@@ -32,7 +32,7 @@ func (router BarrierRouter) PostSignUp(c echo.Context) error {
 	// TODO: Save signup data to db; retrieve the account.
 
 	sess := createSession(c)
-	sess.Values[loggedInKey] = s.Email
+	sess.Values[loggedInKey] = af.Email
 	sess.Save(c.Request(), c.Response())
 
 	return c.Redirect(http.StatusFound, SiteMap.Home)

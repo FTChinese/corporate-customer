@@ -22,7 +22,7 @@ func NewBarrierRouter(db *sqlx.DB, p postoffice.Postman) BarrierRouter {
 
 func (router BarrierRouter) GetLogin(c echo.Context) error {
 	ctx := views.NewCtxBuilder().
-		WithForm(views.NewLoginForm(admin.Login{})).
+		WithForm(views.NewLoginForm(admin.AccountForm{})).
 		Build()
 
 	return c.Render(http.StatusOK, "login.html", ctx)
@@ -40,21 +40,21 @@ func createSession(c echo.Context) *sessions.Session {
 }
 
 func (router BarrierRouter) PostLogin(c echo.Context) error {
-	var l admin.Login
-	if err := c.Bind(&l); err != nil {
+	var af admin.AccountForm
+	if err := c.Bind(&af); err != nil {
 		return err
 	}
 
-	if ok := l.Sanitize().Validate(); !ok {
+	if ok := af.ValidateLogin(); !ok {
 		ctx := views.NewCtxBuilder().
-			WithForm(views.NewLoginForm(l)).
+			WithForm(views.NewLoginForm(af)).
 			Build()
 
 		return c.Render(http.StatusOK, "login.html", ctx)
 	}
 
 	sess := createSession(c)
-	sess.Values[loggedInKey] = l.Email
+	sess.Values[loggedInKey] = af.Email
 	sess.Save(c.Request(), c.Response())
 
 	return c.Redirect(http.StatusFound, SiteMap.Home)
