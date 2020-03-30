@@ -1,4 +1,4 @@
-package barrier
+package repository
 
 import (
 	"github.com/jmoiron/sqlx"
@@ -9,8 +9,4 @@ var logger = logrus.WithField("package", "repository")
 
 type Env struct {
 	db *sqlx.DB
-}
-
-func (env Env) Login() (string, error) {
-
 }
