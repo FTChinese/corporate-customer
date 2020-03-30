@@ -7,7 +7,7 @@ INSERT INTO b2b.admin
 SET id = :admin_id,
 	email = :email,
 	password_sha2 = UNHEX(SHA2(:password, 256)),
-	vrf_token = UNHEX(:vrf_token),
+	vrf_token = UNHEX(:token),
 	created_utc = UTC_TIMESTAMP(),
 	updated_utc = UTC_TIMESTAMP()`
 
