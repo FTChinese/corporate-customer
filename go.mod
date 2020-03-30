@@ -9,7 +9,7 @@ require (
 	github.com/brianvoe/gofakeit/v4 v4.2.3 // indirect
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/google/uuid v1.1.1 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/gorilla/sessions v1.2.0
 	github.com/guregu/null v3.4.0+incompatible
 	github.com/jmoiron/sqlx v1.2.0
