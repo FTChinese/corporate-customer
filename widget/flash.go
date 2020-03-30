@@ -8,8 +8,9 @@ const (
 )
 
 type Flash struct {
-	Message string
-	Kind    FlashKind
+	Message     string
+	Kind        FlashKind
+	Dismissible bool
 }
 
 func NewFlash(msg string) *Flash {
@@ -25,5 +26,10 @@ func (f *Flash) SetSuccess() *Flash {
 
 func (f *Flash) SetDanger() *Flash {
 	f.Kind = FlashKindDanger
+	return f
+}
+
+func (f *Flash) SetDismissible() *Flash {
+	f.Dismissible = true
 	return f
 }
