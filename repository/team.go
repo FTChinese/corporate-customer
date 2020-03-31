@@ -1,4 +1,4 @@
-package stmt
+package repository
 
 const InsertTeam = `
 INSERT INTO b2b.team

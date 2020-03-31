@@ -1,4 +1,4 @@
-package stmt
+package repository
 
 const CreateOrder = `
 INSERT into b2b.transaction
