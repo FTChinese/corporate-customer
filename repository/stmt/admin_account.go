@@ -1,3 +1,5 @@
+// Package stmt provides shared, reusable SQL statements.
+// Most of them cannot be executed alone.
 package stmt
 
 const AccountBase = `
