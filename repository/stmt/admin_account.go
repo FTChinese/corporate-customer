@@ -10,3 +10,10 @@ SELECT a.id AS admin_id,
 	a.verified AS verified,
 	a.created_utc AS created_utc,
 	a.updated_utc AS updated_utc`
+
+const TeamBase = `
+SELECT id AS team_id
+	name,
+	invoice_tile,
+	created_utc
+FROM b2b.team`
