@@ -2,8 +2,6 @@ package admin
 
 import (
 	"github.com/FTChinese/b2b/models/validator"
-	"github.com/FTChinese/go-rest/rand"
-	"github.com/google/uuid"
 	"strings"
 )
 
