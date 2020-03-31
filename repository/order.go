@@ -1,8 +1,9 @@
 package repository
 
-const CreateOrder = `
-INSERT into b2b.transaction
-SET id = :tnx_id,
+const stmtCreateOrder = `
+INSERT into b2b.order
+SET id = :order_id,
+	plan_id = :plan_id,
 	price = :price,
 	amount = :amount,
 	tier = :tier,
