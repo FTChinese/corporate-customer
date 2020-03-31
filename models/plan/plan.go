@@ -30,6 +30,8 @@ type Plan struct {
 // above 30 copies use the 30 tier.
 // Given a purchase of 25 copies, we should use the 20 tier;
 // for 40 copies, use the 30 tier.
+// The Discounts array should be sorted by Quantity on
+// ascending order.
 // The final price payable: p.Price - Discount.PriceOff
 func (p Plan) FindDiscount(q int64) Discount {
 	if p.Discounts == nil {
