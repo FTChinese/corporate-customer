@@ -52,10 +52,10 @@ FROM cmstmp01.uerinfo AS u
 WHERE u.email = ?
 LIMIT 1`
 
-func (env Env) LoadInvitee(email string) (admin.Invitation, error) {
+func (env Env) LoadInvitee(email string) (admin.Invitee, error) {
 	var i admin.Invitee
 	if err := env.db.Get(&i, stmtInvitee, email); err != nil {
-		return admin.Invitation{}, err
+		return admin.Invitee{}, err
 	}
 
 	return i, nil
