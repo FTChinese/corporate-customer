@@ -1,6 +1,13 @@
 package admin
 
-import "github.com/FTChinese/go-rest/chrono"
+import (
+	"github.com/FTChinese/b2b/models/validator"
+	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/go-rest/rand"
+	"github.com/guregu/null"
+	"strings"
+	"time"
+)
 
 // Invitation is an email sent to team member
 // to accept a licence.
@@ -33,11 +40,65 @@ import "github.com/FTChinese/go-rest/chrono"
 // * The InviteeEmail does not have valid subscription.
 type Invitation struct {
 	ID            string      `db:"invitation_id"`
+	LicenceID     string      `db:"licence_id"`
+	TeamID        string      `db:"team_id"`
 	Token         string      `db:"token"`
 	InviteeEmail  string      `db:"invitee_email"`
 	ExpiresInDays int64       `db:"expires_in_days"`
+	Description   null.String `db:"description"`
 	Accepted      bool        `db:"accepted"`
+	Revoked       bool        `db:"revoked"`
 	CreatedUTC    chrono.Time `db:"created_utc"`
 	UpdatedUTC    chrono.Time `db:"updated_utc"`
-	LicenceID     string      `db:"licence_id"`
+}
+
+func NewInvitation(f InvitationForm) (Invitation, error) {
+	token, err := rand.Hex(32)
+	if err != nil {
+		return Invitation{}, err
+	}
+	return Invitation{
+		ID:           "inv_" + rand.String(12),
+		LicenceID:    "",
+		TeamID:       "",
+		Token:        token,
+		InviteeEmail: f.Email,
+		Description:  null.NewString(f.Description, f.Description != ""),
+	}, nil
+}
+
+func (i Invitation) Expired() bool {
+	now := time.Now().Unix()
+
+	created := i.CreatedUTC.Time.Unix()
+
+	// Default 7 days * 24 * 60 * 60
+	return (created + i.ExpiresInDays*86400) < now
+}
+
+func (i Invitation) IsValid() bool {
+	return !i.Expired() && !i.Revoked && !i.Accepted
+}
+
+type InvitationForm struct {
+	Email       string `form:"email"`
+	Description string `form:"description"`
+	Errors      map[string]string
+}
+
+func (f *InvitationForm) Validate() bool {
+	f.Email = strings.TrimSpace(f.Email)
+	f.Description = strings.TrimSpace(f.Description)
+
+	msg := validator.New("邮箱").Required().Email().Validate(f.Email)
+	if msg != "" {
+		f.Errors["email"] = msg
+	}
+
+	msg = validator.New("备注").Max(512).Validate(f.Description)
+	if msg != "" {
+		f.Errors["description"] = msg
+	}
+
+	return len(f.Errors) != 0
 }
