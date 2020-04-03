@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/FTChinese/b2b/models/admin"
+	"github.com/FTChinese/b2b/models/form"
 	"github.com/FTChinese/b2b/views"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/gorilla/sessions"
@@ -13,16 +13,16 @@ import (
 
 type BarrierRouter struct {
 	db   *sqlx.DB
-	post postoffice.Postman
+	post postoffice.PostOffice
 }
 
-func NewBarrierRouter(db *sqlx.DB, p postoffice.Postman) BarrierRouter {
+func NewBarrierRouter(db *sqlx.DB, p postoffice.PostOffice) BarrierRouter {
 	return BarrierRouter{db: db, post: p}
 }
 
 func (router BarrierRouter) GetLogin(c echo.Context) error {
 	ctx := views.NewCtxBuilder().
-		WithForm(views.NewLoginForm(admin.AccountForm{})).
+		WithForm(views.NewLoginForm(form.AccountForm{})).
 		Build()
 
 	return c.Render(http.StatusOK, "login.html", ctx)
@@ -40,7 +40,7 @@ func createSession(c echo.Context) *sessions.Session {
 }
 
 func (router BarrierRouter) PostLogin(c echo.Context) error {
-	var af admin.AccountForm
+	var af form.AccountForm
 	if err := c.Bind(&af); err != nil {
 		return err
 	}
