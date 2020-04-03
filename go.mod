@@ -3,7 +3,7 @@ module github.com/FTChinese/b2b
 go 1.13
 
 require (
-	github.com/FTChinese/go-rest v0.4.1
+	github.com/FTChinese/go-rest v0.4.5
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
 	github.com/brianvoe/gofakeit/v4 v4.2.3 // indirect
