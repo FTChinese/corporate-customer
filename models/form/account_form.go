@@ -1,4 +1,4 @@
-package admin
+package form
 
 import (
 	"github.com/FTChinese/b2b/models/validator"
