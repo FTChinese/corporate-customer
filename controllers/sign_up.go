@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/FTChinese/b2b/models/admin"
+	"github.com/FTChinese/b2b/models/form"
 	"github.com/FTChinese/b2b/views"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -9,14 +9,14 @@ import (
 
 func (router BarrierRouter) GetSignUp(c echo.Context) error {
 	ctx := views.NewCtxBuilder().
-		WithForm(views.NewSignUpForm(admin.AccountForm{})).
+		WithForm(views.NewSignUpForm(form.AccountForm{})).
 		Build()
 
 	return c.Render(http.StatusOK, "signup.html", ctx)
 }
 
 func (router BarrierRouter) PostSignUp(c echo.Context) error {
-	var af admin.AccountForm
+	var af form.AccountForm
 	if err := c.Bind(&af); err != nil {
 		return err
 	}
