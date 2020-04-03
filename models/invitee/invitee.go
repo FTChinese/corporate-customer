@@ -1,9 +1,9 @@
-package admin
+package invitee
 
 import (
-	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/go-rest/enum"
-	"github.com/guregu/null"
+	"github.com/FTChinese/b2b/models/form"
+	"github.com/FTChinese/go-rest/rand"
+	"github.com/google/uuid"
 )
 
 // Invitee is a member of a team who will be granted
@@ -24,16 +24,41 @@ import (
 // backup existing membership and update membership.
 // 6. Mark the invitation as accepted;
 type Invitee struct {
-	FtcID      string         `db:"ftc_id"`
-	Email      string         `db:"email"`
-	MemberID   null.String    `db:"mmb_id"`
-	Tier       enum.Tier      `db:"mmb_tier"`
-	Cycle      enum.Cycle     `db:"mmb_cycle"`
-	ExpireDate chrono.Date    `db:"mmb_expire_date"`
-	PayMethod  enum.PayMethod `db:"mmb_pay_method"`
-	VIP        bool           `db:"is_vip"`
+	FtcID string `db:"ftc_id"`
+	Email string `db:"email"`
+	VIP   bool   `db:"is_vip"`
+	Membership
 }
 
-func (i Invitee) HasMembership() bool {
-	return i.Tier != enum.TierNull
+// SignUp is used to create a new ftc user.
+type SignUp struct {
+	ID       string `db:"ftc_id"`
+	Email    string `db:"email"`
+	Password string `db:"password"`
+	Token    string `db:"token"` // verification token
+}
+
+func NewSignUp(f form.AccountForm) (SignUp, error) {
+	t, err := rand.Hex(32)
+
+	if err != nil {
+		return SignUp{}, err
+	}
+
+	return SignUp{
+		ID:       uuid.New().String(),
+		Email:    f.Email,
+		Password: f.Password,
+		Token:    t,
+	}, nil
+}
+
+// Turn the Invitee for a new signup.
+func (s SignUp) Invitee() Invitee {
+	return Invitee{
+		FtcID:      s.ID,
+		Email:      s.Email,
+		VIP:        false,
+		Membership: Membership{},
+	}
 }
