@@ -1,18 +1,19 @@
 package admin
 
 import (
+	"github.com/FTChinese/b2b/models/form"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/google/uuid"
 )
 
 // Login is used to verify user's credentials.
 type Login struct {
-	Email    string `db:"admin_id"`
+	Email    string `db:"email"`
 	Password string `db:"password"`
 }
 
 // NewLogin creates a new instance of  Login from input data.
-func NewLogin(a AccountForm) Login {
+func NewLogin(a form.AccountForm) Login {
 	return Login{
 		Email:    a.Email,
 		Password: a.Password,
@@ -50,7 +51,7 @@ type SignUp struct {
 }
 
 // SignUp creates a new instance of SignUp from input data.
-func NewSignUp(a AccountForm) (SignUp, error) {
+func NewSignUp(a form.AccountForm) (SignUp, error) {
 
 	v, err := NewVerifier("")
 	if err != nil {
