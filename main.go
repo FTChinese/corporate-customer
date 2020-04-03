@@ -61,7 +61,7 @@ func main() {
 	}
 
 	emailConn := MustGetEmailConn()
-	post := postoffice.NewPostman(
+	post := postoffice.New(
 		emailConn.Host,
 		emailConn.Port,
 		emailConn.User,
