@@ -9,10 +9,10 @@ import (
 
 type ReadersRouter struct {
 	db   *sqlx.DB
-	post postoffice.Postman
+	post postoffice.PostOffice
 }
 
-func NewReadersRouter(db *sqlx.DB, p postoffice.Postman) ReadersRouter {
+func NewReadersRouter(db *sqlx.DB, p postoffice.PostOffice) ReadersRouter {
 	return ReadersRouter{
 		db:   db,
 		post: p,
