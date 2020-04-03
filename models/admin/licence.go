@@ -29,9 +29,18 @@ type Licence struct {
 	Active     bool        `db:"is_active"`
 	CreatedUTC chrono.Time `db:"created_utc"`
 	UpdatedUTC chrono.Time `db:"updated_utc"`
-	Plan       plan.BasePlan
 }
 
 func (l Licence) IsAvailable() bool {
 	return l.AssigneeID.IsZero()
+}
+
+func (l *Licence) AssignTo(ftcID string) {
+	l.AssigneeID = null.StringFrom(ftcID)
+	l.Active = true
+}
+
+type ExpandedLicence struct {
+	Licence
+	Plan plan.BasePlan
 }
