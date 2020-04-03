@@ -67,6 +67,10 @@ func NewInvitation(f InvitationForm) (Invitation, error) {
 	}, nil
 }
 
+func (i *Invitation) Accept() {
+	i.Accepted = true
+}
+
 func (i Invitation) Expired() bool {
 	now := time.Now().Unix()
 
@@ -78,6 +82,21 @@ func (i Invitation) Expired() bool {
 
 func (i Invitation) IsValid() bool {
 	return !i.Expired() && !i.Revoked && !i.Accepted
+}
+
+// ExpandedInvitation contains the details of an invitation,
+// which licence it is grating, and which team send the
+// invitation.
+// This is used to show a single invitation to the admin,
+// or when we are verifying a user's attempt to accept the
+// invitation.
+// Using a JOIN to retrieve the invitation and licence by
+// licence id, and then retrieve the team and the
+// licence's plan, which should be in the cache.
+type ExpandedInvitation struct {
+	Invitation
+	Licence ExpandedLicence
+	Team    Team
 }
 
 type InvitationForm struct {
