@@ -13,17 +13,6 @@ SELECT plan_id,
 	quantity,
 	price_off`
 
-const Licence = `
-SELECT id AS licence_id,
-	plan_id,
-	team_id,
-	expire_date,
-	assignee_id
-	is_active,
-	created_utc,
-	updated_utc
-FROM b2b.licence`
-
 const Order = `
 SELECT id AS order_id,
 	plan_id,
@@ -38,6 +27,20 @@ SELECT id AS order_id,
 	confirmed_utc
 FROM b2b.order`
 
+const Licence = `
+SELECT id AS licence_id,
+	plan_id,
+	team_id,
+	expire_date,
+	assignee_id
+	is_active,
+	created_utc,
+	updated_utc
+FROM b2b.licence`
+
+// Invitation is used to retrieve to list all, show a single one to admin, an expanded
+// version when user is accepting it, or
+// locking when granting licence.
 const Invitation = `
 SELECT id AS invitation_id,
 	licence_id,
