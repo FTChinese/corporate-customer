@@ -7,15 +7,18 @@ import (
 	"github.com/FTChinese/go-rest/enum"
 )
 
-type Plan struct {
+type BasePlan struct {
 	ID         string      `db:"plan_id"`
 	Price      float64     `db:"price"`
 	Tier       enum.Tier   `db:"tier"`
 	Cycle      enum.Cycle  `db:"cycle"`
 	TrialDays  int64       `db:"trial_days"`
 	CreatedUTC chrono.Time `db:"created_utc"`
-	Order      int64       `db:"order_weight"`
-	Discounts  []Discount
+}
+
+type Plan struct {
+	BasePlan
+	Discounts []Discount
 }
 
 // FindDiscount find out which discount will be used
