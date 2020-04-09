@@ -14,8 +14,8 @@ i.created_utc AS inv_created_utc,
 i.updated_utc AS inv_updated_utc`
 
 var selectExpInvtBuilder = builder.NewSelect().
-	AddColumn(invitationCols).
-	AddColumn(readerAccountCols).
+	AddRawColumn(invitationCols).
+	AddRawColumn(readerAccountCols).
 	From(`b2b.invitation AS i
 LEFT JOIN cmstmp01.userinfo AS u
 	ON i.invitee_email = u.email`)
@@ -47,7 +47,7 @@ var FindExpandedInvitation = selectExpInvtBuilder.
 // LockInvitation locks a row in invitation
 // when granting user a licence.
 var LockInvitation = builder.NewSelect().
-	AddColumn(invitationCols).
+	AddRawColumn(invitationCols).
 	From(`b2b.invitation AS i`).
 	Where("i.id = ?").
 	Limit(1).

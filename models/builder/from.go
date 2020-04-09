@@ -9,6 +9,7 @@ type From struct {
 func NewFrom(t Table) From {
 	return From{
 		parts: []string{
+			"FROM",
 			t.Build(),
 		},
 	}

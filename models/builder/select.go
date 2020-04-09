@@ -6,7 +6,7 @@ import (
 )
 
 type Select struct {
-	cols    []string
+	rawCols []string
 	from    string
 	where   string
 	orderBy string
@@ -17,7 +17,7 @@ type Select struct {
 
 func NewSelect() Select {
 	return Select{
-		cols:    make([]string, 0),
+		rawCols: make([]string, 0),
 		from:    "",
 		orderBy: "",
 		limit:   0,
@@ -25,8 +25,8 @@ func NewSelect() Select {
 	}
 }
 
-func (s Select) AddColumn(col string) Select {
-	s.cols = append(s.cols, col)
+func (s Select) AddRawColumn(col string) Select {
+	s.rawCols = append(s.rawCols, col)
 	return s
 }
 
@@ -69,7 +69,7 @@ func (s Select) Lock() Select {
 func (s Select) Build() string {
 	var buf strings.Builder
 	buf.WriteString("SELECT ")
-	buf.WriteString(strings.Join(s.cols, ","))
+	buf.WriteString(strings.Join(s.rawCols, ","))
 	buf.WriteByte(' ')
 	buf.WriteString("FROM ")
 	buf.WriteString(s.from)

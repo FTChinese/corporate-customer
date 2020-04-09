@@ -12,9 +12,9 @@ l.created_utc AS created_utc,
 l.updated_utc AS updated_utc`
 
 var selectExpandedLicence = builder.NewSelect().
-	AddColumn(licenceCols).
-	AddColumn(planCols).
-	AddColumn(readerAccountCols).
+	AddRawColumn(licenceCols).
+	AddRawColumn(planCols).
+	AddRawColumn(readerAccountCols).
 	From(`b2b.licence AS l
 LEFT JOIN subs.plan AS p
 	ON l.plan_id = p.id
@@ -44,7 +44,7 @@ var ListExpandedLicences = selectExpandedLicence.
 // LockLicence locks a row of licence
 // when granting it to user.
 var LockLicence = builder.NewSelect().
-	AddColumn(licenceCols).
+	AddRawColumn(licenceCols).
 	From("b2b.licence AS l").
 	Where("l.id = ?").
 	Limit(1).
