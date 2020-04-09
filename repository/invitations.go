@@ -25,20 +25,22 @@ func (env Env) CreateInvitation(inv admin.Invitation) error {
 	return nil
 }
 
-const stmtListInvitation = stmt.Invitation + `
-WHERE team_id = ?
-ORDER BY created_utc DESC`
+// List invitations shows a list of invitations for a team.
+func (env Env) ListInvitations(teamID string) ([]admin.ExpandedInvitation, error) {
+	var invs = make([]admin.InvitationSchema, 0)
 
-func (env Env) ListInvitations(teamID string) ([]admin.Invitation, error) {
-	var invs = make([]admin.Invitation, 0)
-
-	err := env.db.Select(&invs, stmtListInvitation, teamID)
+	err := env.db.Select(&invs, stmt.ListExpandedInvitation, teamID)
 
 	if err != nil {
-		return invs, err
+		return nil, err
 	}
 
-	return invs, nil
+	eis := make([]admin.ExpandedInvitation, 0)
+	for _, v := range invs {
+		eis = append(eis, v.ExpandedInvitation())
+	}
+
+	return eis, nil
 }
 
 const stmtRevokeInvitation = `
@@ -59,19 +61,14 @@ func (env Env) RevokeInvitation(id, teamID string) error {
 	return nil
 }
 
-const stmtInvitation = `
-WHERE id = ?
-	AND team_id = ?
-LIMIT 1`
-
 // LoadInvitation shows a single invitation to admin.
-func (env Env) LoadInvitation(id, teamID string) (admin.Invitation, error) {
-	var i admin.Invitation
-	err := env.db.Get(&i, stmtInvitation, id, teamID)
+func (env Env) LoadInvitation(id, teamID string) (admin.ExpandedInvitation, error) {
+	var i admin.InvitationSchema
+	err := env.db.Get(&i, stmt.ExpandedInvitation, id, teamID)
 
 	if err != nil {
-		return i, err
+		return admin.ExpandedInvitation{}, err
 	}
 
-	return i, nil
+	return i.ExpandedInvitation(), nil
 }

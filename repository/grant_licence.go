@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"github.com/FTChinese/b2b/models/admin"
-	"github.com/FTChinese/b2b/models/invitee"
+	"github.com/FTChinese/b2b/models/reader"
 	"github.com/FTChinese/b2b/repository/stmt"
 	"github.com/jmoiron/sqlx"
 )
@@ -24,8 +24,8 @@ LIMIT 1
 FOR UPDATE`
 
 // RetrieveMembership locks a reader's membership row if it present.
-func (tx GrantTx) LockMembership(id string) (invitee.Membership, error) {
-	var m invitee.Membership
+func (tx GrantTx) LockMembership(id string) (reader.Membership, error) {
+	var m reader.Membership
 
 	err := tx.Get(&m, stmtMembership)
 	if err != nil && err != sql.ErrNoRows {
@@ -37,15 +37,10 @@ func (tx GrantTx) LockMembership(id string) (invitee.Membership, error) {
 	return m, nil
 }
 
-const stmtLockInvitation = stmt.Invitation + `
-WHERE id = ?
-LIMIT 1
-FOR UPDATE`
-
 // LockInvitation locks an invitation for update.
 func (tx GrantTx) LockInvitation(id string) (admin.Invitation, error) {
 	var i admin.Invitation
-	err := tx.Get(&i, stmtLockInvitation, id)
+	err := tx.Get(&i, stmt.LockInvitation, id)
 	if err != nil {
 		return i, err
 	}
@@ -53,15 +48,10 @@ func (tx GrantTx) LockInvitation(id string) (admin.Invitation, error) {
 	return i, nil
 }
 
-const stmtLockLicence = stmt.Licence + `
-WHERE id = ?
-LIMIT 1
-FOR UPDATE`
-
 // LockLicence locks a licence for update.
 func (tx GrantTx) LockLicence(id string) (admin.Licence, error) {
 	var l admin.Licence
-	err := tx.Get(&l, stmtLockLicence, id)
+	err := tx.Get(&l, stmt.LockLicence, id)
 	if err != nil {
 		return l, err
 	}
@@ -69,7 +59,7 @@ func (tx GrantTx) LockLicence(id string) (admin.Licence, error) {
 	return l, nil
 }
 
-func (tx GrantTx) InsertMembership(m invitee.Membership) error {
+func (tx GrantTx) InsertMembership(m reader.Membership) error {
 	_, err := tx.NamedExec(stmt.InsertMembership, m)
 
 	if err != nil {
@@ -79,7 +69,7 @@ func (tx GrantTx) InsertMembership(m invitee.Membership) error {
 	return nil
 }
 
-func (tx GrantTx) UpdateMembership(m invitee.Membership) error {
+func (tx GrantTx) UpdateMembership(m reader.Membership) error {
 	_, err := tx.NamedExec(stmt.UpdateMembership, m)
 
 	if err != nil {

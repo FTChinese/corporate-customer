@@ -21,33 +21,31 @@ func (env Env) CreateLicence(l admin.Licence) error {
 	return nil
 }
 
-const stmtLicence = stmt.Licence + `
-WHERE id = ?
-	AND team_id = ?
-LIMIT 1`
-
-func (env Env) LoadLicence(id, teamID string) (admin.Licence, error) {
-	var l admin.Licence
-	err := env.db.Get(&l, stmtLicence, id, teamID)
+// LoadLicence retrieves an expanded licence
+// belong to a team.
+func (env Env) LoadLicence(id, teamID string) (admin.ExpandedLicence, error) {
+	var ls admin.LicenceSchema
+	err := env.db.Get(&ls, stmt.ExpandedLicence, id, teamID)
 
 	if err != nil {
-		return l, err
+		return admin.ExpandedLicence{}, err
 	}
 
-	return l, nil
+	return ls.ExpandedLicence(), nil
 }
 
-const stmtListLicences = stmt.Licence + `
-WHERE team_id = ?`
+func (env Env) ListLicence(teamID string) ([]admin.ExpandedLicence, error) {
+	var ls = make([]admin.LicenceSchema, 0)
 
-func (env Env) ListLicence(teamID string) ([]admin.Licence, error) {
-	var l = make([]admin.Licence, 0)
-
-	err := env.db.Select(&l, stmtLicence, teamID)
+	err := env.db.Select(&ls, stmt.ListExpandedLicences, teamID)
 
 	if err != nil {
-		return l, err
+		return nil, err
 	}
 
-	return l, nil
+	el := make([]admin.ExpandedLicence, 0)
+	for _, v := range ls {
+		el = append(el, v.ExpandedLicence())
+	}
+	return el, nil
 }

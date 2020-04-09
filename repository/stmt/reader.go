@@ -1,5 +1,11 @@
 package stmt
 
+const readerAccountCols = `
+u.user_id AS ftc_id,
+u.email AS email,
+u.user_name AS user_name,
+u.is_vip AS is_vip`
+
 const MembershipSelectCols = `
 m.id AS subs_id,
 m.vip_id AS subs_compound_id,

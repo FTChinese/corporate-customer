@@ -6,74 +6,29 @@ import (
 	"strings"
 )
 
-const stmtActivePlans = stmt.Plan + `
-FROM subs.active_plan
-ORDER BY tier ASC, cycle DESC`
+// PlansInSet loads a list of active plans
+// and returns a map with plan id as key.
+func (env Env) PlansInSet(planIDs []string) (plan.Plans, error) {
+	idSet := strings.Join(planIDs, ",")
+	var raws = make([]plan.DiscountPlanSchema, 0)
 
-func (env Env) LoadActivePlans() ([]plan.Plan, error) {
-	var plans = make([]plan.Plan, 0)
-
-	err := env.db.Select(&plans, stmtActivePlans)
+	err := env.db.Select(&raws, stmt.ListPlans, idSet)
 	if err != nil {
-		return plans, err
+		return plan.Plans{}, err
 	}
 
-	return plans, nil
+	return plan.GroupRawPlans(raws), nil
 }
 
-const stmtActiveDiscounts = stmt.Discount + `
-FROM subs.b2b_discount
-WHERE FIND_IN_SET(plan_id, ?)
-ORDER BY plan_id, quantity ASC`
-
-// LoadDiscounts retrieves all discount schema for all currently
-// active plans.
-func (env Env) LoadActiveDiscounts(planIDs []string) ([]plan.Discount, error) {
-	var discounts = make([]plan.Discount, 0)
-
-	idList := strings.Join(planIDs, ",")
-
-	err := env.db.Select(&discounts, stmtActiveDiscounts, idList)
-	if err != nil {
-		return discounts, err
-	}
-
-	return discounts, nil
-}
-
-const stmtPlan = stmt.Plan + `
-FROM subs.plan
-WHERE id = ?
-LIMIT 1`
-
-// LoadPlan retrieves a plan to which user is trying to subscribe.
+// LoadPlan retrieves a single plan.
 func (env Env) LoadPlan(id string) (plan.Plan, error) {
-	var p plan.Plan
+	var raws []plan.DiscountPlanSchema
 
-	err := env.db.Get(&p, stmtPlan, id)
+	err := env.db.Get(&raws, stmt.Plan, id)
 
 	if err != nil {
-		return p, err
+		return plan.Plan{}, err
 	}
 
-	return p, nil
-}
-
-// order quantity by ascending order so that
-// we doe not need to sort them in application.
-const stmtDiscounts = stmt.Discount + `
-FROM subs.b2b_discount
-WHERE plan_id = ?
-ORDER BY quantity ASC`
-
-// LoadDiscounts retrieves all discounts under a plan.
-func (env Env) LoadDiscounts(planID string) ([]plan.Discount, error) {
-	var d = make([]plan.Discount, 0)
-
-	err := env.db.Select(&d, stmtDiscounts, planID)
-	if err != nil {
-		return d, err
-	}
-
-	return d, nil
+	return plan.BuildPlan(raws), nil
 }

@@ -2,42 +2,37 @@ package repository
 
 import (
 	"github.com/FTChinese/b2b/models/admin"
-	"github.com/FTChinese/b2b/models/invitee"
+	"github.com/FTChinese/b2b/models/reader"
 	"github.com/FTChinese/b2b/repository/stmt"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 )
 
-const stmtVerifyInvitation = stmt.Invitation + `
-WHERE id = ?
-LIMIT 1`
+// LoadInvitation
+func (env Env) FindInvitation(token string) (admin.ExpandedInvitation, error) {
+	var i admin.ExpandedInvitation
 
-func (env Env) VerifyInvitation(id string) (admin.Invitation, error) {
-	var i admin.Invitation
-
-	err := env.db.Get(&i, stmtVerifyInvitation, id)
+	err := env.db.Get(&i, stmt.FindExpandedInvitation, token)
 
 	if err != nil {
-		return i, err
+		return admin.ExpandedInvitation{}, err
 	}
 
 	return i, nil
 }
 
-const stmtVerifyLicence = stmt.Licence + `
-WHERE id = ?
-LIMIT 1`
+// FindLicence tries to retrieve an expanded
+// licence by id after an invitation is verified.
+func (env Env) FindLicence(id string) (admin.ExpandedLicence, error) {
+	var ls admin.LicenceSchema
 
-func (env Env) VerifyLicence(id string) (admin.Licence, error) {
-	var l admin.Licence
-
-	err := env.db.Get(&l, stmtVerifyLicence, id)
+	err := env.db.Get(&ls, stmt.FindExpandedLicence, id)
 
 	if err != nil {
-		return l, err
+		return admin.ExpandedLicence{}, err
 	}
 
-	return l, err
+	return ls.ExpandedLicence(), err
 }
 
 const stmtInvitee = `
@@ -51,10 +46,10 @@ FROM cmstmp01.uerinfo AS u
 WHERE u.email = ?
 LIMIT 1`
 
-func (env Env) LoadInvitee(email string) (invitee.Invitee, error) {
-	var i invitee.Invitee
+func (env Env) LoadInvitee(email string) (reader.Invitee, error) {
+	var i reader.Invitee
 	if err := env.db.Get(&i, stmtInvitee, email); err != nil {
-		return invitee.Invitee{}, err
+		return reader.Invitee{}, err
 	}
 
 	return i, nil
@@ -80,7 +75,7 @@ SET ftc_id = :ftc_id,
 	created_utc = UTC_TIMESTAMP(),
 	updated_utc = UTC_TIMESTAMP()`
 
-func (env Env) CreateReader(s invitee.SignUp) error {
+func (env Env) CreateReader(s reader.SignUp) error {
 	tx, err := env.db.Beginx()
 	if err != nil {
 		return err
@@ -131,7 +126,7 @@ SET id = :snapshot_id,
 
 // TakeSnapshot backs up a membership before
 // modifying it.
-func (env Env) TakeSnapshot(snp invitee.MemberSnapshot) error {
+func (env Env) TakeSnapshot(snp reader.MemberSnapshot) error {
 	_, err := env.db.NamedExec(stmtTakeSnapshot, snp)
 
 	if err != nil {
@@ -141,31 +136,32 @@ func (env Env) TakeSnapshot(snp invitee.MemberSnapshot) error {
 	return nil
 }
 
-func (env Env) GrantLicence(expInv admin.ExpandedInvitation) error {
+// GrantLicence grants a licence to a reader.
+func (env Env) GrantLicence(expInv admin.ExpandedInvitation, expLic admin.ExpandedLicence) error {
 	tx, err := env.beginGrantTx()
 	if err != nil {
 		return err
 	}
 
-	inv, err := tx.LockInvitation(expInv.ID)
+	_, err = tx.LockInvitation(expInv.ID)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 
-	_, err = tx.LockLicence(inv.LicenceID)
+	_, err = tx.LockLicence(expLic.ID)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 
-	mmb, err := tx.LockMembership(expInv.Licence.AssigneeID.String)
+	mmb, err := tx.LockMembership(expInv.Assignee.FtcID.String)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 
-	newMmb := mmb.BuildOn(expInv.Licence)
+	newMmb := mmb.BuildOn(expLic)
 
 	// Create new membership based on licence
 	if mmb.IsZero() {
@@ -185,8 +181,8 @@ func (env Env) GrantLicence(expInv admin.ExpandedInvitation) error {
 
 		// Back up.
 		go func() {
-			_ = env.TakeSnapshot(invitee.MemberSnapshot{
-				SnapshotID: invitee.GenerateSnapshotID(),
+			_ = env.TakeSnapshot(reader.MemberSnapshot{
+				SnapshotID: reader.GenerateSnapshotID(),
 				Reason:     enum.SnapshotReasonB2B,
 				CreatedUTC: chrono.TimeNow(),
 				Membership: mmb,
