@@ -1,9 +1,11 @@
-package invitee
+package reader
 
 import (
+	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/models/form"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/google/uuid"
+	"github.com/guregu/null"
 )
 
 // Invitee is a member of a team who will be granted
@@ -24,9 +26,7 @@ import (
 // backup existing membership and update membership.
 // 6. Mark the invitation as accepted;
 type Invitee struct {
-	FtcID string `db:"ftc_id"`
-	Email string `db:"email"`
-	VIP   bool   `db:"is_vip"`
+	admin.Assignee
 	Membership
 }
 
@@ -56,9 +56,12 @@ func NewSignUp(f form.AccountForm) (SignUp, error) {
 // Turn the Invitee for a new signup.
 func (s SignUp) Invitee() Invitee {
 	return Invitee{
-		FtcID:      s.ID,
-		Email:      s.Email,
-		VIP:        false,
+		Assignee: admin.Assignee{
+			Email:    null.StringFrom(s.Email),
+			FtcID:    null.StringFrom(s.ID),
+			UserName: null.String{},
+			IsVIP:    false,
+		},
 		Membership: Membership{},
 	}
 }

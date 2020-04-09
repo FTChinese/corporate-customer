@@ -1,4 +1,4 @@
-package invitee
+package reader
 
 import (
 	"github.com/FTChinese/b2b/models/admin"
