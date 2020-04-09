@@ -24,23 +24,41 @@ type Licence struct {
 	ID         string      `db:"licence_id"`
 	TeamID     string      `db:"team_id"`
 	PlanID     string      `db:"plan_id"`
+	AssigneeID null.String `db:"assignee_id"` // Only exists after reader accepted an invitation.
 	ExpireDate chrono.Date `db:"expire_date"`
-	AssigneeID null.String `db:"assignee_id"`
-	Active     bool        `db:"is_active"`
+	Active     bool        `db:"is_active"` // Only active after payment received. This is not controlled by the admin.
 	CreatedUTC chrono.Time `db:"created_utc"`
 	UpdatedUTC chrono.Time `db:"updated_utc"`
 }
 
+// IsAvailable checks whether the licence is
+// assigned to someone else.
 func (l Licence) IsAvailable() bool {
 	return l.AssigneeID.IsZero()
 }
 
 func (l *Licence) AssignTo(ftcID string) {
 	l.AssigneeID = null.StringFrom(ftcID)
-	l.Active = true
 }
 
+// ExpandedLicence includes the plan of this licence
+// and optional assignee.
 type ExpandedLicence struct {
 	Licence
-	Plan plan.BasePlan
+	Plan     plan.BasePlan
+	Assignee Assignee
+}
+
+type LicenceSchema struct {
+	Licence
+	plan.BasePlan
+	Assignee
+}
+
+func (s LicenceSchema) ExpandedLicence() ExpandedLicence {
+	return ExpandedLicence{
+		Licence:  s.Licence,
+		Plan:     s.BasePlan,
+		Assignee: s.Assignee,
+	}
 }
