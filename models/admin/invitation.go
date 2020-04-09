@@ -3,7 +3,6 @@ package admin
 import (
 	"github.com/FTChinese/b2b/models/validator"
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/go-rest/rand"
 	"github.com/guregu/null"
 	"strings"
 	"time"
@@ -43,28 +42,12 @@ type Invitation struct {
 	LicenceID     string      `db:"licence_id"`
 	TeamID        string      `db:"team_id"`
 	Token         string      `db:"token"`
-	InviteeEmail  string      `db:"invitee_email"`
 	ExpiresInDays int64       `db:"expires_in_days"`
 	Description   null.String `db:"description"`
 	Accepted      bool        `db:"accepted"`
 	Revoked       bool        `db:"revoked"`
 	CreatedUTC    chrono.Time `db:"created_utc"`
 	UpdatedUTC    chrono.Time `db:"updated_utc"`
-}
-
-func NewInvitation(f InvitationForm) (Invitation, error) {
-	token, err := rand.Hex(32)
-	if err != nil {
-		return Invitation{}, err
-	}
-	return Invitation{
-		ID:           "inv_" + rand.String(12),
-		LicenceID:    "",
-		TeamID:       "",
-		Token:        token,
-		InviteeEmail: f.Email,
-		Description:  null.NewString(f.Description, f.Description != ""),
-	}, nil
 }
 
 func (i *Invitation) Accept() {
@@ -84,22 +67,37 @@ func (i Invitation) IsValid() bool {
 	return !i.Expired() && !i.Revoked && !i.Accepted
 }
 
-// ExpandedInvitation contains the details of an invitation,
-// which licence it is grating, and which team send the
-// invitation.
-// This is used to show a single invitation to the admin,
-// or when we are verifying a user's attempt to accept the
-// invitation.
-// Using a JOIN to retrieve the invitation and licence by
-// licence id, and then retrieve the team and the
-// licence's plan, which should be in the cache.
 type ExpandedInvitation struct {
 	Invitation
-	Licence ExpandedLicence
-	Team    Team
+	Assignee Assignee
 }
 
+type InvitationSchema struct {
+	Invitation
+	Assignee
+}
+
+func (s InvitationSchema) ExpandedInvitation() ExpandedInvitation {
+	return ExpandedInvitation{
+		Invitation: s.Invitation,
+		Assignee:   s.Assignee,
+	}
+}
+
+// InvitationForm is the data submitted when
+// admin is trying to invite a reader to accept
+// a licence.
+// We need to know which licence wil be granted and
+// to whom.
+// After collecting the data, use the LicenceID
+// to retrieve the licence to see if it is
+// still available. If it is, use the email to
+// retrieve a reader's account to see whether the
+// account exists and whether this reader is already
+// a valid member. Only when this email does not have a
+// valid membership, can the email be sent.
 type InvitationForm struct {
+	LicenceID   string `form:"licenceId"`
 	Email       string `form:"email"`
 	Description string `form:"description"`
 	Errors      map[string]string
