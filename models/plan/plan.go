@@ -3,22 +3,59 @@
 package plan
 
 import (
-	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 )
 
 type BasePlan struct {
-	ID         string      `db:"plan_id"`
-	Price      float64     `db:"price"`
-	Tier       enum.Tier   `db:"tier"`
-	Cycle      enum.Cycle  `db:"cycle"`
-	TrialDays  int64       `db:"trial_days"`
-	CreatedUTC chrono.Time `db:"created_utc"`
+	PlanID    string     `db:"plan_id"`
+	Price     float64    `db:"price"`
+	Tier      enum.Tier  `db:"tier"`
+	Cycle     enum.Cycle `db:"cycle"`
+	TrialDays int64      `db:"trial_days"`
+}
+
+type DiscountPlanSchema struct {
+	BasePlan
+	Discount
 }
 
 type Plan struct {
 	BasePlan
 	Discounts []Discount
+}
+
+// BuildPlan transforms a slice or DiscountPlanSchema
+// retrieved from DB to Plan.
+// The raws should contain data for a single
+// Plan, therefore their ID should be identical.
+func BuildPlan(raws []DiscountPlanSchema) Plan {
+	if len(raws) == 0 {
+		return Plan{}
+	}
+
+	if len(raws) == 1 {
+		return Plan{
+			BasePlan: raws[0].BasePlan,
+			Discounts: []Discount{
+				raws[0].Discount,
+			},
+		}
+	}
+
+	p := Plan{
+		BasePlan:  raws[0].BasePlan,
+		Discounts: make([]Discount, 0),
+	}
+
+	for _, v := range raws {
+		// Just a a precaution.
+		if v.PlanID != p.PlanID {
+			continue
+		}
+		p.Discounts = append(p.Discounts, v.Discount)
+	}
+
+	return p
 }
 
 // FindDiscount find out which discount will be used
@@ -63,17 +100,34 @@ func (p Plan) FindDiscount(q int64) Discount {
 	return Discount{}
 }
 
-// Discount is the amount to subtract from Plan.Price when
-// user purchases licence in bulk.
-// For example, when purchase 10 copies, the price of each
-// licence will off 10.
-// Example:
-type Discount struct {
-	PlanID   string  `db:"plan_id"`
-	Quantity int64   `db:"quantity"`  // The amount of minimum copies of licences purchased when this discount becomes available.
-	PriceOff float64 `db:"price_off"` // Deducted from Plan.Price
-}
+// Plans is used to group discounts under each plan.
+// The key is plan's id.
+type Plans map[string]Plan
 
-func (d Discount) IsZero() bool {
-	return d.PriceOff == 0
+// GroupRawPlans is used to group Discounts
+// into distinct plan.
+// We used plan table LEFT JOIN discount table
+// to retrieve a plan and its associated discounts.
+// Therefore the left part of the result
+// might have one plan row duplicated
+// if a plan has multiple discounts.
+// We need to group the plan into distinct ones
+// and put the discounts under the Discounts
+// field.
+func GroupRawPlans(raws []DiscountPlanSchema) map[string]Plan {
+	var plans = make(Plans)
+
+	for _, rp := range raws {
+		if p, ok := plans[rp.PlanID]; ok {
+			p.Discounts = append(p.Discounts, rp.Discount)
+			plans[rp.PlanID] = p
+		} else {
+			plans[rp.PlanID] = Plan{
+				BasePlan:  rp.BasePlan,
+				Discounts: make([]Discount, 0),
+			}
+		}
+	}
+
+	return plans
 }
