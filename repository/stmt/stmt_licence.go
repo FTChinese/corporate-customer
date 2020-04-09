@@ -2,8 +2,7 @@ package stmt
 
 import "github.com/FTChinese/b2b/models/builder"
 
-const licenceCols = `
-l.id AS licence_id,
+const licenceCols = `l.id AS licence_id,
 l.team_id,
 l.plan_id,
 l.expire_date,
