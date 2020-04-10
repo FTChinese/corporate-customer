@@ -38,4 +38,4 @@ ORDER BY d.quantity ASC`
 // PlansInSet loads multiple plans.
 const ListPlans = selectPlan + `
 WHERE FIND_IN_SET(p.id, ?)
-ORDER BY p.tier ASC, d.quantity ASC`
+ORDER BY p.tier ASC, p.cycle ASC, d.quantity ASC`

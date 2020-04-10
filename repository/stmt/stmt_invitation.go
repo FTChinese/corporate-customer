@@ -1,7 +1,5 @@
 package stmt
 
-import "github.com/FTChinese/b2b/models/builder"
-
 const invitationCols = `
 i.id AS invitation_id,
 i.licence_id AS licence_id,
@@ -13,43 +11,44 @@ i.revoked AS revoked,
 i.created_utc AS inv_created_utc,
 i.updated_utc AS inv_updated_utc`
 
-var selectExpInvtBuilder = builder.NewSelect().
-	AddRawColumn(invitationCols).
-	AddRawColumn(readerAccountCols).
-	From(`b2b.invitation AS i
+const selectExpInvtBuilder = `
+SELECT ` + invitationCols + `,
+` + readerAccountCols + `
+FROM b2b.invitation AS i
 LEFT JOIN cmstmp01.userinfo AS u
-	ON i.invitee_email = u.email`)
+	ON i.invitee_email = u.email`
 
 // ListExpandedInvitation shows a list
 // of invitations with its assignee attached.
 // This is used by admin to views invitations it sent.
-var ListExpandedInvitation = selectExpInvtBuilder.
-	Where("i.team_id = ?").
-	OrderBy("i.created_utc DESC").
-	Paged().
-	Build()
+const ListExpandedInvitation = selectExpInvtBuilder + `
+WHERE i.team_id = ?
+ORDER BY i.created_utc DESC
+LIMIT ? OFFSET ?`
+
+const CountInvitation = `
+SELECT COUNT(*)
+FROM b2b.invitation
+WHERE team_id = ?`
 
 // ExpandedInvitation retrieves an expanded invitation
 // belonging to a team
-var ExpandedInvitation = selectExpInvtBuilder.
-	Where("i.id = ? ADN i.team_id = ?").
-	Limit(1).
-	Build()
+const ExpandedInvitation = selectExpInvtBuilder + `
+WHERE i.id = ? ADN i.team_id = ?
+LIMIT 1`
 
 // FindExpandedInvitation retrieves an expanded invitation
 // by the token sent in an email.
 // This is used to verify an invitation email.
-var FindExpandedInvitation = selectExpInvtBuilder.
-	Where("i.token = UNHEX(?)").
-	Limit(1).
-	Build()
+const FindExpandedInvitation = selectExpInvtBuilder + `
+WHERE i.token = UNHEX(?)
+LIMIT 1`
 
 // LockInvitation locks a row in invitation
 // when granting user a licence.
-var LockInvitation = builder.NewSelect().
-	AddRawColumn(invitationCols).
-	From(`b2b.invitation AS i`).
-	Where("i.id = ?").
-	Limit(1).
-	Lock().
-	Build()
+var LockInvitation = `
+SELECT ` + invitationCols + `
+FROM b2b.invitation AS i
+WHERE i.id = ?
+LIMIT 1
+FOR UPDATE`
