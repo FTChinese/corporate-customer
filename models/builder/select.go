@@ -6,10 +6,10 @@ import (
 )
 
 type Select struct {
-	rawCols []string
-	from    string
+	columns []Column
+	from    From
 	where   string
-	orderBy string
+	orderBy OrderBy
 	limit   int
 	paged   bool
 	lock    bool
@@ -17,20 +17,21 @@ type Select struct {
 
 func NewSelect() Select {
 	return Select{
-		rawCols: make([]string, 0),
-		from:    "",
-		orderBy: "",
-		limit:   0,
-		paged:   false,
+		columns: make([]Column, 0),
 	}
 }
 
-func (s Select) AddRawColumn(col string) Select {
-	s.rawCols = append(s.rawCols, col)
+func (s Select) SetColumns(cols []Column) Select {
+	s.columns = cols
 	return s
 }
 
-func (s Select) From(from string) Select {
+func (s Select) AddColumn(col Column) Select {
+	s.columns = append(s.columns, col)
+	return s
+}
+
+func (s Select) From(from From) Select {
 	s.from = from
 	return s
 }
@@ -40,7 +41,7 @@ func (s Select) Where(w string) Select {
 	return s
 }
 
-func (s Select) OrderBy(o string) Select {
+func (s Select) OrderBy(o OrderBy) Select {
 	s.orderBy = o
 	return s
 }
@@ -60,6 +61,20 @@ func (s Select) Lock() Select {
 	return s
 }
 
+func (s Select) buildColumns() string {
+	var buf strings.Builder
+
+	for _, v := range s.columns {
+		if buf.Len() > 0 {
+			buf.WriteByte(',')
+			buf.WriteByte(' ')
+		}
+		buf.WriteString(v.Build())
+	}
+
+	return buf.String()
+}
+
 // Build produces a SQL SELECT statement:
 // SELECT ...
 // FROM ...
@@ -68,21 +83,23 @@ func (s Select) Lock() Select {
 // LIMIT ? [OFFSET ?]
 func (s Select) Build() string {
 	var buf strings.Builder
+
 	buf.WriteString("SELECT ")
-	buf.WriteString(strings.Join(s.rawCols, ","))
+	buf.WriteString(s.buildColumns())
+
 	buf.WriteByte(' ')
-	buf.WriteString("FROM ")
-	buf.WriteString(s.from)
+
+	buf.WriteString(s.from.Build())
+
 	if s.where != "" {
 		buf.WriteByte(' ')
 		buf.WriteString("WHERE ")
 		buf.WriteString(s.where)
 	}
 
-	if s.orderBy != "" {
+	if len(s.orderBy.cols) != 0 {
 		buf.WriteByte(' ')
-		buf.WriteString("ORDER BY ")
-		buf.WriteString(s.orderBy)
+		buf.WriteString(s.orderBy.Build())
 	}
 
 	if s.limit > 0 {

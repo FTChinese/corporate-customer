@@ -19,6 +19,10 @@ func (o OrderBy) AddColumn(col Column) OrderBy {
 }
 
 func (o OrderBy) Build() string {
+	if len(o.cols) == 0 {
+		return ""
+	}
+
 	var buf strings.Builder
 
 	for _, v := range o.cols {
