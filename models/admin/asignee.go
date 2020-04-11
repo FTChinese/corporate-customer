@@ -11,3 +11,8 @@ type Assignee struct {
 	UserName null.String `db:"user_name"`
 	IsVIP    bool        `db:"is_vip"`
 }
+
+type AssigneeSchema struct {
+	Assignee
+	TeamID string `db:"team_id"`
+}
