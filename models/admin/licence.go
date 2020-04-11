@@ -23,7 +23,6 @@ import (
 type Licence struct {
 	ID         string      `db:"licence_id"`
 	TeamID     string      `db:"team_id"`
-	PlanID     string      `db:"plan_id"`
 	AssigneeID null.String `db:"assignee_id"` // Only exists after reader accepted an invitation.
 	ExpireDate chrono.Date `db:"expire_date"`
 	Active     bool        `db:"is_active"` // Only active after payment received. This is not controlled by the admin.
@@ -34,7 +33,7 @@ type Licence struct {
 // IsAvailable checks whether the licence is
 // assigned to someone else.
 func (l Licence) IsAvailable() bool {
-	return l.AssigneeID.IsZero()
+	return l.AssigneeID.IsZero() && l.Active
 }
 
 func (l *Licence) AssignTo(ftcID string) {
