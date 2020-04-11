@@ -2,7 +2,6 @@ package reader
 
 import (
 	"github.com/FTChinese/b2b/models/admin"
-	"github.com/FTChinese/b2b/models/form"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/google/uuid"
 	"github.com/guregu/null"
@@ -38,7 +37,7 @@ type SignUp struct {
 	Token    string `db:"token"` // verification token
 }
 
-func NewSignUp(f form.AccountForm) (SignUp, error) {
+func NewSignUp(f admin.AccountInput) (SignUp, error) {
 	t, err := rand.Hex(32)
 
 	if err != nil {
