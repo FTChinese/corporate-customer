@@ -11,5 +11,5 @@ var SiteMap = struct {
 	Login:          "/login",
 	SignUp:         "/signup",
 	LogOut:         "/logout",
-	ForgotPassword: "/forgot-password",
+	ForgotPassword: "/password-reset",
 }
