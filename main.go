@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"github.com/FTChinese/b2b/controllers"
 	"github.com/FTChinese/b2b/database"
+	"github.com/FTChinese/b2b/repository"
 	"github.com/FTChinese/go-rest/postoffice"
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
@@ -67,10 +66,13 @@ func main() {
 		emailConn.User,
 		emailConn.Pass)
 
-	barrierRouter := controllers.NewBarrierRouter(db, post)
-	readersRouter := controllers.NewReadersRouter(db, post)
+	repo := repository.NewEnv(db)
+
+	barrierRouter := controllers.NewBarrierRouter(repo, post)
 
 	e := echo.New()
+	e.Pre(middleware.AddTrailingSlash())
+
 	e.Renderer = MustNewRenderer(config)
 	e.HTTPErrorHandler = errorHandler
 
@@ -81,11 +83,6 @@ func main() {
 	}
 
 	e.Use(middleware.Logger())
-	e.Use(session.Middleware(
-		sessions.NewCookieStore(
-			[]byte(MustGetSessionKey()),
-		),
-	))
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
 
@@ -93,36 +90,24 @@ func main() {
 		return context.Render(http.StatusOK, "home.html", nil)
 	}, controllers.RequireLoggedIn)
 
-	// Show login page.
-	e.GET(controllers.SiteMap.Login, barrierRouter.GetLogin, controllers.RedirectIfLoggedIn)
-	// Handle login: verify password, set session, cookie, etc..
-	e.POST(controllers.SiteMap.Login, barrierRouter.PostLogin)
+	api := e.Group("/api")
+	api.POST("/login/", barrierRouter.Login)
+	api.POST("/signup/", barrierRouter.SignUp)
 
-	e.GET(controllers.SiteMap.SignUp, barrierRouter.GetSignUp, controllers.RedirectIfLoggedIn)
-	e.POST(controllers.SiteMap.SignUp, barrierRouter.PostSignUp)
+	pwResetGroup := api.Group("/password-reset")
+	{
+		// Handle resetting password
+		pwResetGroup.POST("/", barrierRouter.ResetPassword)
 
-	// Clear all cookies.
-	e.GET(controllers.SiteMap.LogOut, barrierRouter.LogOut)
+		// Sending forgot-password email
+		pwResetGroup.POST("/letter/", barrierRouter.PasswordResetEmail)
 
-	// Show resetting-password page.
-	e.GET(controllers.SiteMap.ForgotPassword, barrierRouter.GetResetPassword)
-	// Handle resetting password
-	e.POST(controllers.SiteMap.ForgotPassword, barrierRouter.PostResetPassword)
-
-	pwResetGroup := e.Group(controllers.SiteMap.ForgotPassword)
-	// Ask user to enter email address in case password forgotten.
-	pwResetGroup.GET("/letter", barrierRouter.GetForgotPassword)
-	// Sending forgot-password email
-	pwResetGroup.POST("/letter", barrierRouter.PostForgotPassword)
-
-	// Verify forgot-password token.
-	// If valid, redirect to /forgot-password.
-	// If invalid, redirect to /forgot-password/letter to ask
-	// user to enter email again.
-	pwResetGroup.GET("/token/:token", barrierRouter.VerifyPasswordToken)
-
-	e.GET("/readers", readersRouter.GetUserList, controllers.RequireLoggedIn)
-	//readersGroup := e.Group("/readers")
+		// Verify forgot-password token.
+		// If valid, redirect to /forgot-password.
+		// If invalid, redirect to /forgot-password/letter to ask
+		// user to enter email again.
+		pwResetGroup.GET("/token/:token/", barrierRouter.VerifyPasswordToken)
+	}
 
 	e.Logger.Fatal(e.Start(":3100"))
 }
