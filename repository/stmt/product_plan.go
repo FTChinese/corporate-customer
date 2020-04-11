@@ -1,11 +1,14 @@
 package stmt
 
+// Products selects all products.
+// Note the ORDER BY clause. The order is based
+// on the order you define them.
 const Products = `
 SELECT id AS product_id,
+	tier,
 	heading,
 	description,
 	small_print,
-	tier,
 	yearly_plan_id
 FROM subs.product
 ORDER BY tier ASC`

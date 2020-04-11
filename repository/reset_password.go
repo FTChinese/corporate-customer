@@ -5,16 +5,44 @@ import (
 	"github.com/FTChinese/b2b/repository/stmt"
 )
 
+func (env Env) AccountByEmail(email string) (admin.Account, error) {
+	var a admin.Account
+	err := env.db.Get(&a, stmt.AccountByEmail, email)
+
+	if err != nil {
+		return a, err
+	}
+
+	return a, nil
+}
+
+// PasswordResettingAccount retrieves an account for a
+// password reset token.
+func (env Env) AccountToResetPassword(token string) (admin.Account, error) {
+	var a admin.Account
+	if err := env.db.Get(&a, stmt.AccountForPwReset, token); err != nil {
+		return a, err
+	}
+
+	return a, nil
+}
+
 // InsertPasswordResetToken generates a new token
 // to help resetting password.
 const stmtInsertPwResetToken = `
 INSERT INTO b2b.password_reset
-SET token = UNHEX(:token),
-	email = :email,
-	created_utc = UTC_TIMESTAMP()`
+SET email = :email,
+	token = UNHEX(:token),
+	is_used = 0,
+	created_utc = UTC_TIMESTAMP(),
+	updated_utc = UTC_TIMESTAMP()
+ON DUPLICATE KEY UPDATE
+	token = UNHEX(:token),
+	is_used = 0,
+	updated_utc = UTC_TIMESTAMP()`
 
 // SavePasswordResetter
-func (env Env) SavePasswordResetter(pr admin.PasswordResetter) error {
+func (env Env) SavePasswordResetter(pr admin.AccountInput) error {
 	_, err := env.db.NamedExec(stmtInsertPwResetToken, pr)
 
 	if err != nil {
@@ -22,27 +50,6 @@ func (env Env) SavePasswordResetter(pr admin.PasswordResetter) error {
 	}
 
 	return nil
-}
-
-// RetrievePasswordReset retrieves an account for a
-// password reset token.
-const stmtPwResetAccount = stmt.AccountBase + `
-FROM b2b.password_reset AS r
-	INNER JOIN b2b.admin AS a
-	ON r.email = a.email
-WHERE r.token = UNHEX(?)
-	AND r.is_used = 0
-	 DATE_ADD(r.created_utc, INTERVAL r.expires_in SECOND) > UTC_TIMESTAMP() 
-ORDER BY r.created_utc DESC
-LIMIT 1`
-
-func (env Env) PasswordResettingAccount(token string) (admin.Account, error) {
-	var a admin.Account
-	if err := env.db.Get(&a, stmtPwResetAccount, token); err != nil {
-		return a, err
-	}
-
-	return a, nil
 }
 
 // DeactivatePasswordResetToken set a token's is_used

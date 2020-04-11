@@ -1,23 +1,22 @@
 package stmt
 
 const licenceCols = `l.id AS licence_id,
-l.team_id,
-l.plan_id,
-l.expire_date,
-l.assignee_id
-l.is_active,
+l.team_id AS team_id,
+l.assignee_id AS assignee_id,
+l.expire_date AS expire_date,
+l.is_active AS is_active,
 l.created_utc AS created_utc,
 l.updated_utc AS updated_utc`
 
 const selectExpandedLicence = `
 SELECT ` + licenceCols + `,
 ` + planCols + `,
-` + readerAccountCols +
-	`FROM b2b.licence AS l
-LEFT JOIN subs.plan AS p
-	ON l.plan_id = p.id
-LEFT JOIN cmstmp01.userinfo AS u
-	ON l.assignee_id = u.user_id`
+` + readerAccountCols + `
+FROM b2b.licence AS l
+	LEFT JOIN subs.plan AS p
+		ON l.plan_id = p.id
+	LEFT JOIN cmstmp01.userinfo AS u
+		ON l.assignee_id = u.user_id`
 
 // Select a single licence belonging to a team.
 const ExpandedLicence = selectExpandedLicence + `

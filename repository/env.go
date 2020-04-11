@@ -11,6 +11,10 @@ type Env struct {
 	db *sqlx.DB
 }
 
+func NewEnv(db *sqlx.DB) Env {
+	return Env{db: db}
+}
+
 func (env Env) beginGrantTx() (GrantTx, error) {
 	tx, err := env.db.Beginx()
 
