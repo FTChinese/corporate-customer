@@ -1,11 +1,11 @@
 package views
 
 import (
-	"github.com/FTChinese/b2b/models/form"
+	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/widget"
 )
 
-func NewResetLetterForm(a form.AccountForm) widget.Form {
+func NewResetLetterForm(a admin.AccountInput) widget.Form {
 	return widget.Form{
 		Disabled: false,
 		Method:   widget.MethodPost,

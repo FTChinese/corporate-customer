@@ -1,11 +1,11 @@
 package views
 
 import (
-	"github.com/FTChinese/b2b/models/form"
+	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/widget"
 )
 
-func NewLoginForm(value form.AccountForm) widget.Form {
+func NewLoginForm(value admin.AccountInput) widget.Form {
 	return widget.Form{
 		Disabled: false,
 		Method:   widget.MethodPost,
