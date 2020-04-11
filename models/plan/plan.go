@@ -14,21 +14,27 @@ type BasePlan struct {
 	TrialDays int64      `db:"trial_days"`
 }
 
+// DiscountPlansSchema is used as the scan target
+// when retrieve a plans and its associated discounts
+// in one shot. With LEFT JOIN, the rows retrieved
+// is determined by the number of discounts.
 type DiscountPlanSchema struct {
 	BasePlan
 	Discount
 }
 
+// Plan is the output data structure.
+// A plan may have discounts.
 type Plan struct {
 	BasePlan
 	Discounts []Discount
 }
 
-// BuildPlan transforms a slice or DiscountPlanSchema
+// ReduceDiscountPlan transforms a slice or DiscountPlanSchema
 // retrieved from DB to Plan.
 // The raws should contain data for a single
 // Plan, therefore their ID should be identical.
-func BuildPlan(raws []DiscountPlanSchema) Plan {
+func ReduceDiscountPlan(raws []DiscountPlanSchema) Plan {
 	if len(raws) == 0 {
 		return Plan{}
 	}
@@ -100,11 +106,11 @@ func (p Plan) FindDiscount(q int64) Discount {
 	return Discount{}
 }
 
-// Plans is used to group discounts under each plan.
+// GroupedPlans is used to group discounts under each plan.
 // The key is plan's id.
-type Plans map[string]Plan
+type GroupedPlans map[string]Plan
 
-// GroupRawPlans is used to group Discounts
+// GroupDiscountPlans is used to group Discounts
 // into distinct plan.
 // We used plan table LEFT JOIN discount table
 // to retrieve a plan and its associated discounts.
@@ -114,10 +120,10 @@ type Plans map[string]Plan
 // We need to group the plan into distinct ones
 // and put the discounts under the Discounts
 // field.
-func GroupRawPlans(raws []DiscountPlanSchema) map[string]Plan {
-	var plans = make(Plans)
+func GroupDiscountPlans(rows []DiscountPlanSchema) GroupedPlans {
+	var plans = make(GroupedPlans)
 
-	for _, rp := range raws {
+	for _, rp := range rows {
 		if p, ok := plans[rp.PlanID]; ok {
 			p.Discounts = append(p.Discounts, rp.Discount)
 			plans[rp.PlanID] = p

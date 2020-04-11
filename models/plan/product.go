@@ -8,17 +8,29 @@ import (
 
 type BaseProduct struct {
 	ID           string      `db:"product_id"`
+	Tier         enum.Tier   `db:"tier"`
 	Heading      string      `db:"heading"`
 	SmallPrint   null.String `db:"small_print"`
-	Tier         enum.Tier   `db:"tier"`
 	YearlyPlanID string      `db:"yearly_plan_id"`
 }
 
-// RawProduct is the db scan target.
+// ProductSchema is the db scan target.
 // Description fields needs to be split into arrays by \r\n.
-type RawProduct struct {
+type ProductSchema struct {
 	BaseProduct
 	Description string `db:"description"`
+}
+
+// GetPlanIDs extracts the id of all plans from all products
+// retrieved from DB.
+func GetPlanIDs(products []ProductSchema) []string {
+	var ids = make([]string, 0)
+
+	for _, product := range products {
+		ids = append(ids, product.YearlyPlanID)
+	}
+
+	return ids
 }
 
 // Product describes a product present to user
@@ -26,37 +38,22 @@ type RawProduct struct {
 type Product struct {
 	BaseProduct
 	Description []string
-	Plans       []Plan
+	Plan        Plan
 }
 
-func NewProduct(raw RawProduct) Product {
-	return Product{
-		BaseProduct: raw.BaseProduct,
-		Description: strings.Split(raw.Description, "\r\n"),
-	}
-}
+func ZipProductWithPlan(rows []ProductSchema, planStore GroupedPlans) []Product {
+	products := make([]Product, 0)
 
-// Products is an array of Product.
-type Products []Product
+	for _, row := range rows {
 
-func (ps Products) SetPlans(plans Plans) {
-	for i, product := range ps {
-		if product.Plans == nil {
-			ps[i].Plans = make([]Plan, 0)
+		product := Product{
+			BaseProduct: row.BaseProduct,
+			Description: strings.Split(row.Description, "\r\n"),
+			Plan:        planStore[row.YearlyPlanID],
 		}
-		plan, ok := plans[product.YearlyPlanID]
-		if ok {
-			ps[i].Plans = append(ps[i].Plans, plan)
-		}
-	}
-}
 
-func (ps Products) GetPlansIDs() []string {
-	var ids = make([]string, 0)
-
-	for _, product := range ps {
-		ids = append(ids, product.YearlyPlanID)
+		products = append(products, product)
 	}
 
-	return ids
+	return products
 }
