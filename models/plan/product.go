@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// BaseProduct contains the shared fields
+// of ProductSchema and Product.
 type BaseProduct struct {
 	ID           string      `json:"id" db:"product_id"`
 	Tier         enum.Tier   `json:"tier" db:"tier"`
@@ -16,14 +18,17 @@ type BaseProduct struct {
 
 // ProductSchema is the db scan target.
 // Description fields needs to be split into arrays by \r\n.
+// This is only used as db scan target.
+// It is not used as JSON output.
 type ProductSchema struct {
 	BaseProduct
 	Description string `db:"description"`
 }
 
-// GetPlanIDs extracts the id of all plans from all products
+// GetProductsPlanIDs extracts the id of all plans from all products
 // retrieved from DB.
-func GetPlanIDs(products []ProductSchema) []string {
+// Those IDs are then used to retrieve all plans using FIND_IN_SET.
+func GetProductsPlanIDs(products []ProductSchema) []string {
 	var ids = make([]string, 0)
 
 	for _, product := range products {
