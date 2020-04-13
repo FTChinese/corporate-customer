@@ -20,14 +20,17 @@ p.tier AS tier,
 p.cycle AS cycle,
 p.trial_days AS trial_days`
 
+// In the left join, discount table might be null,
+// and to simplify things, the fields Discount type
+// are not nullable types, so we use IFNULL to safe handle it.
 const selectPlan = `
 SELECT p.id AS plan_id,
 	p.price AS price,
 	p.tier AS tier,
 	p.cycle AS cycle,
 	p.trial_days AS trial_days,
-	d.quantity AS quantity,
-	d.price_off AS price_off
+	IFNULL(d.quantity, 0) AS quantity,
+	IFNULL(d.price_off, 0) AS price_off
 FROM subs.plan AS p
 	LEFT JOIN subs.b2b_discount AS d
 	ON p.id = d.plan_id`
