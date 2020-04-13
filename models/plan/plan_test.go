@@ -71,7 +71,7 @@ func TestExamplePlans(t *testing.T) {
 		BasePlan: stdPlan,
 	}
 
-	b, err := json.Marshal(stdA)
+	b, err := json.MarshalIndent(stdA, "", "\t")
 	if err != nil {
 		t.Error(err)
 	}
@@ -85,7 +85,7 @@ func TestExamplePlans(t *testing.T) {
 		},
 	}
 
-	b, err = json.Marshal(stdB)
+	b, err = json.MarshalIndent(stdB, "", "\t")
 	if err != nil {
 		t.Error(err)
 	}
@@ -100,16 +100,16 @@ func TestExamplePlans(t *testing.T) {
 		},
 	}
 
-	b, err = json.Marshal(prm)
+	b, err = json.MarshalIndent(prm, "", "\t")
 	if err != nil {
 		t.Error(err)
 	}
 	t.Logf("Premium plan: %s", b)
 }
 
-func TestReduceDiscountPlan(t *testing.T) {
+func TestNewPlan(t *testing.T) {
 	type args struct {
-		rows []DiscountPlanSchema
+		rows []DiscountPlan
 	}
 	tests := []struct {
 		name string
@@ -119,7 +119,7 @@ func TestReduceDiscountPlan(t *testing.T) {
 		{
 			name: "Plan without discount",
 			args: args{
-				rows: []DiscountPlanSchema{
+				rows: []DiscountPlan{
 					{
 						BasePlan: stdPlan,
 					},
@@ -133,7 +133,7 @@ func TestReduceDiscountPlan(t *testing.T) {
 		{
 			name: "Plan with discounts",
 			args: args{
-				rows: []DiscountPlanSchema{
+				rows: []DiscountPlan{
 					{
 						BasePlan: stdPlan,
 						Discount: stdDiscountA,
@@ -155,12 +155,12 @@ func TestReduceDiscountPlan(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ReduceDiscountPlan(tt.args.rows)
+			got := NewPlan(tt.args.rows)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ReduceDiscountPlan() = %v, want %v", got, tt.want)
+				t.Errorf("NewPlan() = %v, want %v", got, tt.want)
 			}
 
-			b, err := json.Marshal(got)
+			b, err := json.MarshalIndent(got, "", "\t")
 			if err != nil {
 				t.Error(err)
 			}
@@ -169,9 +169,9 @@ func TestReduceDiscountPlan(t *testing.T) {
 	}
 }
 
-func TestGroupDiscountPlans(t *testing.T) {
+func TestNewGroupedPlans(t *testing.T) {
 	type args struct {
-		rows []DiscountPlanSchema
+		rows []DiscountPlan
 	}
 	tests := []struct {
 		name string
@@ -181,7 +181,7 @@ func TestGroupDiscountPlans(t *testing.T) {
 		{
 			name: "Group discounts with plans",
 			args: args{
-				rows: []DiscountPlanSchema{
+				rows: []DiscountPlan{
 					{
 						BasePlan: stdPlan,
 						Discount: stdDiscountA,
@@ -220,13 +220,13 @@ func TestGroupDiscountPlans(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := GroupDiscountPlans(tt.args.rows)
+			got := NewGroupedPlans(tt.args.rows)
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GroupDiscountPlans() = %v, want %v", got, tt.want)
+				t.Errorf("NewGroupedPlans() = %v, want %v", got, tt.want)
 			}
 
-			b, err := json.Marshal(got)
+			b, err := json.MarshalIndent(got, "", "\t")
 			if err != nil {
 				t.Error(err)
 			}
