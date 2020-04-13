@@ -18,7 +18,7 @@ type BasePlan struct {
 // A plan may have discounts.
 type Plan struct {
 	BasePlan
-	Discounts []Discount // null if discount does not exist when turned into JSON.
+	Discounts []Discount `json:"discounts"` // null if discount does not exist when turned into JSON.
 }
 
 // AddDiscount appends a discount to this plan.
