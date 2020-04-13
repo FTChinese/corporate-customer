@@ -69,6 +69,8 @@ func main() {
 	repo := repository.NewEnv(db)
 
 	barrierRouter := controllers.NewBarrierRouter(repo, post)
+	accountRouter := controllers.NewAccountRouter(repo, post)
+	teamRouter := controllers.NewTeamRouter(repo)
 
 	e := echo.New()
 	e.Pre(middleware.AddTrailingSlash())
@@ -86,9 +88,9 @@ func main() {
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
 
-	e.GET("/", func(context echo.Context) error {
+	e.GET("/b2b/", func(context echo.Context) error {
 		return context.Render(http.StatusOK, "home.html", nil)
-	}, controllers.RequireLoggedIn)
+	})
 
 	api := e.Group("/api")
 	api.POST("/login/", barrierRouter.Login)
@@ -107,6 +109,24 @@ func main() {
 		// If invalid, redirect to /forgot-password/letter to ask
 		// user to enter email again.
 		pwResetGroup.GET("/token/:token/", barrierRouter.VerifyPasswordToken)
+	}
+
+	accountGroup := api.Group("/account")
+	{
+		accountGroup.GET("/", accountRouter.Account)
+		accountGroup.GET("/jwt/", accountRouter.RefreshJWT)
+		accountGroup.GET("/profile/", accountRouter.Profile)
+		accountGroup.POST("/request-verification", accountRouter.RequestVerification)
+		accountGroup.GET("/verify/:token", accountRouter.VerifyEmail)
+		accountGroup.PATCH("/display-name", accountRouter.ChangeName)
+		accountGroup.PATCH("/password", accountRouter.ChangePassword)
+	}
+
+	teamGroup := api.Group("/team")
+	{
+		teamGroup.GET("/", teamRouter.Load)
+		teamGroup.POST("/", teamRouter.Create)
+		teamGroup.PATCH("/", teamRouter.Update)
 	}
 
 	e.Logger.Fatal(e.Start(":3100"))
