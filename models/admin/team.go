@@ -34,7 +34,7 @@ func (t *Team) Validate() *render.ValidationError {
 	return validator.New("invoiceTitle").Max(512).Validate(title)
 }
 
-func (t Team) WithID(adminID string) Team {
+func (t Team) BuildOn(adminID string) Team {
 	t.ID = "team_" + rand.String(12)
 	t.AdminID = adminID
 	t.CreatedUTC = chrono.TimeNow()

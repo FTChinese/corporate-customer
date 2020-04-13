@@ -12,6 +12,12 @@ type TeamRouter struct {
 	repo repository.Env
 }
 
+func NewTeamRouter(repo repository.Env) TeamRouter {
+	return TeamRouter{
+		repo: repo,
+	}
+}
+
 // Create creates a team for an admin.
 // This is a required and first step after admin signed up successfully.
 // A team is always required to perform any perform any purchase.
@@ -30,7 +36,7 @@ func (router TeamRouter) Create(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	t = t.WithID(claims.AdminID)
+	t = t.BuildOn(claims.AdminID)
 
 	if err := router.repo.CreateTeam(t); err != nil {
 		return render.NewDBError(err)
