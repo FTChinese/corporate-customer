@@ -9,13 +9,20 @@ import (
 	"net/http"
 )
 
-type AdminProfileRouter struct {
+type AdminAccountRouter struct {
 	repo repository.Env
 	post postoffice.PostOffice
 }
 
+func NewAccountRouter(repo repository.Env, post postoffice.PostOffice) AdminAccountRouter {
+	return AdminAccountRouter{
+		repo: repo,
+		post: post,
+	}
+}
+
 // RefreshJWT updates jwt token.
-func (router AdminProfileRouter) RefreshJWT(c echo.Context) error {
+func (router AdminAccountRouter) RefreshJWT(c echo.Context) error {
 	claims := getAccountClaims(c)
 
 	jwtAccount, err := router.repo.JWTAccount(claims.AdminID)
@@ -27,7 +34,7 @@ func (router AdminProfileRouter) RefreshJWT(c echo.Context) error {
 }
 
 // Account sends user's account data.
-func (router AdminProfileRouter) Account(c echo.Context) error {
+func (router AdminAccountRouter) Account(c echo.Context) error {
 	claims := getAccountClaims(c)
 
 	account, err := router.repo.AccountByID(claims.AdminID)
@@ -42,7 +49,7 @@ func (router AdminProfileRouter) Account(c echo.Context) error {
 // Status codes:
 // 404 - Account not found
 // 200 - with Profile as body.
-func (router AdminProfileRouter) Profile(c echo.Context) error {
+func (router AdminAccountRouter) Profile(c echo.Context) error {
 	claims := getAccountClaims(c)
 
 	profile, err := router.repo.AdminProfile(claims.AdminID)
@@ -53,13 +60,13 @@ func (router AdminProfileRouter) Profile(c echo.Context) error {
 	return c.JSON(http.StatusOK, profile)
 }
 
-// SendVerificationLetter sends user a new verification letter.
+// RequestVerification sends user a new verification letter.
 // Used must be logged in.
 // Input: none.
 // Status codes:
 // 404 - The account for this user is not found.
 // 500 - Token generation failed or DB error.
-func (router AdminProfileRouter) SendVerificationLetter(c echo.Context) error {
+func (router AdminAccountRouter) RequestVerification(c echo.Context) error {
 	claims := getAccountClaims(c)
 
 	// Find the account
@@ -102,7 +109,7 @@ func (router AdminProfileRouter) SendVerificationLetter(c echo.Context) error {
 // Status codes:
 // 404 - Account not found for this token.
 // 204 - Verified successfully.
-func (router AdminProfileRouter) VerifyEmail(c echo.Context) error {
+func (router AdminAccountRouter) VerifyEmail(c echo.Context) error {
 	token := c.Param("token")
 
 	account, err := router.repo.AccountByVerifier(token)
@@ -127,7 +134,7 @@ func (router AdminProfileRouter) VerifyEmail(c echo.Context) error {
 // Input: {displayName: string}.
 // StatusCodes:
 // 400 - If request body cannot be parsed.
-func (router AdminProfileRouter) ChangeName(c echo.Context) error {
+func (router AdminAccountRouter) ChangeName(c echo.Context) error {
 	claims := getAccountClaims(c)
 
 	var input admin.AccountInput
@@ -169,7 +176,7 @@ func (router AdminProfileRouter) ChangeName(c echo.Context) error {
 // 401 - Unauthorized, meaning old password is not correct.
 // 500 - DB error.
 // 204 - Success.
-func (router AdminProfileRouter) ChangePassword(c echo.Context) error {
+func (router AdminAccountRouter) ChangePassword(c echo.Context) error {
 	claims := getAccountClaims(c)
 
 	var input admin.AccountInput
