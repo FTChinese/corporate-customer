@@ -14,7 +14,7 @@ func (env Env) LoadProducts() ([]plan.Product, error) {
 		return nil, err
 	}
 
-	planIDs := plan.GetPlanIDs(productRows)
+	planIDs := plan.GetProductsPlanIDs(productRows)
 
 	groupedPlans, err := env.PlansInSet(planIDs)
 	if err != nil {
@@ -42,7 +42,7 @@ func (env Env) retrieveProducts() ([]plan.ProductSchema, error) {
 func (env Env) PlansInSet(planIDs []string) (plan.GroupedPlans, error) {
 	// TODO: find in cache. If any of the them is not found in cache, then retrieve all fro DB
 	idSet := strings.Join(planIDs, ",")
-	var raws = make([]plan.DiscountPlanSchema, 0)
+	var raws = make([]plan.DiscountPlan, 0)
 
 	err := env.db.Select(&raws, stmt.ListPlans, idSet)
 	if err != nil {
@@ -50,13 +50,13 @@ func (env Env) PlansInSet(planIDs []string) (plan.GroupedPlans, error) {
 	}
 
 	// Cache each plan
-	return plan.GroupDiscountPlans(raws), nil
+	return plan.NewGroupedPlans(raws), nil
 }
 
 // LoadPlan retrieves a single plan.
 func (env Env) LoadPlan(id string) (plan.Plan, error) {
 	// TODO: load from cache first.
-	var rows []plan.DiscountPlanSchema
+	var rows []plan.DiscountPlan
 
 	err := env.db.Get(&rows, stmt.Plan, id)
 
@@ -65,5 +65,5 @@ func (env Env) LoadPlan(id string) (plan.Plan, error) {
 	}
 
 	// TODO: cache this plan.
-	return plan.ReduceDiscountPlan(rows), nil
+	return plan.NewPlan(rows), nil
 }
