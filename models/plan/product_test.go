@@ -43,7 +43,7 @@ func TestZipProductWithPlan(t *testing.T) {
 		activePlans,
 	)
 
-	b, err := json.Marshal(products)
+	b, err := json.MarshalIndent(products, "", "\t")
 	if err != nil {
 		t.Error(err)
 	}
