@@ -7,6 +7,7 @@ require (
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
 	github.com/brianvoe/gofakeit/v4 v4.2.3 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/google/uuid v1.1.1
