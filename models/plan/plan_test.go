@@ -49,6 +49,23 @@ var prmDiscountB = Discount{
 	PriceOff: 200,
 }
 
+var activePlans = map[string]Plan{
+	stdPlan.PlanID: {
+		BasePlan: stdPlan,
+		Discounts: []Discount{
+			stdDiscountA,
+			stdDiscountB,
+		},
+	},
+	prmPlan.PlanID: {
+		BasePlan: prmPlan,
+		Discounts: []Discount{
+			prmDiscountA,
+			prmDiscountB,
+		},
+	},
+}
+
 func TestExamplePlans(t *testing.T) {
 	stdA := Plan{
 		BasePlan: stdPlan,
