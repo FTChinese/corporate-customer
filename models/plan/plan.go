@@ -7,61 +7,31 @@ import (
 )
 
 type BasePlan struct {
-	PlanID    string     `db:"plan_id"`
-	Price     float64    `db:"price"`
-	Tier      enum.Tier  `db:"tier"`
-	Cycle     enum.Cycle `db:"cycle"`
-	TrialDays int64      `db:"trial_days"`
-}
-
-// DiscountPlansSchema is used as the scan target
-// when retrieve a plans and its associated discounts
-// in one shot. With LEFT JOIN, the rows retrieved
-// is determined by the number of discounts.
-type DiscountPlanSchema struct {
-	BasePlan
-	Discount
+	PlanID    string     `json:"id" db:"plan_id"`
+	Price     float64    `json:"price" db:"price"`
+	Tier      enum.Tier  `json:"tier" db:"tier"`
+	Cycle     enum.Cycle `json:"cycle" db:"cycle"`
+	TrialDays int64      `json:"trialDays" db:"trial_days"`
 }
 
 // Plan is the output data structure.
 // A plan may have discounts.
 type Plan struct {
 	BasePlan
-	Discounts []Discount
+	Discounts []Discount // null if discount does not exist when turned into JSON.
 }
 
-// ReduceDiscountPlan transforms a slice or DiscountPlanSchema
-// retrieved from DB to Plan.
-// The raws should contain data for a single
-// Plan, therefore their ID should be identical.
-func ReduceDiscountPlan(raws []DiscountPlanSchema) Plan {
-	if len(raws) == 0 {
-		return Plan{}
+// AddDiscount appends a discount to this plan.
+// Zero value is discarded.
+func (p *Plan) AddDiscount(d Discount) {
+	if d.IsZero() {
+		return
+	}
+	if p.Discounts == nil {
+		p.Discounts = make([]Discount, 0)
 	}
 
-	if len(raws) == 1 {
-		return Plan{
-			BasePlan: raws[0].BasePlan,
-			Discounts: []Discount{
-				raws[0].Discount,
-			},
-		}
-	}
-
-	p := Plan{
-		BasePlan:  raws[0].BasePlan,
-		Discounts: make([]Discount, 0),
-	}
-
-	for _, v := range raws {
-		// Just a a precaution.
-		if v.PlanID != p.PlanID {
-			continue
-		}
-		p.Discounts = append(p.Discounts, v.Discount)
-	}
-
-	return p
+	p.Discounts = append(p.Discounts, d)
 }
 
 // FindDiscount find out which discount will be used
@@ -106,6 +76,43 @@ func (p Plan) FindDiscount(q int64) Discount {
 	return Discount{}
 }
 
+// DiscountPlansSchema is used as the scan target
+// when retrieve a plans and its associated discounts
+// in one shot. With LEFT JOIN, the rows retrieved
+// is determined by the number of discounts.
+type DiscountPlanSchema struct {
+	BasePlan
+	Discount
+}
+
+// ReduceDiscountPlan transforms a slice or DiscountPlanSchema
+// retrieved from DB to Plan.
+// For each DiscountPlanSchema the BasePlan part should
+// be identical since they are the same one while the
+// Discount might be different if there are more than 1
+// discount record for this plan, or not exist if no discount
+// is made for this plan.
+func ReduceDiscountPlan(rows []DiscountPlanSchema) Plan {
+	if len(rows) == 0 {
+		return Plan{}
+	}
+
+	// There must be multiple discounts under this plan.
+	p := Plan{
+		BasePlan: rows[0].BasePlan, // Use any rows's BasePlan works since they are identical.
+	}
+
+	for _, v := range rows {
+		// Just a a precaution.
+		if v.PlanID != p.PlanID {
+			continue
+		}
+		p.AddDiscount(v.Discount)
+	}
+
+	return p
+}
+
 // GroupedPlans is used to group discounts under each plan.
 // The key is plan's id.
 type GroupedPlans map[string]Plan
@@ -123,16 +130,19 @@ type GroupedPlans map[string]Plan
 func GroupDiscountPlans(rows []DiscountPlanSchema) GroupedPlans {
 	var plans = make(GroupedPlans)
 
-	for _, rp := range rows {
-		if p, ok := plans[rp.PlanID]; ok {
-			p.Discounts = append(p.Discounts, rp.Discount)
-			plans[rp.PlanID] = p
-		} else {
-			plans[rp.PlanID] = Plan{
-				BasePlan:  rp.BasePlan,
+	for _, v := range rows {
+		plan, ok := plans[v.PlanID]
+		// If v is no put into the map.
+		if !ok {
+			plan = Plan{
+				BasePlan:  v.BasePlan,
 				Discounts: make([]Discount, 0),
 			}
 		}
+
+		plan.AddDiscount(v.Discount)
+
+		plans[v.PlanID] = plan
 	}
 
 	return plans
