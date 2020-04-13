@@ -7,11 +7,11 @@ import (
 )
 
 type BaseProduct struct {
-	ID           string      `db:"product_id"`
-	Tier         enum.Tier   `db:"tier"`
-	Heading      string      `db:"heading"`
-	SmallPrint   null.String `db:"small_print"`
-	YearlyPlanID string      `db:"yearly_plan_id"`
+	ID           string      `json:"id" db:"product_id"`
+	Tier         enum.Tier   `json:"tier" db:"tier"`
+	Heading      string      `json:"heading" db:"heading"`
+	SmallPrint   null.String `json:"smallPrint"db:"small_print"`
+	YearlyPlanID string      `json:"-" db:"yearly_plan_id"`
 }
 
 // ProductSchema is the db scan target.
@@ -37,8 +37,8 @@ func GetPlanIDs(products []ProductSchema) []string {
 // on UI.
 type Product struct {
 	BaseProduct
-	Description []string
-	Plan        Plan
+	Description []string `json:"description"`
+	Plan        Plan     `json:"plan"`
 }
 
 func ZipProductWithPlan(rows []ProductSchema, planStore GroupedPlans) []Product {
