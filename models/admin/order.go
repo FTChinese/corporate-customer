@@ -4,12 +4,81 @@ import (
 	"github.com/FTChinese/b2b/models/plan"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/go-rest/rand"
+	"github.com/FTChinese/go-rest/render"
+	"github.com/guregu/null"
 )
 
-// Cart represents a user's purchase action.
+// GetCartPlansIDs collects the plan ids of items
+// in a cart and use it to retrieve the plans
+// using FIND_IN_SET
+func GetCartPlanIDs(items []CartItem) []string {
+	var ids = make([]string, 0)
+
+	for _, item := range items {
+		ids = append(ids, item.PlanID)
+	}
+
+	return ids
+}
+
+// CartItem is the plan user is subscribing
+// and the number of copies for this plan.
+type CartItem struct {
+	PlanID     string            `json:"planId"`
+	Quantity   int64             `json:"quantity"`
+	CycleCount int64             `json:"cycleCount"`
+	Plan       plan.DiscountPlan `json:"-"`
+}
+
+type CheckoutSession struct {
+	ID         string      `db:"checkout_id"`
+	Cart       string      `db:"cart"`
+	CreatedUTC chrono.Time `db:"created_utc"`
+}
+
 type Cart struct {
-	PlanID   string `form:"planId"`   // Which plan to buy
-	Quantity int64  `form:"quantity"` // How many copies of licence for this plan
+	CheckoutID string
+	Items      []CartItem
+}
+
+func NewCart(items []CartItem, plans plan.GroupedPlans) (Cart, *render.ValidationError) {
+	cart := Cart{
+		CheckoutID: "chk_" + rand.String(12),
+		Items:      nil,
+	}
+
+	for _, v := range items {
+		p, ok := plans[v.PlanID]
+		if !ok {
+			return Cart{}, &render.ValidationError{
+				Message: "Missing required field",
+				Field:   "planId",
+				Code:    render.CodeMissing,
+			}
+		}
+
+		dp := p.DiscountPlan(v.Quantity)
+
+		v.Plan = dp
+
+		cart.Items = append(cart.Items, v)
+	}
+
+	return cart, nil
+}
+
+func (c Cart) BuildOrders(teamID string) []Order {
+	var orders []Order
+
+	for _, v := range c.Items {
+		for i := 0; i < int(v.Quantity); i++ {
+			o := NewOrder(v, teamID, c.CheckoutID)
+			orders = append(orders, o)
+		}
+	}
+
+	return orders
 }
 
 // Order describes the details of each transaction
@@ -27,14 +96,51 @@ type Cart struct {
 type Order struct {
 	ID           string         `db:"order_id"`
 	PlanID       string         `db:"plan_id"`
+	DiscountID   null.Int       `db:"discount_id"`
 	LicenceID    string         `db:"licence_id"`
 	TeamID       string         `db:"team_id"`
+	CheckoutID   string         `db:"checkout_id"`
 	Amount       float64        `db:"amount"`
 	CycleCount   int64          `db:"cycle_count"`
+	TrialDays    int64          `db:"trial_days"`
+	Kind         enum.OrderKind `db:"kind"`
 	PeriodStart  chrono.Date    `db:"period_start"`
 	PeriodEnd    chrono.Date    `db:"period_end"`
-	Kind         enum.OrderKind `db:"kind"`
 	CreatedUTC   chrono.Time    `db:"created_utc"`
 	ConfirmedUTC chrono.Time    `db:"confirmed_utc"`
-	Plan         plan.BasePlan
+}
+
+func NewOrder(item CartItem, teamID, checkoutID string) Order {
+	return Order{
+		ID:           "ord_" + rand.String(12),
+		PlanID:       item.PlanID,
+		DiscountID:   item.Plan.DiscountID,
+		LicenceID:    "lic_" + rand.String(12),
+		TeamID:       teamID,
+		CheckoutID:   checkoutID,
+		Amount:       item.Plan.PayableAmount(),
+		CycleCount:   item.CycleCount,
+		TrialDays:    7,
+		Kind:         enum.OrderKindCreate,
+		PeriodStart:  chrono.Date{},
+		PeriodEnd:    chrono.Date{},
+		CreatedUTC:   chrono.TimeNow(),
+		ConfirmedUTC: chrono.Time{},
+	}
+}
+
+func (o Order) SQLValues() []interface{} {
+	return []interface{}{
+		o.ID,
+		o.PlanID,
+		o.DiscountID,
+		o.LicenceID,
+		o.TeamID,
+		o.CheckoutID,
+		o.Amount,
+		o.CycleCount,
+		o.TrialDays,
+		o.Kind,
+		"UTC_TIMESTAMP()",
+	}
 }
