@@ -7,11 +7,10 @@ import (
 )
 
 type BasePlan struct {
-	PlanID    string     `json:"id" db:"plan_id"`
-	Price     float64    `json:"price" db:"price"`
-	Tier      enum.Tier  `json:"tier" db:"tier"`
-	Cycle     enum.Cycle `json:"cycle" db:"cycle"`
-	TrialDays int64      `json:"trialDays" db:"trial_days"`
+	PlanID string     `json:"id" db:"plan_id"`
+	Price  float64    `json:"price" db:"price"`
+	Tier   enum.Tier  `json:"tier" db:"tier"`
+	Cycle  enum.Cycle `json:"cycle" db:"cycle"`
 }
 
 // Plan is the output data structure.
@@ -76,28 +75,21 @@ func (p *Plan) AddDiscount(d Discount) {
 // This problem could be simplified to find out which range
 // of a number falls into among several ascending-ordered
 // numbers.
-// For example, if there are three tiers:
-// 10 copies for price off 19
-// 20 copies for price off 29
-// 30 copies for price off 39
-// above 30 copies use the 30 tier.
-// Given a purchase of 25 copies, we should use the 20 tier;
-// for 40 copies, use the 30 tier.
-// The Discounts array should be sorted by Quantity on
-// ascending order.
-// The final price payable: p.Price - Discount.PriceOff
+// For example, if this plan have those discounts:
+
+// Quantity | Price off
+// --------------------
+// 10       |  19
+// 20       |  29
+// 30       |  39
+// ----------------------
+// If user purchased 5 copies, no discount;
+// 15 copies fall into the first tier;
+// 25 copies fall into the second tier;
+// above 30 copies, always use the third tier.
 func (p Plan) FindDiscount(q int64) Discount {
-	if p.Discounts == nil {
+	if p.Discounts == nil || len(p.Discounts) == 0 {
 		return Discount{}
-	}
-
-	if q < p.Discounts[0].Quantity {
-		return p.Discounts[0]
-	}
-
-	l := len(p.Discounts)
-	if q > p.Discounts[l-1].Quantity {
-		return p.Discounts[l-1]
 	}
 
 	// Use a zero value to init.
@@ -109,8 +101,10 @@ func (p Plan) FindDiscount(q int64) Discount {
 
 		previous = v
 	}
-
-	return Discount{}
+	// After the loop, previous is the last element in the slice.
+	// This indicates the quantity is larger than the last
+	// discountable tier.
+	return previous
 }
 
 // DiscountPlan produces a DiscountPlan used to record
@@ -122,16 +116,6 @@ func (p Plan) DiscountPlan(q int64) DiscountPlan {
 		BasePlan: p.BasePlan,
 		Discount: d,
 	}
-}
-
-// DiscountPlansSchema contains a discount schema and its plan.
-// This is used as the scan target when retrieved plan and its discount
-// from DB one one shot, using LEFT JOIN. The rows retrieved
-// is determined by the number of discounts and the plan row might be
-// duplicated.
-type DiscountPlan struct {
-	BasePlan
-	Discount
 }
 
 // GroupedPlans is used to group discounts under each plan.
