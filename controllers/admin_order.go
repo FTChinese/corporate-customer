@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/repository"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 )
 
@@ -14,12 +16,30 @@ type OrderRouter struct {
 // and how many copies.
 // Input:
 // [
-//     {planId: "string", quantity: number},
-//     {planId: "string", quantity: number}
+//     {planId: "string", quantity: number, cycleCount: number },
+//     {planId: "string", quantity: number, cycleCount: number }
 // ]
 // At most there should be two plans: a standard and a premium.
 func (router OrderRouter) CreateOrders(c echo.Context) error {
-	//claims := getAccountClaims(c)
+	claims := getAccountClaims(c)
+
+	var cartItems []admin.CartItem
+	if err := c.Bind(&cartItems); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	plans, err := router.repo.PlansInSet(admin.GetCartPlanIDs(cartItems))
+
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	cart, ve := admin.NewCart(cartItems, plans)
+	if ve != nil {
+		return render.NewUnprocessable(ve)
+	}
+
+	orders := cart.BuildOrders(claims.TeamID.String)
 
 	return nil
 }
