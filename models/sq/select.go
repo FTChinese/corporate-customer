@@ -1,4 +1,4 @@
-package builder
+package sq
 
 import (
 	"strconv"
@@ -61,20 +61,6 @@ func (s Select) Lock() Select {
 	return s
 }
 
-func (s Select) buildColumns() string {
-	var buf strings.Builder
-
-	for _, v := range s.columns {
-		if buf.Len() > 0 {
-			buf.WriteByte(',')
-			buf.WriteByte(' ')
-		}
-		buf.WriteString(v.Build())
-	}
-
-	return buf.String()
-}
-
 // Build produces a SQL SELECT statement:
 // SELECT ...
 // FROM ...
@@ -85,7 +71,7 @@ func (s Select) Build() string {
 	var buf strings.Builder
 
 	buf.WriteString("SELECT ")
-	buf.WriteString(s.buildColumns())
+	buf.WriteString(buildColumns(s.columns))
 
 	buf.WriteByte(' ')
 

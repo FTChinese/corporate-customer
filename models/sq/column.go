@@ -1,4 +1,4 @@
-package builder
+package sq
 
 import "strings"
 
@@ -51,4 +51,14 @@ func (c Column) Build() string {
 	}
 
 	return buf.String()
+}
+
+func buildColumns(cols []Column) string {
+	str := make([]string, len(cols))
+
+	for i, c := range cols {
+		str[i] = c.Build()
+	}
+
+	return strings.Join(str, ", ")
 }
