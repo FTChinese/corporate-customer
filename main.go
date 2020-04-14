@@ -71,6 +71,7 @@ func main() {
 	barrierRouter := controllers.NewBarrierRouter(repo, post)
 	accountRouter := controllers.NewAccountRouter(repo, post)
 	teamRouter := controllers.NewTeamRouter(repo)
+	productRouter := controllers.NewProductRouter(repo)
 
 	e := echo.New()
 	e.Pre(middleware.AddTrailingSlash())
@@ -127,6 +128,11 @@ func main() {
 		teamGroup.GET("/", teamRouter.Load)
 		teamGroup.POST("/", teamRouter.Create)
 		teamGroup.PATCH("/", teamRouter.Update)
+	}
+
+	productGroup := api.Group("/products")
+	{
+		productGroup.GET("/", productRouter.ListProducts)
 	}
 
 	e.Logger.Fatal(e.Start(":3100"))
