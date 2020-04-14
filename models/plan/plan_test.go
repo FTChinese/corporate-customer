@@ -234,3 +234,57 @@ func TestNewGroupedPlans(t *testing.T) {
 		})
 	}
 }
+
+func TestPlan_FindDiscount(t *testing.T) {
+	type fields struct {
+		BasePlan  BasePlan
+		Discounts []Discount
+	}
+
+	f := fields{
+		BasePlan: stdPlan,
+		Discounts: []Discount{
+			stdDiscountA,
+			stdDiscountB,
+		},
+	}
+	type args struct {
+		q int64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Discount
+	}{
+		{
+			name:   "5 copies",
+			fields: f,
+			args:   args{q: 5},
+			want:   Discount{},
+		},
+		{
+			name:   "15 copies",
+			fields: f,
+			args:   args{q: 15},
+			want:   stdDiscountA,
+		},
+		{
+			name:   "25 copies",
+			fields: f,
+			args:   args{q: 25},
+			want:   stdDiscountB,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := Plan{
+				BasePlan:  tt.fields.BasePlan,
+				Discounts: tt.fields.Discounts,
+			}
+			if got := p.FindDiscount(tt.args.q); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FindDiscount() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
