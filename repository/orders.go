@@ -5,19 +5,8 @@ import (
 	"github.com/FTChinese/b2b/repository/stmt"
 )
 
-const stmtCreateOrder = `
-INSERT into b2b.order
-SET id = :order_id,
-	plan_id = :plan_id,
-	licence_id = :licence_id,
-	price = :price,
-	amount = :amount,
-	cycle_count = :cycle_count,
-	kind = :kind,
-	created_utc = UTC_TIMESTAMP()`
-
 func (env Env) CreateOrder(o admin.Order) error {
-	_, err := env.db.NamedExec(stmtCreateOrder, o)
+	_, err := env.db.NamedExec(stmt.CreateOrder, o)
 	if err != nil {
 		return err
 	}
