@@ -13,19 +13,23 @@ SELECT id AS product_id,
 FROM subs.product
 ORDER BY tier ASC`
 
-const selectPlanAndDiscount = `
-SELECT p.id AS plan_id,
-	p.price AS price,
-	p.tier AS tier,
-	p.cycle AS cycle,
-	d.id AS discount_id,
-	IFNULL(d.quantity, 0) AS quantity,
-	IFNULL(d.price_off, 0) AS price_off`
+const planCols = `
+p.id AS plan_id,
+p.price AS price,
+p.tier AS tier,
+p.cycle AS cycle`
+
+const discountCols = `
+d.id AS discount_id,
+IFNULL(d.quantity, 0) AS quantity,
+IFNULL(d.price_off, 0) AS price_off`
 
 // In the left join, discount table might be null,
 // and to simplify things, the fields Discount type
 // are not nullable types, so we use IFNULL to safe handle it.
-const selectPlan = selectPlanAndDiscount + `
+const selectPlan = `
+SELECT + ` + planCols + `,
+` + discountCols + `
 FROM subs.plan AS p
 	LEFT JOIN subs.b2b_discount AS d
 	ON p.id = d.plan_id`
@@ -40,11 +44,3 @@ ORDER BY d.quantity ASC`
 const ListPlans = selectPlan + `
 WHERE FIND_IN_SET(p.id, ?)
 ORDER BY p.tier ASC, p.cycle ASC, d.quantity ASC`
-
-// DiscountPlan select a discount and the plan it applies to.
-const DiscountPlan = selectPlan + `
-FROM subs.b2b_discount AS d
-	INNER JOIN subs.plan
-	ON d.plan_id = p.id
-WHERE d.id = ?
-LIMIT 1`
