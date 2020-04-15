@@ -49,8 +49,8 @@ func (tx GrantTx) LockInvitation(id string) (admin.Invitation, error) {
 }
 
 // LockLicence locks a licence for update.
-func (tx GrantTx) LockLicence(id string) (admin.Licence, error) {
-	var l admin.Licence
+func (tx GrantTx) LockLicence(id string) (admin.BaseLicence, error) {
+	var l admin.BaseLicence
 	err := tx.Get(&l, stmt.LockLicence, id)
 	if err != nil {
 		return l, err
@@ -107,7 +107,7 @@ LIMIT 1`
 
 // LicenceGranted set the assignee_id field
 // to user's uuid and turns is_active to true.
-func (tx GrantTx) LicenceGranted(l admin.Licence) error {
+func (tx GrantTx) LicenceGranted(l admin.BaseLicence) error {
 	_, err := tx.NamedExec(stmtLicenceGranted, l)
 
 	if err != nil {
