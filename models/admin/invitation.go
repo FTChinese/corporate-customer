@@ -2,6 +2,7 @@ package admin
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/go-rest/rand"
 	"github.com/guregu/null"
 	"time"
 )
@@ -36,16 +37,16 @@ import (
 // * The licence is not used by anyone else;
 // * The InviteeEmail does not have valid subscription.
 type Invitation struct {
-	ID            string      `db:"invitation_id"`
-	LicenceID     string      `db:"licence_id"`
-	TeamID        string      `db:"team_id"`
-	Token         string      `db:"token"`
-	ExpiresInDays int64       `db:"expires_in_days"`
-	Description   null.String `db:"description"`
-	Accepted      bool        `db:"accepted"`
-	Revoked       bool        `db:"revoked"`
-	CreatedUTC    chrono.Time `db:"created_utc"`
-	UpdatedUTC    chrono.Time `db:"updated_utc"`
+	ID            string      `json:"id" db:"invitation_id"`
+	LicenceID     string      `json:"licenceId" db:"licence_id"`
+	TeamID        string      `json:"teamId" db:"team_id"`
+	Token         string      `json:"-" db:"token"`
+	ExpiresInDays int64       `json:"expiresInDays" db:"expires_in_days"`
+	Description   null.String `json:"description" db:"description"`
+	Accepted      bool        `json:"accepted" db:"accepted"`
+	Revoked       bool        `json:"revoked" db:"revoked"`
+	CreatedUTC    chrono.Time `json:"createdUtc" db:"created_utc"`
+	UpdatedUTC    chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }
 
 func (i *Invitation) Accept() {
@@ -65,16 +66,51 @@ func (i Invitation) IsValid() bool {
 	return !i.Expired() && !i.Revoked && !i.Accepted
 }
 
+// ExpandedInvitations includes invitation with the assignee
+// information.
+// Used to output JSON.
 type ExpandedInvitation struct {
 	Invitation
 	Assignee Assignee
 }
 
+// InvitationInput contains the essential data client
+// submitted to create a new invitation.
+type InvitationInput struct {
+	Email       string      `json:"email"` // To whom the invitation should be sent.
+	Description null.String `json:"description"`
+	LicenceID   string      `json:"licenceId"` // Which licence is being granted.
+}
+
+// NewInvitation creates a new Invitation instance based
+// on user input.
+func (i InvitationInput) NewInvitation(teamID string) (Invitation, error) {
+	token, err := GenerateToken()
+	if err != nil {
+		return Invitation{}, err
+	}
+
+	return Invitation{
+		ID:            "inv_" + rand.String(12),
+		LicenceID:     i.LicenceID,
+		TeamID:        teamID,
+		Token:         token,
+		ExpiresInDays: 7,
+		Description:   i.Description,
+		Accepted:      false,
+		Revoked:       false,
+		CreatedUTC:    chrono.TimeNow(),
+		UpdatedUTC:    chrono.TimeNow(),
+	}, nil
+}
+
+// InvitationsSchema is used to retrieve/save an invitation.
 type InvitationSchema struct {
 	Invitation
 	Assignee
 }
 
+// ExpandedInvitation turns it to output format.
 func (s InvitationSchema) ExpandedInvitation() ExpandedInvitation {
 	return ExpandedInvitation{
 		Invitation: s.Invitation,
