@@ -1,6 +1,22 @@
 package repository
 
-import "github.com/FTChinese/b2b/models/admin"
+import (
+	"github.com/FTChinese/b2b/models/admin"
+	"github.com/FTChinese/b2b/models/reader"
+	"github.com/FTChinese/b2b/repository/stmt"
+)
+
+func (env Env) FindReader(email string) (reader.Reader, error) {
+	var r reader.Reader
+	err := env.db.Get(&r, stmt.SelectReader, email)
+	if err != nil {
+		return r, err
+	}
+
+	r.Normalize()
+
+	return r, nil
+}
 
 const stmtSaveAssignee = `
 INSERT INTO b2b.assignee
