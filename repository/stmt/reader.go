@@ -4,7 +4,7 @@ const readerAccountCols = `
 u.user_id AS ftc_id,
 u.email AS email,
 u.user_name AS user_name,
-u.is_vip AS is_vip`
+IFNULL(u.is_vip, FALSE) AS is_vip`
 
 const MembershipSelectCols = `
 m.id AS subs_id,
@@ -23,6 +23,15 @@ m.stripe_subscription_id AS stripe_subs_id,
 m.stripe_plan_id AS stripe_plan_id,
 m.sub_status AS subs_status,
 m.apple_subscription_id AS apple_subs_id`
+
+const SelectReader = `
+SELECT + ` + readerAccountCols + `,
+` + MembershipSelectCols + `
+FROM cmstmp01.uerinfo AS u
+	LEFT JOIN premium.ftc_vip AS m
+	ON u.user_id = m.vip_id
+WHERE u.email = ?
+LIMIT 1`
 
 // membershipUpsertCols list shared columns
 // for both inserting and updating membership.
