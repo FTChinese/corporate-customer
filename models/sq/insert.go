@@ -75,3 +75,26 @@ func (i Insert) Build() string {
 
 	return buf.String()
 }
+
+// InsertRow should be implemented by a type that can
+// product an array of values that will be used
+// as a row in SQL INSERT VALUES ().
+type InsertRow interface {
+	RowValues() []interface{}
+}
+
+type Enumerable interface {
+	Each(handler func(row InsertRow))
+}
+
+// BuildInsertValues transform an array of InsertRow
+// to the arg in sql's Exec method.
+func BuildInsertValues(rows Enumerable) []interface{} {
+	var values = make([]interface{}, 0)
+
+	rows.Each(func(row InsertRow) {
+		values = append(values, row.RowValues()...)
+	})
+
+	return values
+}
