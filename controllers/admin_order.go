@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/b2b/repository"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 type OrderRouter struct {
@@ -41,5 +42,10 @@ func (router OrderRouter) CreateOrders(c echo.Context) error {
 
 	orders := cart.BuildOrders(claims.TeamID.String)
 
-	return nil
+	err = router.repo.CreateOrders(orders)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
