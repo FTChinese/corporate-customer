@@ -7,7 +7,7 @@ import (
 	"github.com/guregu/null"
 )
 
-// Invitee is a member of a team who will be granted
+// Reader is a member of a team who will be granted
 // a licence.
 // When an invitee received an email, it should click the link
 // in the email.
@@ -24,7 +24,7 @@ import (
 // 6. Insert membership if user does not have membership yet, or
 // backup existing membership and update membership.
 // 6. Mark the invitation as accepted;
-type Invitee struct {
+type Reader struct {
 	admin.Assignee
 	Membership
 }
@@ -52,9 +52,9 @@ func NewSignUp(f admin.AccountInput) (SignUp, error) {
 	}, nil
 }
 
-// Turn the Invitee for a new signup.
-func (s SignUp) Invitee() Invitee {
-	return Invitee{
+// Turn the Reader for a new signup.
+func (s SignUp) Invitee() Reader {
+	return Reader{
 		Assignee: admin.Assignee{
 			Email:    null.StringFrom(s.Email),
 			FtcID:    null.StringFrom(s.ID),
