@@ -2,6 +2,7 @@ package admin
 
 import (
 	"github.com/FTChinese/b2b/models/plan"
+	"github.com/FTChinese/b2b/models/sq"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
@@ -31,9 +32,14 @@ type CartItem struct {
 	Plan       plan.DiscountPlan `json:"-"`
 }
 
-type CheckoutSession struct {
-	ID         string      `db:"checkout_id"`
-	Cart       string      `db:"cart"`
+type CheckoutItem struct {
+	CartItem
+}
+
+type CheckoutCounter struct {
+	ID         string
+	Items      []CheckoutItem
+	Total      float64
 	CreatedUTC chrono.Time `db:"created_utc"`
 }
 
@@ -68,7 +74,7 @@ func NewCart(items []CartItem, plans plan.GroupedPlans) (Cart, *render.Validatio
 	return cart, nil
 }
 
-func (c Cart) BuildOrders(teamID string) []Order {
+func (c Cart) BuildOrders(teamID string) OrderList {
 	var orders []Order
 
 	for _, v := range c.Items {
@@ -129,7 +135,7 @@ func NewOrder(item CartItem, teamID, checkoutID string) Order {
 	}
 }
 
-func (o Order) SQLValues() []interface{} {
+func (o Order) RowValues() []interface{} {
 	return []interface{}{
 		o.ID,
 		o.PlanID,
@@ -142,5 +148,13 @@ func (o Order) SQLValues() []interface{} {
 		o.TrialDays,
 		o.Kind,
 		"UTC_TIMESTAMP()",
+	}
+}
+
+type OrderList []Order
+
+func (ol OrderList) Each(handler func(row sq.InsertRow)) {
+	for _, o := range ol {
+		handler(o)
 	}
 }
