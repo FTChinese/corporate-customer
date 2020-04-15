@@ -1,10 +1,8 @@
 package admin
 
 import (
-	"github.com/FTChinese/b2b/models/validator"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
-	"strings"
 	"time"
 )
 
@@ -82,40 +80,4 @@ func (s InvitationSchema) ExpandedInvitation() ExpandedInvitation {
 		Invitation: s.Invitation,
 		Assignee:   s.Assignee,
 	}
-}
-
-// InvitationForm is the data submitted when
-// admin is trying to invite a reader to accept
-// a licence.
-// We need to know which licence wil be granted and
-// to whom.
-// After collecting the data, use the LicenceID
-// to retrieve the licence to see if it is
-// still available. If it is, use the email to
-// retrieve a reader's account to see whether the
-// account exists and whether this reader is already
-// a valid member. Only when this email does not have a
-// valid membership, can the email be sent.
-type InvitationForm struct {
-	LicenceID   string `form:"licenceId"`
-	Email       string `form:"email"`
-	Description string `form:"description"`
-	Errors      map[string]string
-}
-
-func (f *InvitationForm) Validate() bool {
-	f.Email = strings.TrimSpace(f.Email)
-	f.Description = strings.TrimSpace(f.Description)
-
-	msg := validator.New("邮箱").Required().Email().Validate(f.Email)
-	if msg != "" {
-		f.Errors["email"] = msg
-	}
-
-	msg = validator.New("备注").Max(512).Validate(f.Description)
-	if msg != "" {
-		f.Errors["description"] = msg
-	}
-
-	return len(f.Errors) != 0
 }
