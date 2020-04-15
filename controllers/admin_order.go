@@ -49,3 +49,7 @@ func (router OrderRouter) CreateOrders(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+func (router OrderRouter) ListOrders(c echo.Context) error {
+	return nil
+}
