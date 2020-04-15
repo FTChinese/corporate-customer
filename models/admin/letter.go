@@ -38,3 +38,16 @@ FT中文网B2B用户 {{.Name}}，你好！
 本链接3小时内有效。
 
 FT中文网`
+
+const letterInvitation = `
+FT中文网读者 {{Assignee.NormalizeName}}，你好！
+
+{{Admin.Team.Name}}为您订阅了FT中文网会员 {{Plan.Tier.StringCN()}}，请点击以下链接接受邀请。
+
+{{Invitation.ActivationURL}}
+
+接受邀请后即获得FT会员，可以阅读FT中文网的付费内容。
+
+本链接3日内有效，请尽快接受邀请。如果链接已过期，请联系您所属机构的管理员 {{Admin.Email}}。
+
+FT中文网`
