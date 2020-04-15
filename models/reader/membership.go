@@ -33,7 +33,7 @@ type Membership struct {
 }
 
 func (m Membership) BuildOn(l admin.ExpandedLicence) Membership {
-	if m.IsZero() {
+	if m.HasMembership() {
 		m.SubsID = null.StringFrom(GenerateMemberID())
 		m.SubsCompoundID = l.AssigneeID
 		m.SubsFtcID = l.AssigneeID
@@ -62,12 +62,12 @@ func (m Membership) BuildOn(l admin.ExpandedLicence) Membership {
 	return m
 }
 
-func (m Membership) IsZero() bool {
+func (m Membership) HasMembership() bool {
 	return m.SubsCompoundID.IsZero()
 }
 
 func (m *Membership) Normalize() {
-	if m.IsZero() {
+	if m.HasMembership() {
 		return
 	}
 
@@ -112,7 +112,7 @@ func (m *Membership) Normalize() {
 }
 
 func (m Membership) IsExpired() bool {
-	if m.IsZero() {
+	if m.HasMembership() {
 		return true
 	}
 
