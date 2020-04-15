@@ -21,20 +21,6 @@ func (env Env) FindInvitation(token string) (admin.ExpandedInvitation, error) {
 	return i, nil
 }
 
-// FindLicence tries to retrieve an expanded
-// licence by id after an invitation is verified.
-func (env Env) FindLicence(id string) (admin.ExpandedLicence, error) {
-	var ls admin.LicenceSchema
-
-	err := env.db.Get(&ls, stmt.FindExpandedLicence, id)
-
-	if err != nil {
-		return admin.ExpandedLicence{}, err
-	}
-
-	return ls.ExpandedLicence(), err
-}
-
 const stmtInvitee = `
 SELECT u.user_id AS ftc_id,
 	u.email AS email,
@@ -46,10 +32,10 @@ FROM cmstmp01.uerinfo AS u
 WHERE u.email = ?
 LIMIT 1`
 
-func (env Env) LoadInvitee(email string) (reader.Invitee, error) {
-	var i reader.Invitee
+func (env Env) LoadInvitee(email string) (reader.Reader, error) {
+	var i reader.Reader
 	if err := env.db.Get(&i, stmtInvitee, email); err != nil {
-		return reader.Invitee{}, err
+		return reader.Reader{}, err
 	}
 
 	return i, nil
@@ -164,7 +150,7 @@ func (env Env) GrantLicence(expInv admin.ExpandedInvitation, expLic admin.Expand
 	newMmb := mmb.BuildOn(expLic)
 
 	// Create new membership based on licence
-	if mmb.IsZero() {
+	if mmb.HasMembership() {
 		err := tx.InsertMembership(newMmb)
 		if err != nil {
 			_ = tx.Rollback()
