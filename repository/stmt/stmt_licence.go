@@ -4,29 +4,22 @@ const licenceCols = `l.id AS licence_id,
 l.team_id AS team_id,
 l.assignee_id AS assignee_id,
 l.expire_date AS expire_date,
-l.is_active AS is_active,
+l.current_status AS current_status,
 l.created_utc AS created_utc,
-l.updated_utc AS updated_utc`
+l.updated_utc AS updated_utc,
+l.current_plan AS current_plan
+l.last_invitation AS last_invitation`
 
 const selectExpandedLicence = `
 SELECT ` + licenceCols + `,
-` + planCols + `,
 ` + readerAccountCols + `
 FROM b2b.licence AS l
-	LEFT JOIN subs.plan AS p
-		ON l.plan_id = p.id
-	LEFT JOIN cmstmp01.userinfo AS u
-		ON l.assignee_id = u.user_id`
+LEFT JOIN cmstmp01.userinfo AS u
+	ON l.assignee_id = u.user_id`
 
 // Select a single licence belonging to a team.
 const ExpandedLicence = selectExpandedLicence + `
 WHERE l.id = ? AND l.team_id = ?
-LIMIT 1`
-
-// FindExpandedLicence searches a licence by id.
-// Used when verifying a user's invitation.
-const FindExpandedLicence = selectExpandedLicence + `
-WHERE l.id = ?
 LIMIT 1`
 
 // Select a list of licence for a team.
@@ -35,6 +28,7 @@ WHERE l.team_id = ?
 ORDER BY l.created_utc DESC
 LIMIT ? OFFSET ?`
 
+// CountLicence is used to support pagination.
 const CountLicence = `
 SELECT COUNT(*) AS total_licence
 FROM b2b.licence
