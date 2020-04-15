@@ -2,11 +2,14 @@ package repository
 
 import (
 	"github.com/FTChinese/b2b/models/admin"
+	"github.com/FTChinese/b2b/models/sq"
 	"github.com/FTChinese/b2b/repository/stmt"
 )
 
-func (env Env) CreateOrder(o admin.Order) error {
-	_, err := env.db.NamedExec(stmt.CreateOrder, o)
+func (env Env) CreateOrders(o admin.OrderList) error {
+	query := stmt.OrderBuilder.Rows(len(o)).Build()
+
+	_, err := env.db.Exec(query, sq.BuildInsertValues(o)...)
 	if err != nil {
 		return err
 	}
