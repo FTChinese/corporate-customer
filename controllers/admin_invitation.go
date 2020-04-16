@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"database/sql"
-	"errors"
 	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/repository"
 	"github.com/FTChinese/go-rest/postoffice"
@@ -26,36 +24,46 @@ func (router InvitationRouter) Send(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	// Find the licence by input.LicenceID
-	licence, err := router.repo.LoadLicence(input.LicenceID, claims.TeamID.String)
+	// TODO: validation
+
+	input.TeamID = claims.TeamID.String
+
+	assignee, err := router.repo.CreateInvitation(input)
 	if err != nil {
-		return render.NewDBError(err)
-	}
+		switch err {
+		case repository.ErrLicenceUnavailable:
+			return &render.ValidationError{
+				Message: "The licence is already taken",
+				Field:   "licenceId",
+				Code:    "already_taken",
+			}
 
-	if !licence.IsAvailable() {
-		return &render.ValidationError{
-			Message: "The licence is already taken",
-			Field:   "licenceId",
-			Code:    "already_taken",
+		case repository.ErrAlreadyMember:
+			return &render.ValidationError{
+				Message: "The email to accept the invitation is already a valid member",
+				Field:   "membership",
+				Code:    render.CodeAlreadyExists,
+			}
+
+		default:
+			return render.NewDBError(err)
 		}
 	}
 
-	// Find the user by email
-	r, err := router.repo.FindReader(input.Email)
-	// Ignore not found error.
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return render.NewDBError(err)
-	}
-	// If this use already has a valid membership.
-	// A non-existing user is always treated as expired.
-	if !r.Membership.IsExpired() {
-		return &render.ValidationError{
-			Message: "The email to accept the invitation is already a valid member",
-			Field:   "membership",
-			Code:    render.CodeAlreadyExists,
+	go func() {
+		// We do not use ExpandedLicence here since the
+		// Assignee is still unknown until the invitation accepted.
+		licence, err := router.repo.RetrieveLicence(input.LicenceID, input.TeamID)
+		if err != nil {
+			return
 		}
-	}
 
+		accountTeam, err := router.repo.AccountTeam(claims.Id)
+		if err != nil {
+			return
+		}
+
+	}()
 	// Now licence is available, user does not have a valid
 	// membership, you can grant the licence to this user.
 
