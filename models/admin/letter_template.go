@@ -40,15 +40,15 @@ FT中文网
 {{end}}
 
 {{define "invitation"}}
-FT中文网读者 {{Admin.NormalizeName}}，你好！
+FT中文网读者 {{.AssigneeName}}，你好！
 
-{{Admin.TeamName}}为您订阅了FT中文网会员 {{Plan.Tier.StringCN()}}，请点击以下链接接受邀请。
+{{.TeamName}}为您订阅了FT中文网会员 {.Tier.StringCN}}，请点击以下链接接受邀请。
 
-{{Invitation.ActivationURL}}
+{{.URL}}
 
 接受邀请后即获得FT会员，可以阅读FT中文网的付费内容。
 
-本链接3日内有效，请尽快接受邀请。如果链接已过期，请联系您所属机构的管理员 {{Admin.Email}}。
+本链接3日内有效，请尽快接受邀请。如果链接已过期，请联系您所属机构的管理员 {{.AdminEmail}}。
 
 FT中文网
 {{end}}`
