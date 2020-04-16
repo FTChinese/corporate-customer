@@ -51,13 +51,6 @@ type Invitation struct {
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }
 
-func (i Invitation) GratingURL() string {
-	return "https://www.ftacademy.cn/b2b/accept-invitation/" + i.Token
-}
-func (i *Invitation) Accept() {
-	i.Accepted = true
-}
-
 func (i Invitation) Expired() bool {
 	now := time.Now().Unix()
 
