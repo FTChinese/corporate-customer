@@ -39,7 +39,7 @@ type AccountInput struct {
 	Token       string      `json:"token" db:"token"`
 	OldPassword string      `json:"oldPassword" db:"old_password"`
 	DisplayName null.String `json:"displayName" db:"display_name"`
-	IsSignUp    bool        // Used a verification letter template to determine the greeting message
+	IsSignUp    bool        `json:"-"` // Used in verification letter template to determine the greeting message
 }
 
 // NewVerifier regenerates a verification token for a new user.
@@ -121,19 +121,6 @@ func (a AccountInput) SignUp() (AccountInput, error) {
 	return a, nil
 }
 
-// Letter produce a Letter type.
-// This is used to unify the parameter passed to build
-// verification letter since a verification letter might
-// be needed under two situations: upon SignUp or
-// user' explicit request.
-// Call this on the returned value of SignUp or NewVerifier.
-func (a AccountInput) VerificationLetter() Letter {
-	return Letter{
-		URL:      "https://www.ftacademy.cn/b2b/verify/" + a.Token,
-		IsSignUp: a.IsSignUp,
-	}
-}
-
 // ValidatePwReset validates resetting password and its associated token.
 func (a *AccountInput) ValidatePwReset() *render.ValidationError {
 	a.Token = strings.TrimSpace(a.Token)
@@ -157,14 +144,6 @@ func (a AccountInput) PasswordResetter() (AccountInput, error) {
 		Email: a.Email,
 		Token: token,
 	}, nil
-}
-
-// ResettingLetter produces the data to compile template.
-// Call this from the returned value of PasswordResetter.
-func (a AccountInput) ResettingLetter() Letter {
-	return Letter{
-		URL: "https://www.ftacademy.cn/b2b/password-reset/token/" + a.Token,
-	}
 }
 
 // Credentials produces a new AccountInput with ID and Password

@@ -91,7 +91,7 @@ func (router AdminAccountRouter) RequestVerification(c echo.Context) error {
 	}
 
 	// Generate letter content
-	parcel, err := account.VerificationLetter(verifier.VerificationLetter())
+	parcel, err := admin.ComposeVerificationLetter(account, verifier)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}

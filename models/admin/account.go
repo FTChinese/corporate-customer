@@ -2,7 +2,6 @@ package admin
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/guregu/null"
 	"strings"
 )
@@ -24,58 +23,6 @@ func (a Account) NormalizeName() string {
 	}
 
 	return strings.Split(a.Email, "@")[0]
-}
-
-func (a Account) VerificationLetter(letter Letter) (postoffice.Parcel, error) {
-
-	data := struct {
-		Name string
-		Letter
-	}{
-		Name:   a.NormalizeName(),
-		Letter: letter,
-	}
-	var body strings.Builder
-	err := tmpl.ExecuteTemplate(&body, "verification", data)
-
-	if err != nil {
-		return postoffice.Parcel{}, err
-	}
-
-	return postoffice.Parcel{
-		FromAddress: "no-reply@ftchinese.com",
-		FromName:    "FT中文网",
-		ToAddress:   a.Email,
-		ToName:      a.NormalizeName(),
-		Subject:     "[FT中文网B2B]验证账号",
-		Body:        body.String(),
-	}, nil
-}
-
-func (a Account) PasswordResetLetter(letter Letter) (postoffice.Parcel, error) {
-
-	data := struct {
-		Name string
-		Letter
-	}{
-		Name:   a.NormalizeName(),
-		Letter: letter,
-	}
-	var body strings.Builder
-	err := tmpl.ExecuteTemplate(&body, "passwordReset", data)
-
-	if err != nil {
-		return postoffice.Parcel{}, err
-	}
-
-	return postoffice.Parcel{
-		FromAddress: "no-reply@ftchinese.com",
-		FromName:    "FT中文网",
-		ToAddress:   a.Email,
-		ToName:      data.Name,
-		Subject:     "[FT中文网B2B]重置密码",
-		Body:        body.String(),
-	}, nil
 }
 
 type Profile struct {

@@ -67,7 +67,7 @@ func (router BarrierRouter) SignUp(c echo.Context) error {
 	jwtAccount, err := router.repo.JWTAccount(signUp.ID)
 
 	go func() {
-		parcel, err := jwtAccount.VerificationLetter(signUp.VerificationLetter())
+		parcel, err := admin.ComposeVerificationLetter(jwtAccount.Account, signUp)
 		if err != nil {
 			return
 		}
@@ -111,7 +111,7 @@ func (router BarrierRouter) PasswordResetEmail(c echo.Context) error {
 	}
 
 	// Create email content.
-	parcel, err := account.PasswordResetLetter(pr.ResettingLetter())
+	parcel, err := admin.ComposePwResetLetter(account, pr)
 	if err != nil {
 		return err
 	}
