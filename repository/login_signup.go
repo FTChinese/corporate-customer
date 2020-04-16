@@ -6,33 +6,25 @@ import (
 )
 
 // Login verifies user email + password.
+// TODO: cache AccountTeam by admin id.
 func (env Env) Login(in admin.AccountInput) (admin.JWTAccount, error) {
-	var a admin.JWTAccount
+	var at admin.AccountTeam
 
-	err := env.db.Get(&a, stmt.Login, in.Email, in.Password)
+	err := env.db.Get(&at, stmt.Login, in.Email, in.Password)
 
 	if err != nil {
 		return admin.JWTAccount{}, err
 	}
 
-	a, err = a.WithToken()
+	jwtAccount, err := admin.NewJWTAccount(at)
 	if err != nil {
-		return a, err
+		return jwtAccount, err
 	}
-	return a, nil
+	return jwtAccount, nil
 }
 
-const stmtSignUp = `
-INSERT INTO b2b.admin
-SET id = :admin_id,
-	email = :email,
-	password_sha2 = UNHEX(SHA2(:password, 256)),
-	vrf_token = UNHEX(:token),
-	created_utc = UTC_TIMESTAMP(),
-	updated_utc = UTC_TIMESTAMP()`
-
 func (env Env) SignUp(s admin.AccountInput) error {
-	_, err := env.db.NamedExec(stmtSignUp, s)
+	_, err := env.db.NamedExec(stmt.SignUp, s)
 	if err != nil {
 		logger.WithField("trace", "Env.SignUp").Error(err)
 	}
@@ -40,16 +32,14 @@ func (env Env) SignUp(s admin.AccountInput) error {
 	return nil
 }
 
+// JWTAccount retrieves and build JWTAccount used to refresh
+// jwt, or signup.
 func (env Env) JWTAccount(id string) (admin.JWTAccount, error) {
-	var a admin.JWTAccount
-	if err := env.db.Get(&a, stmt.JWTAccount, id); err != nil {
-		return a, err
-	}
 
-	a, err := a.WithToken()
+	at, err := env.AccountTeam(id)
 	if err != nil {
-		return a, err
+		return admin.JWTAccount{}, err
 	}
 
-	return a, nil
+	return admin.NewJWTAccount(at)
 }

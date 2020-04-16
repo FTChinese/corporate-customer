@@ -33,15 +33,9 @@ func (router BarrierRouter) Login(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	account, err := router.repo.Login(input)
+	jwtAccount, err := router.repo.Login(input)
 	if err != nil {
 		return render.NewDBError(err)
-	}
-
-	// Includes JWT in response.
-	jwtAccount, err := account.WithToken()
-	if err != nil {
-		return render.NewUnauthorized(err.Error())
 	}
 
 	// `200 OK`
@@ -70,21 +64,16 @@ func (router BarrierRouter) SignUp(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	account, err := router.repo.JWTAccount(signUp.ID)
+	jwtAccount, err := router.repo.JWTAccount(signUp.ID)
 
 	go func() {
-		parcel, err := account.VerificationLetter(signUp.VerificationLetter())
+		parcel, err := jwtAccount.VerificationLetter(signUp.VerificationLetter())
 		if err != nil {
 			return
 		}
 
 		_ = router.post.Deliver(parcel)
 	}()
-
-	jwtAccount, err := account.WithToken()
-	if err != nil {
-		return render.NewUnauthorized(err.Error())
-	}
 
 	// `200 OK`
 	return c.JSON(http.StatusOK, jwtAccount)
