@@ -5,7 +5,6 @@ import (
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/guregu/null"
 	"strings"
-	"text/template"
 )
 
 // Account is an organization's administrator account.
@@ -28,11 +27,6 @@ func (a Account) NormalizeName() string {
 }
 
 func (a Account) VerificationLetter(letter Letter) (postoffice.Parcel, error) {
-	tmpl, err := template.New("passwordReset").Parse(letterVerification)
-
-	if err != nil {
-		return postoffice.Parcel{}, err
-	}
 
 	data := struct {
 		Name string
@@ -42,7 +36,7 @@ func (a Account) VerificationLetter(letter Letter) (postoffice.Parcel, error) {
 		Letter: letter,
 	}
 	var body strings.Builder
-	err = tmpl.Execute(&body, data)
+	err := tmpl.ExecuteTemplate(&body, "verification", data)
 
 	if err != nil {
 		return postoffice.Parcel{}, err
@@ -59,11 +53,6 @@ func (a Account) VerificationLetter(letter Letter) (postoffice.Parcel, error) {
 }
 
 func (a Account) PasswordResetLetter(letter Letter) (postoffice.Parcel, error) {
-	tmpl, err := template.New("passwordReset").Parse(letterPasswordReset)
-
-	if err != nil {
-		return postoffice.Parcel{}, err
-	}
 
 	data := struct {
 		Name string
@@ -73,7 +62,7 @@ func (a Account) PasswordResetLetter(letter Letter) (postoffice.Parcel, error) {
 		Letter: letter,
 	}
 	var body strings.Builder
-	err = tmpl.Execute(&body, data)
+	err := tmpl.ExecuteTemplate(&body, "passwordReset", data)
 
 	if err != nil {
 		return postoffice.Parcel{}, err
@@ -93,4 +82,10 @@ type Profile struct {
 	Account
 	CreatedUTC chrono.Time `db:"created_utc"`
 	UpdatedUTC chrono.Time `db:"updated_utc"`
+}
+
+type AccountTeam struct {
+	Account
+	TeamID   null.String `json:"teamId" db:"team_id"`
+	TeamName null.String `json:"-" db:"team_name"`
 }
