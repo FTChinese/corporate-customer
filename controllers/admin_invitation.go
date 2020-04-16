@@ -63,15 +63,16 @@ func (router InvitationRouter) Send(c echo.Context) error {
 			return
 		}
 
+		parcel, err := admin.ComposeInvitationLetter(assignee, licence, accountTeam)
+		if err != nil {
+			return
+		}
+
+		err = router.post.Deliver(parcel)
+		if err != nil {
+			logger.WithField("trace", "DeliverInvitationLetter").Error(err)
+		}
 	}()
-	// Now licence is available, user does not have a valid
-	// membership, you can grant the licence to this user.
-
-	// Compose letter.
-
-	// Send letter
-
-	// You also save this assignee under current admin.
 
 	return c.NoContent(http.StatusNoContent)
 }
