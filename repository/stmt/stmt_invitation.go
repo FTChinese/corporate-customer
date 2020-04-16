@@ -11,7 +11,7 @@ i.revoked AS revoked,
 i.created_utc AS inv_created_utc,
 i.updated_utc AS inv_updated_utc`
 
-const selectExpInvtBuilder = `
+const selectExpInvitation = `
 SELECT ` + invitationCols + `,
 ` + readerAccountCols + `
 FROM b2b.invitation AS i
@@ -21,7 +21,7 @@ LEFT JOIN cmstmp01.userinfo AS u
 // ListExpandedInvitation shows a list
 // of invitations with its assignee attached.
 // This is used by admin to views invitations it sent.
-const ListExpandedInvitation = selectExpInvtBuilder + `
+const ListExpandedInvitation = selectExpInvitation + `
 WHERE i.team_id = ?
 ORDER BY i.created_utc DESC
 LIMIT ? OFFSET ?`
@@ -33,14 +33,14 @@ WHERE team_id = ?`
 
 // ExpandedInvitation retrieves an expanded invitation
 // belonging to a team
-const ExpandedInvitation = selectExpInvtBuilder + `
+const ExpandedInvitation = selectExpInvitation + `
 WHERE i.id = ? ADN i.team_id = ?
 LIMIT 1`
 
 // FindExpandedInvitation retrieves an expanded invitation
 // by the token sent in an email.
 // This is used to verify an invitation email.
-const FindExpandedInvitation = selectExpInvtBuilder + `
+const FindExpandedInvitation = selectExpInvitation + `
 WHERE i.token = UNHEX(?)
 LIMIT 1`
 
