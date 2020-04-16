@@ -27,6 +27,18 @@ func (env Env) AccountByVerifier(token string) (admin.Account, error) {
 	return a, nil
 }
 
+// AccountTeam retrieves admin's account and team data
+// by admin id.
+// TODO: cache account by admin id.
+func (env Env) AccountTeam(id string) (admin.AccountTeam, error) {
+	var a admin.AccountTeam
+	if err := env.db.Get(&a, stmt.AccountTeam, id); err != nil {
+		return a, err
+	}
+
+	return a, nil
+}
+
 // AdminProfile loads admin's full account data.
 func (env Env) AdminProfile(id string) (admin.Profile, error) {
 	var p admin.Profile
@@ -38,19 +50,11 @@ func (env Env) AdminProfile(id string) (admin.Profile, error) {
 	return p, nil
 }
 
-// SetEmailVerified set the verified column to true
-// for a verification token.
-const stmtEmailVerified = `
-UPDATE b2b.admin
-	SET verified = 1
-WHERE id = :admin_id
-LIMIT 1`
-
 // SetEmailVerified set the verified field to true.
 // You should check whether it is already true before
 // performing this operation.
 func (env Env) SetEmailVerified(account admin.Account) error {
-	_, err := env.db.Exec(stmtEmailVerified, account)
+	_, err := env.db.Exec(stmt.EmailVerified, account)
 
 	if err != nil {
 		return err
@@ -58,21 +62,12 @@ func (env Env) SetEmailVerified(account admin.Account) error {
 
 	return nil
 }
-
-// ReGeneratedVrfToken regenerate verification token upon request.
-// An email should also be sent.
-const stmtReGenerateVrfToken = `
-UPDATE b2b.admin
-SET token = UNHEX(:token),
-	updated_utc = UTC_TIMESTAMP()
-WHERE id = :admin_id
-LIMIT1`
 
 // RegenerateVerifier re-generate a verification token
 // upon user request. If a account is already verified,
 // the request should be ignored.
 func (env Env) RegenerateVerifier(verifier admin.AccountInput) error {
-	_, err := env.db.NamedExec(stmtReGenerateVrfToken, verifier)
+	_, err := env.db.NamedExec(stmt.ReGenerateVrfToken, verifier)
 
 	if err != nil {
 		return err
@@ -81,15 +76,9 @@ func (env Env) RegenerateVerifier(verifier admin.AccountInput) error {
 	return nil
 }
 
-const stmtUpdateName = `
-UPDATE b2b.admin
-SET display_name = :display_name,
-	updated_utc = UTC_TIMESTAMP()
-WHERE id = :admin_id
-LIMIT 1`
-
+// UpdateName allows admin to change display name.
 func (env Env) UpdateName(account admin.Account) error {
-	_, err := env.db.NamedExec(stmtUpdateName, account)
+	_, err := env.db.NamedExec(stmt.UpdateName, account)
 
 	if err != nil {
 		return err
@@ -98,6 +87,7 @@ func (env Env) UpdateName(account admin.Account) error {
 	return nil
 }
 
+// PasswordMatched checks whether user's current password is correct.
 func (env Env) PasswordMatched(input admin.AccountInput) (bool, error) {
 	var ok bool
 	if err := env.db.Get(&ok, stmt.PasswordMatched, input.OldPassword, input.ID); err != nil {
@@ -107,15 +97,9 @@ func (env Env) PasswordMatched(input admin.AccountInput) (bool, error) {
 	return ok, nil
 }
 
-const stmtUpdatePassword = `
-UPDATE b2b.admin
-SET password_sha2 = UNHEX(SHA2(:password, 256))
-	updated_utc = UTC_TIMESTAMP()
-WHERE id = :amin_id
-LIMIT 1`
-
+// UpdatePassword allows user to change password.
 func (env Env) UpdatePassword(input admin.AccountInput) error {
-	_, err := env.db.NamedExec(stmtUpdatePassword, input)
+	_, err := env.db.NamedExec(stmt.UpdatePassword, input)
 	if err != nil {
 		return err
 	}
