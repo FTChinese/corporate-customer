@@ -22,6 +22,18 @@ type AccountClaims struct {
 	jwt.StandardClaims
 }
 
+func NewAccountClaims(a AccountTeam) AccountClaims {
+	return AccountClaims{
+		AdminID: a.ID,
+		TeamID:  a.TeamID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Unix() + 86400*7,
+			IssuedAt:  time.Now().Unix(),
+			Issuer:    "com.ftchinese.b2b",
+		},
+	}
+}
+
 // SignedString create a JWT based on current claims.
 func (c AccountClaims) SignedString() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
@@ -39,35 +51,24 @@ func (c AccountClaims) SignedString() (string, error) {
 // could check whether the login session is
 // expired. It carries the Json Web Token.
 type JWTAccount struct {
-	Account
-	TeamID    null.String `json:"teamId" db:"team_id"`
-	ExpiresAt int64       `json:"expiresAt"`
-	Token     string      `json:"token"`
+	AccountTeam
+	ExpiresAt int64  `json:"expiresAt"`
+	Token     string `json:"token"`
 }
 
-func (a JWTAccount) Claims() AccountClaims {
-	return AccountClaims{
-		AdminID: a.ID,
-		TeamID:  a.TeamID,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Unix() + 86400*7,
-			IssuedAt:  time.Now().Unix(),
-			Issuer:    "com.ftchinese.b2b",
-		},
-	}
-}
-
-func (a JWTAccount) WithToken() (JWTAccount, error) {
-	claims := a.Claims()
+func NewJWTAccount(at AccountTeam) (JWTAccount, error) {
+	claims := NewAccountClaims(at)
 
 	ss, err := claims.SignedString()
 	if err != nil {
 		return JWTAccount{}, err
 	}
 
-	a.ExpiresAt = claims.ExpiresAt
-	a.Token = ss
-	return a, nil
+	return JWTAccount{
+		AccountTeam: at,
+		ExpiresAt:   claims.ExpiresAt,
+		Token:       ss,
+	}, nil
 }
 
 func ParseJWT(ss string) (AccountClaims, error) {
