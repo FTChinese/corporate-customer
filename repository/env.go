@@ -24,3 +24,15 @@ func (env Env) beginGrantTx() (GrantTx, error) {
 
 	return GrantTx{tx}, nil
 }
+
+func (env Env) beginInvTx() (InvitationTx, error) {
+	tx, err := env.db.Beginx()
+
+	if err != nil {
+		return InvitationTx{}, err
+	}
+
+	return InvitationTx{
+		tx,
+	}, nil
+}
