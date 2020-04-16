@@ -10,6 +10,59 @@ l.updated_utc AS updated_utc,
 l.current_plan AS current_plan
 l.last_invitation AS last_invitation`
 
+// SelectLicence retrieves a single row.
+const SelectLicence = `
+SELECT ` + licenceCols + `
+FROM b2b.licence AS l
+WHERE l.id = ? AND team_id = ?
+LIMIT 1`
+
+// LockLicence locks a row of licence
+// when granting it to user.
+const LockLicence = SelectLicence + `
+FOR UPDATE`
+
+// SetLicenceInvited updates the current_status
+// and last_invitation columns after an invitation is sent
+const SetLicenceInvited = `
+UPDATE b2b.licence
+SET current_status = :current_status,
+	last_invitation,
+	updated_utc = UTC_TIMESTAMP()
+WHERE id = ? AND team_id = ?
+LIMIT 1`
+
+// SetLicenceGranted after user accepted invitation.
+const SetLicenceGranted = `
+UPDATE b2b.licence
+SET assignee_id = :assignee_id,
+	current_status = :current_status,
+	updated_utc = UTC_TIMESTAMP()
+WHERE id = ? AND team_id = ?
+LIMIT 1`
+
+// RevokeLicenceInvitation removes last_invitation when
+// admin revokes an invitation.
+const RevokeLicenceInvitation = `
+UPDATE b2b.licence
+SET current_status = :current_status,
+	last_invitation = NULL,
+	updated_utc = UTC_TIMESTAMP
+WHERE id = ? AND team_id = ?
+LIMIT 1`
+
+// SetLicenceRevoked if admin decides to revoke the the licence
+// from a user.
+// User's membership status should also be synced.
+const SetLicenceRevoked = `
+UPDATE b2b.licence
+SET assignee_id = NULL,
+	current_status = :current_status,
+	last_invitation = NULL,
+	updated_utc = UTC_TIMESTAMP()
+WHERE id = ? AND team_id = ?
+LIMIT 1`
+
 const selectExpandedLicence = `
 SELECT ` + licenceCols + `,
 ` + readerAccountCols + `
@@ -33,12 +86,3 @@ const CountLicence = `
 SELECT COUNT(*) AS total_licence
 FROM b2b.licence
 WHERE team_id = ?`
-
-// LockLicence locks a row of licence
-// when granting it to user.
-const LockLicence = `
-SELECT ` + licenceCols + `
-FROM b2b.licence AS l
-WHERE l.id = ?
-LIMIT 1
-FOR UPDATE`
