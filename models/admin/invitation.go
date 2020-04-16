@@ -37,18 +37,23 @@ import (
 // * The licence is not used by anyone else;
 // * The InviteeEmail does not have valid subscription.
 type Invitation struct {
-	ID            string      `json:"id" db:"invitation_id"`
-	LicenceID     string      `json:"licenceId" db:"licence_id"`
-	TeamID        string      `json:"teamId" db:"team_id"`
-	Token         string      `json:"-" db:"token"`
-	ExpiresInDays int64       `json:"expiresInDays" db:"expires_in_days"`
-	Description   null.String `json:"description" db:"description"`
-	Accepted      bool        `json:"accepted" db:"accepted"`
-	Revoked       bool        `json:"revoked" db:"revoked"`
-	CreatedUTC    chrono.Time `json:"createdUtc" db:"created_utc"`
-	UpdatedUTC    chrono.Time `json:"updatedUtc" db:"updated_utc"`
+	ID             string      `json:"id" db:"invitation_id"`
+	LicenceID      string      `json:"licenceId" db:"licence_id"`
+	TeamID         string      `json:"teamId" db:"team_id"`
+	Token          string      `json:"token,omitempty" db:"token"` // This field is used only when inserting data. Retrieval does not include this field. However, it is included when saving to the JSON column in licence.
+	Email          string      `json:"email" db:"email"`
+	Description    null.String `json:"description" db:"description"`
+	ExpirationDays int64       `json:"expiresInDays" db:"expiration_days"`
+
+	Accepted   bool        `json:"accepted" db:"accepted"`
+	Revoked    bool        `json:"revoked" db:"revoked"`
+	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
+	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }
 
+func (i Invitation) GratingURL() string {
+	return "https://www.ftacademy.cn/b2b/accept-invitation/" + i.Token
+}
 func (i *Invitation) Accept() {
 	i.Accepted = true
 }
@@ -59,19 +64,11 @@ func (i Invitation) Expired() bool {
 	created := i.CreatedUTC.Time.Unix()
 
 	// Default 7 days * 24 * 60 * 60
-	return (created + i.ExpiresInDays*86400) < now
+	return (created + i.ExpirationDays*86400) < now
 }
 
 func (i Invitation) IsValid() bool {
 	return !i.Expired() && !i.Revoked && !i.Accepted
-}
-
-// ExpandedInvitations includes invitation with the assignee
-// information.
-// Used to output JSON.
-type ExpandedInvitation struct {
-	Invitation
-	Assignee Assignee
 }
 
 // InvitationInput contains the essential data client
@@ -80,40 +77,28 @@ type InvitationInput struct {
 	Email       string      `json:"email"` // To whom the invitation should be sent.
 	Description null.String `json:"description"`
 	LicenceID   string      `json:"licenceId"` // Which licence is being granted.
+	TeamID      string      `json:"-"`
 }
 
 // NewInvitation creates a new Invitation instance based
 // on user input.
-func (i InvitationInput) NewInvitation(teamID string) (Invitation, error) {
+func (i InvitationInput) NewInvitation() (Invitation, error) {
 	token, err := GenerateToken()
 	if err != nil {
 		return Invitation{}, err
 	}
 
 	return Invitation{
-		ID:            "inv_" + rand.String(12),
-		LicenceID:     i.LicenceID,
-		TeamID:        teamID,
-		Token:         token,
-		ExpiresInDays: 7,
-		Description:   i.Description,
-		Accepted:      false,
-		Revoked:       false,
-		CreatedUTC:    chrono.TimeNow(),
-		UpdatedUTC:    chrono.TimeNow(),
+		ID:             "inv_" + rand.String(12),
+		LicenceID:      i.LicenceID,
+		TeamID:         i.TeamID,
+		Token:          token,
+		Email:          i.Email,
+		Description:    i.Description,
+		ExpirationDays: 7,
+		Accepted:       false,
+		Revoked:        false,
+		CreatedUTC:     chrono.TimeNow(),
+		UpdatedUTC:     chrono.TimeNow(),
 	}, nil
-}
-
-// InvitationsSchema is used to retrieve/save an invitation.
-type InvitationSchema struct {
-	Invitation
-	Assignee
-}
-
-// ExpandedInvitation turns it to output format.
-func (s InvitationSchema) ExpandedInvitation() ExpandedInvitation {
-	return ExpandedInvitation{
-		Invitation: s.Invitation,
-		Assignee:   s.Assignee,
-	}
 }
