@@ -1,13 +1,11 @@
 package admin
 
-// Letter is the data passed to template to generate the content
-// of an email.
-type Letter struct {
-	URL      string // The link for verification, or password reset.
-	IsSignUp bool   // Determines greeting.
-}
+import (
+	"text/template"
+)
 
-const letterVerification = `
+const letterTemplates = `
+{{define "verification"}}
 FT中文网B2B用户 {{.Name}}，你好！
 
 {{if SignUp}}
@@ -24,9 +22,10 @@ FT中文网B2B用户 {{.Name}}，你好！
 
 本邮件由系统自动生成，请勿回复。
 
-FT中文网`
+FT中文网
+{{end}}
 
-const letterPasswordReset = `
+{{define "passwordReset"}}
 FT中文网B2B用户 {{.Name}}，你好！
 
 获悉您遗失了B2B网站的登录密码，点击以下链接可以重置密码：
@@ -37,12 +36,13 @@ FT中文网B2B用户 {{.Name}}，你好！
 
 本链接3小时内有效。
 
-FT中文网`
+FT中文网
+{{end}}
 
-const letterInvitation = `
-FT中文网读者 {{Assignee.NormalizeName}}，你好！
+{{define "invitation"}}
+FT中文网读者 {{Admin.NormalizeName}}，你好！
 
-{{Admin.Team.Name}}为您订阅了FT中文网会员 {{Plan.Tier.StringCN()}}，请点击以下链接接受邀请。
+{{Admin.TeamName}}为您订阅了FT中文网会员 {{Plan.Tier.StringCN()}}，请点击以下链接接受邀请。
 
 {{Invitation.ActivationURL}}
 
@@ -50,4 +50,7 @@ FT中文网读者 {{Assignee.NormalizeName}}，你好！
 
 本链接3日内有效，请尽快接受邀请。如果链接已过期，请联系您所属机构的管理员 {{Admin.Email}}。
 
-FT中文网`
+FT中文网
+{{end}}`
+
+var tmpl = template.Must(template.New("letter").Parse(letterTemplates))

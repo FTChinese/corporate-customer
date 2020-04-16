@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/guregu/null"
 	"strings"
 )
@@ -23,6 +24,31 @@ func (a Assignee) NormalizeName() string {
 	}
 
 	return strings.Split(a.Email.String, "@")[0]
+}
+
+func (a Assignee) InvitationLetter(licence Licence) (postoffice.Parcel, error) {
+
+	data := struct {
+		Name string
+		Letter
+	}{
+		Name: a.NormalizeName(),
+	}
+	var body strings.Builder
+	err := tmpl.ExecuteTemplate(&body, "invitation", data)
+
+	if err != nil {
+		return postoffice.Parcel{}, err
+	}
+
+	return postoffice.Parcel{
+		FromAddress: "no-reply@ftchinese.com",
+		FromName:    "FT中文网",
+		ToAddress:   a.Email.String,
+		ToName:      a.NormalizeName(),
+		Subject:     "[FT中文网B2B]会员邀请",
+		Body:        body.String(),
+	}, nil
 }
 
 type AssigneeSchema struct {
