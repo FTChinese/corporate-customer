@@ -5,12 +5,23 @@ import (
 	"github.com/FTChinese/b2b/repository/stmt"
 )
 
-// LoadLicence retrieves a licence, together with its
+// RetrieveLicence get a licence with plan, invitation.
+func (env Env) RetrieveLicence(licID, teamID string) (admin.Licence, error) {
+	var ls admin.LicenceSchema
+	err := env.db.Get(&ls, stmt.SelectLicence, licID, teamID)
+	if err != nil {
+		return admin.Licence{}, err
+	}
+
+	return ls.Licence()
+}
+
+// LoadExpLicence retrieves a licence, together with its
 // subscription plan and the user to whom it was assigned.
 // If the licence is not assigned yet, user part should
 // have empty value.
-func (env Env) LoadLicence(id, teamID string) (admin.ExpandedLicence, error) {
-	var ls admin.LicenceSchema
+func (env Env) LoadExpLicence(id, teamID string) (admin.ExpandedLicence, error) {
+	var ls admin.ExpLicenceSchema
 	err := env.db.Get(&ls, stmt.ExpandedLicence, id, teamID)
 
 	if err != nil {
@@ -20,8 +31,10 @@ func (env Env) LoadLicence(id, teamID string) (admin.ExpandedLicence, error) {
 	return ls.ExpandedLicence()
 }
 
-func (env Env) ListLicence(teamID string) ([]admin.ExpandedLicence, error) {
-	var ls = make([]admin.LicenceSchema, 0)
+// ListExpLicence shows a list all licence.
+// Each licence's plan, invitation, assignee are attached.
+func (env Env) ListExpLicence(teamID string) ([]admin.ExpandedLicence, error) {
+	var ls = make([]admin.ExpLicenceSchema, 0)
 
 	err := env.db.Select(&ls, stmt.ListExpandedLicences, teamID)
 
