@@ -18,13 +18,17 @@ import (
 // current membership status and delete that row, clear
 // the AssigneeID field.
 type BaseLicence struct {
-	ID         string        `json:"id" db:"licence_id"`
-	TeamID     string        `json:"team_id" db:"team_id"`
-	AssigneeID null.String   `json:"-" db:"assignee_id"` // Only exists after reader accepted an invitation.
-	ExpireDate chrono.Date   `json:"expireDate" db:"expire_date"`
-	Status     LicenceStatus `json:"status" db:"current_status"`
-	CreatedUTC chrono.Time   `json:"createdUtc" db:"created_utc"`
-	UpdatedUTC chrono.Time   `json:"updatedUtc" db:"updated_utc"`
+	ID               string        `json:"id" db:"licence_id"`
+	TeamID           string        `json:"team_id" db:"team_id"`
+	AssigneeID       null.String   `json:"-" db:"assignee_id"` // Only exists after reader accepted an invitation.
+	ExpireDate       chrono.Date   `json:"expireDate" db:"expire_date"`
+	TrialStart       chrono.Date   `json:"trialStart" db:"trial_start_date"`
+	TrialEnd         chrono.Date   `json:"trialEnd" db:"trial_end_date"`
+	Status           LicenceStatus `json:"status" db:"current_status"`
+	CreatedUTC       chrono.Time   `json:"createdUtc" db:"created_utc"`
+	UpdatedUTC       chrono.Time   `json:"updatedUtc" db:"updated_utc"`
+	LastInvitationID null.String   `json:"lastInvitationId" db:"last_invitation_id"`
+	LastInviteeEmail null.String   `json:"lastInviteeEmail" db:"last_invitee_email"`
 }
 
 // IsAvailable checks whether the licence is
@@ -33,85 +37,73 @@ func (l BaseLicence) IsAvailable() bool {
 	return l.AssigneeID.IsZero() && l.Status == LicStatusAvailable
 }
 
-func (l *BaseLicence) AssignTo(ftcID string) {
-	l.AssigneeID = null.StringFrom(ftcID)
+// IsInvitationRevokable ensures that the licence could
+// have its invitation revoked.
+// A licence could only have its invitation revoked when
+// an invitation is sent but not accepted.
+func (l BaseLicence) IsInvitationRevokable(invID string) bool {
+	return l.Status == LicStatusInvited && l.AssigneeID.IsZero() && l.LastInvitationID.Valid && l.LastInvitationID.String == invID
 }
 
-// Licence contains all data of a licence.
-type Licence struct {
-	BaseLicence
-	Plan       plan.BasePlan
-	Invitation Invitation // If no one is invited to use this licence, its fields are empty.
-}
-
-func (l Licence) WithInvitation(inv Invitation) Licence {
+func (l BaseLicence) WithInvitation(inv Invitation) BaseLicence {
 	l.Status = LicStatusInvited
-	l.Invitation = inv
+	l.LastInvitationID = null.StringFrom(inv.ID)
+	l.LastInviteeEmail = null.StringFrom(inv.Email)
 	l.UpdatedUTC = chrono.TimeNow()
 	return l
-}
-
-// LicenceSchema defines the DB schema for licence table.
-type LicenceSchema struct {
-	BaseLicence
-	CurrentPlan    string      `db:"current_plan"`    // The raw JSON column is a string.
-	LastInvitation null.String `db:"last_invitation"` // Raw json column.
-}
-
-// Licence create the Licence instance from raw db data.
-func (ls LicenceSchema) Licence() (Licence, error) {
-	var p plan.BasePlan
-	var inv Invitation
-
-	if err := json.Unmarshal([]byte(ls.CurrentPlan), &p); err != nil {
-		return Licence{}, err
-	}
-
-	if ls.LastInvitation.Valid {
-		if err := json.Unmarshal([]byte(ls.LastInvitation.String), &inv); err != nil {
-			return Licence{}, err
-		}
-	}
-
-	return Licence{
-		BaseLicence: ls.BaseLicence,
-		Plan:        p,
-		Invitation:  inv,
-	}, nil
-}
-
-func (ls LicenceSchema) WithInvitationSent(inv Invitation) (LicenceSchema, error) {
-	invDoc, err := json.Marshal(inv)
-	if err != nil {
-		return ls, err
-	}
-
-	ls.Status = LicStatusInvited
-	ls.LastInvitation = null.StringFrom(string(invDoc))
-	ls.UpdatedUTC = chrono.TimeNow()
-
-	return ls, nil
 }
 
 // WithInvitationRevoked revokes an invitation of a licence
 // so that admin could invite another one to use this licence.
 // This is used after invitation is sent but before it is
 // accepted.
-func (ls LicenceSchema) WithInvitationRevoked() LicenceSchema {
-	ls.Status = LicStatusAvailable
-	ls.LastInvitation = null.String{}
-	ls.UpdatedUTC = chrono.TimeNow()
+func (l BaseLicence) WithInvitationRevoked() BaseLicence {
+	l.Status = LicStatusAvailable
+	l.UpdatedUTC = chrono.TimeNow()
 
-	return ls
+	return l
 }
 
 // Revoke unlink a user from a licence.
-func (ls LicenceSchema) Revoke() LicenceSchema {
-	ls.AssigneeID = null.String{}
-	ls.Status = LicStatusAvailable
-	ls.UpdatedUTC = chrono.TimeNow()
+func (l BaseLicence) Revoke() BaseLicence {
+	l.AssigneeID = null.String{}
+	l.Status = LicStatusAvailable
+	l.UpdatedUTC = chrono.TimeNow()
 
-	return ls
+	return l
+}
+
+func (l BaseLicence) WithAssignee(a Assignee) BaseLicence {
+	l.AssigneeID = a.FtcID
+	l.Status = LicStatusGranted
+	l.UpdatedUTC = chrono.TimeNow()
+	return l
+}
+
+// Licence contains all data of a licence.
+type Licence struct {
+	BaseLicence
+	Plan plan.BasePlan
+}
+
+// LicenceSchema defines the DB schema for licence table.
+type LicenceSchema struct {
+	BaseLicence
+	CurrentPlan string `db:"current_plan"` // The raw JSON column is a string.
+}
+
+// Licence create the Licence instance from raw db data.
+func (ls LicenceSchema) Licence() (Licence, error) {
+	var p plan.BasePlan
+
+	if err := json.Unmarshal([]byte(ls.CurrentPlan), &p); err != nil {
+		return Licence{}, err
+	}
+
+	return Licence{
+		BaseLicence: ls.BaseLicence,
+		Plan:        p,
+	}, nil
 }
 
 // ExpandedLicence includes the data of the licence,
