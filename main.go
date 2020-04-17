@@ -72,6 +72,10 @@ func main() {
 	accountRouter := controllers.NewAccountRouter(repo, post)
 	teamRouter := controllers.NewTeamRouter(repo)
 	productRouter := controllers.NewProductRouter(repo)
+	orderRouter := controllers.NewOrderRouter(repo, post)
+	licenceRouter := controllers.NewLicenceRouter(repo)
+	invRouter := controllers.NewInvitationRouter(repo, post)
+	readerRouter := controllers.NewReaderRouter(repo, post)
 
 	e := echo.New()
 	e.Pre(middleware.AddTrailingSlash())
@@ -133,6 +137,58 @@ func main() {
 	productGroup := api.Group("/products")
 	{
 		productGroup.GET("/", productRouter.ListProducts)
+	}
+
+	orderGroup := api.Group("/orders")
+	{
+		// List orders
+		orderGroup.GET("/", orderRouter.ListOrders)
+		// Create orders, or renew/upgrade in bulk.
+		orderGroup.POST("/", orderRouter.CreateOrders)
+	}
+
+	licenceGroup := api.Group("/licences")
+	{
+		// List licences
+		licenceGroup.GET("/", licenceRouter.ListLicence)
+		// Renew/upgrade a licence
+		licenceGroup.PATCH("/:id", licenceRouter.UpdateLicence)
+		// Revoke a licence
+		licenceGroup.DELETE("/:id", licenceRouter.RevokeLicence)
+	}
+
+	invitationGroup := api.Group("/invitations")
+	{
+		// List invitations
+		invitationGroup.GET("/", invRouter.List)
+		// Create invitation.
+		// Also update the linked licence's status.
+		invitationGroup.POST("/", invRouter.Send)
+		// Revoke invitation before licence is accepted.
+		// Also revert the status of a licence from invitation sent
+		// back to available.
+		invitationGroup.DELETE("/:id", invRouter.Revoke)
+	}
+
+	// Steps to accept an invitation:
+	// 1. Open token url and the token is valid;
+	// 2. Use email to find user account (If account not found, go to signup);
+	// 3. Get account data and find out if membership already exists
+	// 4. Grant licence
+	readerGroup := api.Group("/readers")
+	{
+		// Verify the invitation is valid. Cache the invitation for a short period
+		// so that the next step won't hit db.
+		readerGroup.GET("/accept-invitation/:token", readerRouter.VerifyInvitation)
+		// Grant licence to user:
+		// 1. Retrieve invitation again;
+		// 2. Use invitation email to get reader account and verify it again.
+		// 3. Lock invitation row, lock licence row, lock membership row if exists.
+		// 4. Set invitation being used; link licence to reader id; backup existing
+		// membership if exists; upsert membership.
+		// 5. Sent email to reader and admin about the result.
+		readerGroup.POST("/accept-invitation/:token", readerRouter.Accept)
+		readerGroup.POST("/signup", readerRouter.SignUp)
 	}
 
 	e.Logger.Fatal(e.Start(":3100"))

@@ -1,28 +1,38 @@
 package controllers
 
 import (
+	"github.com/FTChinese/b2b/repository"
 	"github.com/FTChinese/go-rest/postoffice"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 type ReadersRouter struct {
-	db   *sqlx.DB
+	repo repository.Env
 	post postoffice.PostOffice
 }
 
-func NewReadersRouter(db *sqlx.DB, p postoffice.PostOffice) ReadersRouter {
+func NewReaderRouter(env repository.Env, post postoffice.PostOffice) ReadersRouter {
 	return ReadersRouter{
-		db:   db,
+		repo: env,
+		post: post,
+	}
+}
+
+func NewReadersRouter(env repository.Env, p postoffice.PostOffice) ReadersRouter {
+	return ReadersRouter{
+		repo: env,
 		post: p,
 	}
 }
 
-func (router ReadersRouter) GetUserList(c echo.Context) error {
-	return c.Render(http.StatusOK, "reader-list.html", nil)
+func (router ReadersRouter) SignUp(c echo.Context) error {
+	return nil
 }
 
-func (router ReadersRouter) GetReaderProfile(c echo.Context) error {
-	return c.Render(http.StatusOK, "reader-profile.html", nil)
+func (router ReadersRouter) VerifyInvitation(c echo.Context) error {
+	return nil
+}
+
+func (router ReadersRouter) Accept(c echo.Context) error {
+	return nil
 }

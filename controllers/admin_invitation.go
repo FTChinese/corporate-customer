@@ -14,6 +14,13 @@ type InvitationRouter struct {
 	post postoffice.PostOffice
 }
 
+func NewInvitationRouter(env repository.Env, office postoffice.PostOffice) InvitationRouter {
+	return InvitationRouter{
+		repo: env,
+		post: office,
+	}
+}
+
 // Send creates an invitation for a licence and send it to a user.
 // Input: {email: string, description: string, licenceId: string}
 func (router InvitationRouter) Send(c echo.Context) error {
@@ -86,6 +93,6 @@ func (router InvitationRouter) List(c echo.Context) error {
 // Revoke cancels an invitation before it is accepted by user.
 // If the invitation is already accepted, revoke has no effect.
 // Admin should revoke a licence for this purpose.
-func (router InvitationRouter) Revoke() error {
+func (router InvitationRouter) Revoke(c echo.Context) error {
 	return nil
 }

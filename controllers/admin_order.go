@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/repository"
+	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -10,6 +11,14 @@ import (
 
 type OrderRouter struct {
 	repo repository.Env
+	post postoffice.PostOffice
+}
+
+func NewOrderRouter(env repository.Env, office postoffice.PostOffice) OrderRouter {
+	return OrderRouter{
+		repo: env,
+		post: office,
+	}
 }
 
 // CreateOrders creates orders an org purchased.
