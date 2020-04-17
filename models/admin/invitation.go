@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"github.com/FTChinese/b2b/models/plan"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/guregu/null"
@@ -40,7 +41,7 @@ type Invitation struct {
 	ID             string      `json:"id" db:"invitation_id"`
 	LicenceID      string      `json:"licenceId" db:"licence_id"`
 	TeamID         string      `json:"teamId" db:"team_id"`
-	Token          string      `json:"token,omitempty" db:"token"` // This field is used only when inserting data. Retrieval does not include this field. However, it is included when saving to the JSON column in licence.
+	Token          string      `json:"-" db:"token"` // This field is used only when inserting data. Retrieval does not include this field. However, it is included when saving to the JSON column in licence.
 	Email          string      `json:"email" db:"email"`
 	Description    null.String `json:"description" db:"description"`
 	ExpirationDays int64       `json:"expiresInDays" db:"expiration_days"`
@@ -62,6 +63,13 @@ func (i Invitation) Expired() bool {
 
 func (i Invitation) IsValid() bool {
 	return !i.Expired() && !i.Revoked && !i.Accepted
+}
+
+func (i Invitation) Revoke() Invitation {
+	i.Revoked = true
+	i.UpdatedUTC = chrono.TimeNow()
+
+	return i
 }
 
 // InvitationInput contains the essential data client
@@ -94,4 +102,19 @@ func (i InvitationInput) NewInvitation() (Invitation, error) {
 		CreatedUTC:     chrono.TimeNow(),
 		UpdatedUTC:     chrono.TimeNow(),
 	}, nil
+}
+
+// InvitedLicence wraps all related information after
+// an invitation is created.
+type InvitedLicence struct {
+	Invitation Invitation
+	Licence    BaseLicence   // The licence to grant
+	Plan       plan.BasePlan // The plan of this licence
+	Assignee   Assignee      // Who will be granted the licence.
+}
+
+// InvitationList is used for restful output.
+type InvitationList struct {
+	Total int64 `json:"total"`
+	Data  []Invitation
 }
