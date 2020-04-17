@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/repository"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -21,6 +22,29 @@ func NewInvitationRouter(env repository.Env, office postoffice.PostOffice) Invit
 	}
 }
 
+// List shows all invitations
+// Query: ?page=1&per_page=10
+func (router InvitationRouter) List(c echo.Context) error {
+	claims := getAccountClaims(c)
+
+	var page gorest.Pagination
+	if err := c.Bind(&page); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	countCh, listCh := router.repo.AsyncCountInvitation(claims.TeamID.String), router.repo.AsyncListInvitations(claims.TeamID.String, page)
+
+	countResult, listResult := <-countCh, <-listCh
+	if listResult.Error != nil {
+		return render.NewDBError(listResult.Error)
+	}
+
+	return c.JSON(http.StatusOK, admin.InvitationList{
+		Total: countResult.Total,
+		Data:  listResult.Invitations,
+	})
+}
+
 // Send creates an invitation for a licence and send it to a user.
 // Input: {email: string, description: string, licenceId: string}
 func (router InvitationRouter) Send(c echo.Context) error {
@@ -35,14 +59,21 @@ func (router InvitationRouter) Send(c echo.Context) error {
 
 	input.TeamID = claims.TeamID.String
 
-	assignee, err := router.repo.CreateInvitation(input)
+	invitedLicence, err := router.repo.CreateInvitation(input)
 	if err != nil {
 		switch err {
 		case repository.ErrLicenceUnavailable:
 			return &render.ValidationError{
 				Message: "The licence is already taken",
-				Field:   "licenceId",
+				Field:   "licence",
 				Code:    "already_taken",
+			}
+
+		case repository.ErrInviteeMismatch:
+			return &render.ValidationError{
+				Message: err.Error(),
+				Field:   "invitee",
+				Code:    render.CodeAlreadyExists,
 			}
 
 		case repository.ErrAlreadyMember:
@@ -58,19 +89,13 @@ func (router InvitationRouter) Send(c echo.Context) error {
 	}
 
 	go func() {
-		// We do not use ExpandedLicence here since the
-		// Assignee is still unknown until the invitation accepted.
-		licence, err := router.repo.RetrieveLicence(input.LicenceID, input.TeamID)
-		if err != nil {
-			return
-		}
 
 		accountTeam, err := router.repo.AccountTeam(claims.Id)
 		if err != nil {
 			return
 		}
 
-		parcel, err := admin.ComposeInvitationLetter(assignee, licence, accountTeam)
+		parcel, err := admin.ComposeInvitationLetter(invitedLicence, accountTeam)
 		if err != nil {
 			return
 		}
@@ -84,15 +109,17 @@ func (router InvitationRouter) Send(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// List shows all invitations
-func (router InvitationRouter) List(c echo.Context) error {
-
-	return nil
-}
-
 // Revoke cancels an invitation before it is accepted by user.
 // If the invitation is already accepted, revoke has no effect.
 // Admin should revoke a licence for this purpose.
 func (router InvitationRouter) Revoke(c echo.Context) error {
-	return nil
+	invID := c.Param("id") // the invitation id
+	claims := getAccountClaims(c)
+
+	err := router.repo.RevokeInvitation(invID, claims.TeamID.String)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
