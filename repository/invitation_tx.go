@@ -11,24 +11,21 @@ type InvitationTx struct {
 }
 
 // RetrieveLicence finds the licence used in an invitation
-func (tx InvitationTx) RetrieveLicence(input admin.InvitationInput) (admin.LicenceSchema, error) {
-	var lic admin.LicenceSchema
+func (tx InvitationTx) RetrieveLicence(licenceID, teamID string) (admin.Licence, error) {
+	var ls admin.LicenceSchema
 
-	err := tx.Get(&lic, stmt.LockLicence, input.LicenceID, input.TeamID)
+	err := tx.Get(&ls, stmt.LockLicence, licenceID, teamID)
 	if err != nil {
-		_ = tx.Rollback()
-		return lic, err
+		return admin.Licence{}, err
 	}
 
-	return lic, nil
+	return ls.Licence()
 }
 
-// UpdateLicence changes a licence status and set the invitation
-// column.
-func (tx InvitationTx) UpdateLicence(lic admin.LicenceSchema) error {
+// SetLicenceInvited changes a licence status and set the invitation column.
+func (tx InvitationTx) SetLicenceInvited(lic admin.BaseLicence) error {
 	_, err := tx.NamedExec(stmt.SetLicenceInvited, lic)
 	if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 
@@ -39,6 +36,34 @@ func (tx InvitationTx) UpdateLicence(lic admin.LicenceSchema) error {
 func (tx InvitationTx) SaveInvitation(inv admin.Invitation) error {
 	_, err := tx.NamedExec(stmt.CreateInvitation, inv)
 
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tx InvitationTx) RetrieveInvitation(invitationID, teamID string) (admin.Invitation, error) {
+	var inv admin.Invitation
+	err := tx.Get(&inv, stmt.LockInvitation, invitationID, teamID)
+	if err != nil {
+		return inv, err
+	}
+
+	return inv, nil
+}
+
+func (tx InvitationTx) RevokeInvitation(inv admin.Invitation) error {
+	_, err := tx.NamedExec(stmt.RevokeInvitation, inv)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tx InvitationTx) UnlinkLicenceInvitation(licence admin.Licence) error {
+	_, err := tx.NamedExec(stmt.RevokeLicenceInvitation, licence)
 	if err != nil {
 		return err
 	}
