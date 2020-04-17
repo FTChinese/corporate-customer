@@ -4,11 +4,14 @@ const licenceCols = `l.id AS licence_id,
 l.team_id AS team_id,
 l.assignee_id AS assignee_id,
 l.expire_date AS expire_date,
+l.trial_start_date AS trial_start_date,
+l.trial_end_date AS trial_end_date,
 l.current_status AS current_status,
 l.created_utc AS created_utc,
 l.updated_utc AS updated_utc,
-l.current_plan AS current_plan
-l.last_invitation AS last_invitation`
+l.current_plan AS current_plan,
+l.last_invitation_id AS last_invitation_id,
+l.last_invitee_email AS last_invitee_email`
 
 // SelectLicence retrieves a single row.
 const SelectLicence = `
@@ -27,9 +30,23 @@ FOR UPDATE`
 const SetLicenceInvited = `
 UPDATE b2b.licence
 SET current_status = :current_status,
-	last_invitation,
+	last_invitation_id = :last_invitation_id,
+	last_invitee_email = :last_invitee_email,
 	updated_utc = UTC_TIMESTAMP()
-WHERE id = ? AND team_id = ?
+WHERE id = :licence_id 
+	AND team_id = :team_id
+LIMIT 1`
+
+// RevokeLicenceInvitation removes last_invitation when
+// admin revokes an invitation.
+const RevokeLicenceInvitation = `
+UPDATE b2b.licence
+SET current_status = :current_status,
+	last_invitation_id = NULL,
+	last_invitee_email = NULL,
+	updated_utc = UTC_TIMESTAMP
+WHERE id = :licence_id 
+	AND team_id = :team_id
 LIMIT 1`
 
 // SetLicenceGranted after user accepted invitation.
@@ -41,16 +58,6 @@ SET assignee_id = :assignee_id,
 WHERE id = ? AND team_id = ?
 LIMIT 1`
 
-// RevokeLicenceInvitation removes last_invitation when
-// admin revokes an invitation.
-const RevokeLicenceInvitation = `
-UPDATE b2b.licence
-SET current_status = :current_status,
-	last_invitation = NULL,
-	updated_utc = UTC_TIMESTAMP
-WHERE id = ? AND team_id = ?
-LIMIT 1`
-
 // SetLicenceRevoked if admin decides to revoke the the licence
 // from a user.
 // User's membership status should also be synced.
@@ -58,7 +65,6 @@ const SetLicenceRevoked = `
 UPDATE b2b.licence
 SET assignee_id = NULL,
 	current_status = :current_status,
-	last_invitation = NULL,
 	updated_utc = UTC_TIMESTAMP()
 WHERE id = ? AND team_id = ?
 LIMIT 1`
