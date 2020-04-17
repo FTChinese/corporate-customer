@@ -1,23 +1,5 @@
 package stmt
 
-const CreateInvitation = `
-INSERT INTO b2b.invitation
-SET id = :invitation_id,
-	licence_id = :licence_id,
-	token = UNHEX(:token),
-	invitee_email = :invitee_email,
-	description = :description,
-	created_utc = UTC_TIMESTAMP(),
-	updated_utc = UTC_TIMESTAMP()`
-
-const RevokeInvitation = `
-UPDATE b2b.invitation
-SET revoked = 1
-WHERE id = ?
-	AND accepted = 0
-	AND team_id = ?
-LIMIT 1`
-
 // selectInvitation does not include the token column
 // as it is only visible to the user who received invitation
 // email.
@@ -47,16 +29,36 @@ SELECT COUNT(*)
 FROM b2b.invitation
 WHERE team_id = ?`
 
+const CreateInvitation = `
+INSERT INTO b2b.invitation
+SET id = :invitation_id,
+	licence_id = :licence_id,
+	token = UNHEX(:token),
+	invitee_email = :invitee_email,
+	description = :description,
+	created_utc = UTC_TIMESTAMP(),
+	updated_utc = UTC_TIMESTAMP()`
+
+// LockInvitation locks a row of invitation when upon revoking.
+var LockInvitation = selectInvitation + `
+WHERE i.id = ? AND team_id = ?
+LIMIT 1
+FOR UPDATE`
+
+// RevokeInvitation mark an invitation as invalid.
+// If an invitation is already accepted, this operation
+// does nothing.
+const RevokeInvitation = `
+UPDATE b2b.invitation
+SET revoked = 1
+WHERE id = :invitation_id
+	AND accepted = 0
+	AND team_id = :team_id
+LIMIT 1`
+
 // FindExpandedInvitation retrieves an expanded invitation
 // by the token sent in an email.
 // This is used to verify an invitation email.
 const FindInvitation = selectInvitation + `
 WHERE i.token = UNHEX(?)
 LIMIT 1`
-
-// LockInvitation locks a row in invitation
-// when granting user a licence.
-var LockInvitation = selectInvitation + `
-WHERE i.id = ?
-LIMIT 1
-FOR UPDATE`
