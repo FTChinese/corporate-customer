@@ -15,7 +15,7 @@ type InvitationLetter struct {
 	URL        string
 }
 
-func ComposeInvitationLetter(a Assignee, l Licence, at AccountTeam) (postoffice.Parcel, error) {
+func ComposeInvitationLetter(il InvitedLicence, at AccountTeam) (postoffice.Parcel, error) {
 	data := struct {
 		AssigneeName string
 		TeamName     string
@@ -23,10 +23,10 @@ func ComposeInvitationLetter(a Assignee, l Licence, at AccountTeam) (postoffice.
 		URL          string
 		AdminEmail   string
 	}{
-		AssigneeName: a.NormalizeName(),
+		AssigneeName: il.Assignee.NormalizeName(),
 		TeamName:     at.TeamName.String,
-		Tier:         l.Plan.Tier,
-		URL:          baseUrl + "/accept-invitation/" + l.Invitation.Token,
+		Tier:         il.Plan.Tier,
+		URL:          baseUrl + "/accept-invitation/" + il.Invitation.Token,
 		AdminEmail:   at.Email,
 	}
 
@@ -40,7 +40,7 @@ func ComposeInvitationLetter(a Assignee, l Licence, at AccountTeam) (postoffice.
 	return postoffice.Parcel{
 		FromAddress: "no-reply@ftchinese.com",
 		FromName:    "FT中文网",
-		ToAddress:   a.Email.String,
+		ToAddress:   il.Assignee.Email.String,
 		ToName:      data.AssigneeName,
 		Subject:     "[FT中文网B2B]会员邀请",
 		Body:        body.String(),
