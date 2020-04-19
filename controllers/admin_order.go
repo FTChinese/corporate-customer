@@ -24,14 +24,16 @@ func NewOrderRouter(env repository.Env, office postoffice.PostOffice) OrderRoute
 // CreateOrders creates orders an org purchased.
 // Client should specify which plans are being subscribed,
 // and how many copies.
+// TODO: design the data structure of a cart.
 // Input:
 // [
-//     {planId: "string", quantity: number, cycleCount: number },
-//     {planId: "string", quantity: number, cycleCount: number }
+//  {planId: string, quantity: number, cycleCount: number, kind: "create" },
+//  {planId: string, cycleCount: number, kind: "renew", licences: string[] }
+//	{planId: string, cycleCount: number, kind: "upgrade", licences: string[] }
 // ]
 // At most there should be two plans: a standard and a premium.
 func (router OrderRouter) CreateOrders(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var cartItems []admin.CartItem
 	if err := c.Bind(&cartItems); err != nil {
