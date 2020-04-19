@@ -1,11 +1,10 @@
 package repository
 
 import (
-	"database/sql"
 	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/models/reader"
 	"github.com/FTChinese/b2b/repository/stmt"
-	"github.com/jmoiron/sqlx"
+	"github.com/guregu/null"
 )
 
 // FindInvitationByToken tries to find an Invitation by token.
