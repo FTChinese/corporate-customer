@@ -37,6 +37,20 @@ func (tx InvitationTx) SaveInvitation(inv admin.Invitation) error {
 	return nil
 }
 
+// SetLicenceInvited links a licence to an invitation.
+func (tx InvitationTx) SetLicenceInvited(lic admin.BaseLicence) error {
+	_, err := tx.NamedExec(stmt.SetLicenceInvited, lic)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// The above methods creates an invitation together.
+
+// RetrieveInvitation when admin wants to revoke it.
+// This retrieves licence from the point of Invitation.
 func (tx InvitationTx) RetrieveInvitation(invitationID, teamID string) (admin.Invitation, error) {
 	var inv admin.Invitation
 	err := tx.Get(&inv, stmt.LockInvitation, invitationID, teamID)
