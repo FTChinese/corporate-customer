@@ -9,12 +9,6 @@ import (
 	"github.com/guregu/null"
 )
 
-var (
-	ErrLicenceUnavailable = errors.New("licence is unavailable to grant")
-	ErrAlreadyMember      = errors.New("the invitee already has a valid membership")
-	ErrInviteeMismatch    = errors.New("an invitation for this licence is already sent another user")
-)
-
 // CreateInvitation creates a new invitation for a licence.
 // To create an invitation letter, we need the following
 // information:
@@ -27,7 +21,7 @@ func (env Env) CreateInvitation(input admin.InvitationInput) (admin.InvitedLicen
 		return admin.InvitedLicence{}, err
 	}
 
-	// Retrieve the licence. It does not include the Assignee fields
+	// Retrieve the licence.
 	licence, err := tx.RetrieveLicence(input.LicenceID, input.TeamID)
 	// There is an not found error here.
 	if err != nil {
@@ -75,7 +69,7 @@ func (env Env) CreateInvitation(input admin.InvitationInput) (admin.InvitedLicen
 	}
 
 	// Update licence with by setting last_invitation column.
-	baseLicence := licence.WithInvitation(inv)
+	baseLicence := licence.Invited(inv)
 	err = tx.SetLicenceInvited(baseLicence)
 	if err != nil {
 		_ = tx.Rollback()
@@ -96,7 +90,7 @@ func (env Env) CreateInvitation(input admin.InvitationInput) (admin.InvitedLicen
 		Invitation: inv,
 		Licence:    baseLicence,
 		Plan:       licence.Plan,
-		Assignee:   admin.Assignee{},
+		Assignee:   invitee.Assignee,
 	}, nil
 }
 
@@ -115,7 +109,7 @@ func (env Env) RevokeInvitation(invID, teamID string) error {
 	}
 
 	// Retrieve the licence
-	licence, err := tx.RetrieveLicence(inv.LicenceID, teamID)
+	licence, err := tx.FindInvitedLicence(inv)
 	// Ignore the not found error
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		_ = tx.Rollback()
@@ -130,8 +124,8 @@ func (env Env) RevokeInvitation(invID, teamID string) error {
 		return err
 	}
 
-	if licence.IsInvitationRevokable(inv.ID) {
-		err := tx.UnlinkLicenceInvitation(licence)
+	if licence.CanInvitationBeRevoked() {
+		err := tx.UnlinkInvitedLicence(licence)
 		if err != nil {
 			_ = tx.Rollback()
 			return err
@@ -158,22 +152,17 @@ func (env Env) ListInvitations(teamID string, page gorest.Pagination) ([]admin.I
 	return invs, nil
 }
 
-type InvitationsAndError struct {
-	Invitations []admin.Invitation
-	Error       error
-}
-
-func (env Env) AsyncListInvitations(teamID string, page gorest.Pagination) <-chan InvitationsAndError {
-	r := make(chan InvitationsAndError)
+func (env Env) AsyncListInvitations(teamID string, page gorest.Pagination) <-chan admin.InvitationList {
+	r := make(chan admin.InvitationList)
 
 	go func() {
 		defer close(r)
 
 		inv, err := env.ListInvitations(teamID, page)
 
-		r <- InvitationsAndError{
-			Invitations: inv,
-			Error:       err,
+		r <- admin.InvitationList{
+			Data: inv,
+			Err:  err,
 		}
 	}()
 
@@ -192,21 +181,16 @@ func (env Env) CountInvitation(teamID string) (int64, error) {
 	return total, nil
 }
 
-type CountAndError struct {
-	Total int64
-	Error error
-}
-
-func (env Env) AsyncCountInvitation(teamID string) <-chan CountAndError {
-	r := make(chan CountAndError)
+func (env Env) AsyncCountInvitation(teamID string) <-chan admin.InvitationList {
+	r := make(chan admin.InvitationList)
 
 	go func() {
 		defer close(r)
 		total, err := env.CountInvitation(teamID)
 
-		r <- CountAndError{
+		r <- admin.InvitationList{
 			Total: total,
-			Error: err,
+			Err:   err,
 		}
 	}()
 
