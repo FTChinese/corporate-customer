@@ -73,17 +73,10 @@ func (env Env) CreateReader(s reader.SignUp) error {
 	return nil
 }
 
-const stmtLicenceGranted = `
-UPDATE b2b.licence
-SET assignee_id = :assignee_id,
-	is_active = 1
-WHERE id = :licence_id
-LIMIT 1`
-
-// LicenceGranted set the assignee_id field
-// to user's uuid and turns is_active to true.
-func (tx GrantTx) LicenceGranted(l admin.BaseLicence) error {
-	_, err := tx.NamedExec(stmtLicenceGranted, l)
+// TakeSnapshot backs up a membership before
+// modifying it.
+func (env Env) TakeSnapshot(snp reader.MemberSnapshot) error {
+	_, err := env.db.NamedExec(stmt.TakeSnapshot, snp)
 
 	if err != nil {
 		return err
