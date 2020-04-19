@@ -37,7 +37,7 @@ type SignUp struct {
 	Token    string `db:"token"` // verification token
 }
 
-func NewSignUp(f admin.AccountInput) (SignUp, error) {
+func NewSignUp(input admin.AccountInput) (SignUp, error) {
 	t, err := rand.Hex(32)
 
 	if err != nil {
@@ -46,21 +46,17 @@ func NewSignUp(f admin.AccountInput) (SignUp, error) {
 
 	return SignUp{
 		ID:       uuid.New().String(),
-		Email:    f.Email,
-		Password: f.Password,
+		Email:    input.Email,
+		Password: input.Password,
 		Token:    t,
 	}, nil
 }
 
-// Turn the Reader for a new signup.
-func (s SignUp) Invitee() Reader {
-	return Reader{
-		Assignee: admin.Assignee{
-			Email:    null.StringFrom(s.Email),
-			FtcID:    null.StringFrom(s.ID),
-			UserName: null.String{},
-			IsVIP:    false,
-		},
-		Membership: Membership{},
+// Turn the SignUp into a new Reader type.
+func (s SignUp) TeamMember(teamID string) admin.TeamMember {
+	return admin.TeamMember{
+		Email:  s.Email,
+		FtcID:  null.StringFrom(s.ID),
+		TeamID: teamID,
 	}
 }
