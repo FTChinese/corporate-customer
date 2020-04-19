@@ -8,50 +8,27 @@ import (
 	"time"
 )
 
-// Invitation is an email sent to team member
-// to accept a licence.
-// An invitee can be sent multiple invitations but
-// only one record is kept.
-// When user clicked link in the email, we should have enough
-// information about this invitation:
-// * whether this email already exists, then go to login or signup;
-// * whether this user already have a valid subscription;
-// * make sure the licence is still valid the moment to assign
-// the licence to this email.
-//
-// If everything are valid, then created/update membership
-// for this email, add the AssigneeID field of licence, flag
-// this invitation as ready used.
-// To achieve this, we need to perform it in one transaction:
-// * Flag invitation as used;
-// * Add AssigneeID field;
-// * Create/Update membership.
-//
-// Each record is immutable and create a new one
-// every time an invitation is sent.
-// WHen retrieving the token for verification,
-// retrieve only the last created record for this specific
-// email.
-//
-// Upon sending an invitation, we should make sure:
-//
-// * The licence is not used by anyone else;
-// * The InviteeEmail does not have valid subscription.
+// Invitation is an email sent to team member to accept a licence.
+// An invitation could in 3 phases:
+// Initially created: it indicates an email is sent to reader;
+// Accepted: reader clicked the link in the invitation email,
+// it should not be used any longer;
+// Revoked: admin could revoke an invitation before it is accepted.
+// An accepted invitation could not be revoked since that is meaningless.
 type Invitation struct {
-	ID             string      `json:"id" db:"invitation_id"`
-	LicenceID      string      `json:"licenceId" db:"licence_id"`
-	TeamID         string      `json:"teamId" db:"team_id"`
-	Token          string      `json:"-" db:"token"` // This field is used only when inserting data. Retrieval does not include this field. However, it is included when saving to the JSON column in licence.
-	Email          string      `json:"email" db:"email"`
-	Description    null.String `json:"description" db:"description"`
-	ExpirationDays int64       `json:"expiresInDays" db:"expiration_days"`
-
-	Accepted   bool        `json:"accepted" db:"accepted"`
-	Revoked    bool        `json:"revoked" db:"revoked"`
-	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
-	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
+	ID             string           `json:"id" db:"invitation_id"`
+	LicenceID      string           `json:"licenceId" db:"licence_id"`
+	TeamID         string           `json:"teamId" db:"team_id"`
+	Token          string           `json:"-" db:"token"` // This field is used only when inserting data. Retrieval does not include this field. However, it is included when saving to the JSON column in licence.
+	Email          string           `json:"email" db:"email"`
+	Description    null.String      `json:"description" db:"description"`
+	ExpirationDays int64            `json:"expiresInDays" db:"expiration_days"`
+	Status         InvitationStatus `json:"status" db:"current_status"`
+	CreatedUTC     chrono.Time      `json:"createdUtc" db:"created_utc"`
+	UpdatedUTC     chrono.Time      `json:"updatedUtc" db:"updated_utc"`
 }
 
+// Expires tests whether the invitation is expired.
 func (i Invitation) Expired() bool {
 	now := time.Now().Unix()
 
@@ -61,12 +38,32 @@ func (i Invitation) Expired() bool {
 	return (created + i.ExpirationDays*86400) < now
 }
 
+// IsValid determines whether an invitation is valid.
+// A valid invitation must be not expires, not revoked by admin, not accepted by any one.
+// A valid invitation can be accepted or revoked.
 func (i Invitation) IsValid() bool {
-	return !i.Expired() && !i.Revoked && !i.Accepted
+	return i.Status == InvitationStatusCreated && !i.Expired()
 }
 
+func (i Invitation) CanBeRevoked() bool {
+	return i.Status == InvitationStatusCreated
+}
+
+// Revoke invalidates an invitation by admin.
 func (i Invitation) Revoke() Invitation {
-	i.Revoked = true
+	i.Status = InvitationStatusRevoked
+	i.UpdatedUTC = chrono.TimeNow()
+
+	return i
+}
+
+func (i Invitation) CanBeAccepted() bool {
+	return i.Status == InvitationStatusCreated
+}
+
+// Accept invalidates an invitation after reader accepted the licence associated with it.
+func (i Invitation) Accept() Invitation {
+	i.Status = InvitationStatusAccepted
 	i.UpdatedUTC = chrono.TimeNow()
 
 	return i
@@ -97,8 +94,7 @@ func (i InvitationInput) NewInvitation() (Invitation, error) {
 		Email:          i.Email,
 		Description:    i.Description,
 		ExpirationDays: 7,
-		Accepted:       false,
-		Revoked:        false,
+		Status:         InvitationStatusCreated,
 		CreatedUTC:     chrono.TimeNow(),
 		UpdatedUTC:     chrono.TimeNow(),
 	}, nil
@@ -115,6 +111,7 @@ type InvitedLicence struct {
 
 // InvitationList is used for restful output.
 type InvitationList struct {
-	Total int64 `json:"total"`
-	Data  []Invitation
+	Total int64        `json:"total"`
+	Data  []Invitation `json:"data"`
+	Err   error        `json:"-"`
 }
