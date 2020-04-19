@@ -23,9 +23,9 @@ func NewAccountRouter(repo repository.Env, post postoffice.PostOffice) AdminAcco
 
 // RefreshJWT updates jwt token.
 func (router AdminAccountRouter) RefreshJWT(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
-	jwtAccount, err := router.repo.JWTAccount(claims.AdminID)
+	jwtAccount, err := router.repo.LoadPassport(claims.AdminID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -35,7 +35,7 @@ func (router AdminAccountRouter) RefreshJWT(c echo.Context) error {
 
 // Account sends user's account data.
 func (router AdminAccountRouter) Account(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	account, err := router.repo.AccountByID(claims.AdminID)
 	if err != nil {
@@ -50,7 +50,7 @@ func (router AdminAccountRouter) Account(c echo.Context) error {
 // 404 - Account not found
 // 200 - with Profile as body.
 func (router AdminAccountRouter) Profile(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	profile, err := router.repo.AdminProfile(claims.AdminID)
 	if err != nil {
@@ -67,7 +67,7 @@ func (router AdminAccountRouter) Profile(c echo.Context) error {
 // 404 - The account for this user is not found.
 // 500 - Token generation failed or DB error.
 func (router AdminAccountRouter) RequestVerification(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	// Find the account
 	account, err := router.repo.AccountByID(claims.AdminID)
@@ -135,7 +135,7 @@ func (router AdminAccountRouter) VerifyEmail(c echo.Context) error {
 // StatusCodes:
 // 400 - If request body cannot be parsed.
 func (router AdminAccountRouter) ChangeName(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var input admin.AccountInput
 	if err := c.Bind(input); err != nil {
@@ -177,7 +177,7 @@ func (router AdminAccountRouter) ChangeName(c echo.Context) error {
 // 500 - DB error.
 // 204 - Success.
 func (router AdminAccountRouter) ChangePassword(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var input admin.AccountInput
 	if err := c.Bind(&input); err != nil {
