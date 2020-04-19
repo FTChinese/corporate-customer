@@ -90,7 +90,9 @@ func (tx InvitationTx) RevokeInvitation(inv admin.Invitation) error {
 	return nil
 }
 
-func (tx InvitationTx) UnlinkLicenceInvitation(licence admin.Licence) error {
+// UnlinkInvitedLicence removes invitation related
+// data from a licence.
+func (tx InvitationTx) UnlinkInvitedLicence(licence admin.Licence) error {
 	_, err := tx.NamedExec(stmt.RevokeLicenceInvitation, licence)
 	if err != nil {
 		return err
