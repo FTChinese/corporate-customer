@@ -16,21 +16,8 @@ func (env Env) FindInvitationByToken(token string) (admin.Invitation, error) {
 		return inv, err
 	}
 
-const stmtMembership = `
-SELECT ` + stmt.MembershipSelectCols + `
-FROM premium.ftc_vip AS m
-WHERE vip_id = ?
-LIMIT 1
-FOR UPDATE`
-
-// RetrieveMembership locks a reader's membership row if it present.
-func (tx GrantTx) LockMembership(id string) (reader.Membership, error) {
-	var m reader.Membership
-
-	err := tx.Get(&m, stmtMembership)
-	if err != nil && err != sql.ErrNoRows {
-		return m, err
-	}
+	return inv, nil
+}
 
 	m.Normalize()
 
