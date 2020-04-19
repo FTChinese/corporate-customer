@@ -25,7 +25,7 @@ func NewInvitationRouter(env repository.Env, office postoffice.PostOffice) Invit
 // List shows all invitations
 // Query: ?page=1&per_page=10
 func (router InvitationRouter) List(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var page gorest.Pagination
 	if err := c.Bind(&page); err != nil {
@@ -35,20 +35,18 @@ func (router InvitationRouter) List(c echo.Context) error {
 	countCh, listCh := router.repo.AsyncCountInvitation(claims.TeamID.String), router.repo.AsyncListInvitations(claims.TeamID.String, page)
 
 	countResult, listResult := <-countCh, <-listCh
-	if listResult.Error != nil {
-		return render.NewDBError(listResult.Error)
+	if listResult.Err != nil {
+		return render.NewDBError(listResult.Err)
 	}
 
-	return c.JSON(http.StatusOK, admin.InvitationList{
-		Total: countResult.Total,
-		Data:  listResult.Invitations,
-	})
+	listResult.Total = countResult.Total
+	return c.JSON(http.StatusOK, listResult)
 }
 
 // Send creates an invitation for a licence and send it to a user.
 // Input: {email: string, description: string, licenceId: string}
 func (router InvitationRouter) Send(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var input admin.InvitationInput
 	if err := c.Bind(&input); err != nil {
@@ -88,9 +86,10 @@ func (router InvitationRouter) Send(c echo.Context) error {
 		}
 	}
 
+	// Send invitation letter
 	go func() {
 
-		accountTeam, err := router.repo.AccountTeam(claims.Id)
+		accountTeam, err := router.repo.PassportByAdminID(claims.Id)
 		if err != nil {
 			return
 		}
@@ -106,6 +105,11 @@ func (router InvitationRouter) Send(c echo.Context) error {
 		}
 	}()
 
+	// Add the invitee to team member
+	go func() {
+		_ = router.repo.SaveTeamMember(invitedLicence.Assignee.TeamMember(claims.TeamID.String))
+	}()
+
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -114,7 +118,7 @@ func (router InvitationRouter) Send(c echo.Context) error {
 // Admin should revoke a licence for this purpose.
 func (router InvitationRouter) Revoke(c echo.Context) error {
 	invID := c.Param("id") // the invitation id
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	err := router.repo.RevokeInvitation(invID, claims.TeamID.String)
 	if err != nil {
