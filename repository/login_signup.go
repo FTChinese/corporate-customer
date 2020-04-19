@@ -6,23 +6,23 @@ import (
 )
 
 // Login verifies user email + password.
-// TODO: cache AccountTeam by admin id.
-func (env Env) Login(in admin.AccountInput) (admin.JWTAccount, error) {
-	var at admin.AccountTeam
+func (env Env) Login(in admin.AccountInput) (admin.PassportBearer, error) {
+	var at admin.Passport
 
 	err := env.db.Get(&at, stmt.Login, in.Email, in.Password)
 
 	if err != nil {
-		return admin.JWTAccount{}, err
+		return admin.PassportBearer{}, err
 	}
 
-	jwtAccount, err := admin.NewJWTAccount(at)
+	jwtAccount, err := admin.NewPassportBearer(at)
 	if err != nil {
 		return jwtAccount, err
 	}
 	return jwtAccount, nil
 }
 
+// SignUp creates a new admin account.
 func (env Env) SignUp(s admin.AccountInput) error {
 	_, err := env.db.NamedExec(stmt.SignUp, s)
 	if err != nil {
@@ -32,14 +32,14 @@ func (env Env) SignUp(s admin.AccountInput) error {
 	return nil
 }
 
-// JWTAccount retrieves and build JWTAccount used to refresh
-// jwt, or signup.
-func (env Env) JWTAccount(id string) (admin.JWTAccount, error) {
+// LoadPassport retrieves and build PassportBearer
+// after signup or upon refreshing passport.
+func (env Env) LoadPassport(adminID string) (admin.PassportBearer, error) {
 
-	at, err := env.AccountTeam(id)
+	pp, err := env.PassportByAdminID(adminID)
 	if err != nil {
-		return admin.JWTAccount{}, err
+		return admin.PassportBearer{}, err
 	}
 
-	return admin.NewJWTAccount(at)
+	return admin.NewPassportBearer(pp)
 }
