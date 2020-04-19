@@ -8,13 +8,13 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// GrantTx splits a series of db transaction into smaller functions.
-// When grating a licence, we need to lock reader's current membership,
-// the invitation, and licence.
-// We also need to backup current membership if exists.
-type GrantTx struct {
-	*sqlx.Tx
-}
+// FindInvitationByToken tries to find an Invitation by token.
+func (env Env) FindInvitationByToken(token string) (admin.Invitation, error) {
+	var inv admin.Invitation
+	err := env.db.Get(&inv, stmt.InvitationByToken, token)
+	if err != nil {
+		return inv, err
+	}
 
 const stmtMembership = `
 SELECT ` + stmt.MembershipSelectCols + `
