@@ -30,9 +30,10 @@ type Membership struct {
 	StripePlanID   null.String     `db:"stripe_plan_id"`
 	SubsStatus     enum.SubsStatus `db:"subs_status"`
 	AppleSubsID    null.String     `db:"apple_subs_id"`
+	B2BLicenceID   null.String     `db:"b2b_licence_id"`
 }
 
-func (m Membership) BuildOn(l admin.ExpandedLicence) Membership {
+func (m Membership) WithLicenceGranted(l admin.Licence) Membership {
 	if m.HasMembership() {
 		m.SubsID = null.StringFrom(GenerateMemberID())
 		m.SubsCompoundID = l.AssigneeID
@@ -56,8 +57,28 @@ func (m Membership) BuildOn(l admin.ExpandedLicence) Membership {
 	m.StripePlanID = null.String{}
 	m.SubsStatus = enum.SubsStatusNull
 	m.AppleSubsID = null.String{}
+	m.B2BLicenceID = null.StringFrom(l.ID)
 
 	m.Normalize()
+
+	return m
+}
+
+// WithLicenceRevoked changes a revokes a licence granted to
+// a reader.
+func (m Membership) WithLicenceRevoked() Membership {
+	m.LegacyTier = null.IntFrom(0)
+	m.LegacyExpire = null.IntFrom(0)
+	m.Tier = enum.TierNull
+	m.Cycle = enum.CycleNull
+	m.ExpireDate = chrono.Date{}
+	m.AutoRenew = false
+	m.PayMethod = enum.PayMethodNull
+	m.StripSubsID = null.String{}
+	m.StripePlanID = null.String{}
+	m.SubsStatus = enum.SubsStatusNull
+	m.AppleSubsID = null.String{}
+	m.B2BLicenceID = null.String{}
 
 	return m
 }
@@ -124,13 +145,18 @@ func (m Membership) IsExpired() bool {
 	return m.ExpireDate.Before(time.Now().Truncate(24 * time.Hour))
 }
 
-func GenerateSnapshotID() string {
-	return "snp_" + rand.String(12)
-}
-
 type MemberSnapshot struct {
 	SnapshotID string              `db:"snapshot_id"`
 	Reason     enum.SnapshotReason `db:"reason"`
 	CreatedUTC chrono.Time         `db:"created_utc"`
 	Membership
+}
+
+func NewMemberSnapshot(m Membership) MemberSnapshot {
+	return MemberSnapshot{
+		SnapshotID: "snp_" + rand.String(12),
+		Reason:     enum.SnapshotReasonB2B,
+		CreatedUTC: chrono.TimeNow(),
+		Membership: m,
+	}
 }
