@@ -34,18 +34,11 @@ type BaseLicence struct {
 // IsAvailable checks whether the licence is
 // assigned to someone else.
 func (l BaseLicence) IsAvailable() bool {
-	return l.AssigneeID.IsZero() && l.Status == LicStatusAvailable
+	return l.Status == LicStatusAvailable && l.AssigneeID.IsZero()
 }
 
-// IsInvitationRevokable ensures that the licence could
-// have its invitation revoked.
-// A licence could only have its invitation revoked when
-// an invitation is sent but not accepted.
-func (l BaseLicence) IsInvitationRevokable(invID string) bool {
-	return l.Status == LicStatusInvited && l.AssigneeID.IsZero() && l.LastInvitationID.Valid && l.LastInvitationID.String == invID
-}
-
-func (l BaseLicence) WithInvitation(inv Invitation) BaseLicence {
+// Invited updates invitation status to invited after an invitation is sent.
+func (l BaseLicence) Invited(inv Invitation) BaseLicence {
 	l.Status = LicStatusInvited
 	l.LastInvitationID = null.StringFrom(inv.ID)
 	l.LastInviteeEmail = null.StringFrom(inv.Email)
@@ -53,12 +46,22 @@ func (l BaseLicence) WithInvitation(inv Invitation) BaseLicence {
 	return l
 }
 
-// WithInvitationRevoked revokes an invitation of a licence
+// CanInvitationBeRevoked ensures that the licence could
+// have its invitation revoked.
+// A licence could only have its invitation revoked when
+// an invitation is sent but not accepted.
+func (l BaseLicence) CanInvitationBeRevoked() bool {
+	return l.Status == LicStatusInvited && l.AssigneeID.IsZero()
+}
+
+// InvitationRevoked revokes an invitation of a licence
 // so that admin could invite another one to use this licence.
 // This is used after invitation is sent but before it is
 // accepted.
-func (l BaseLicence) WithInvitationRevoked() BaseLicence {
+func (l BaseLicence) InvitationRevoked() BaseLicence {
 	l.Status = LicStatusAvailable
+	l.LastInvitationID = null.String{}
+	l.LastInviteeEmail = null.String{}
 	l.UpdatedUTC = chrono.TimeNow()
 
 	return l
@@ -68,13 +71,20 @@ func (l BaseLicence) WithInvitationRevoked() BaseLicence {
 func (l BaseLicence) Revoke() BaseLicence {
 	l.AssigneeID = null.String{}
 	l.Status = LicStatusAvailable
+	l.LastInvitationID = null.String{}
+	l.LastInviteeEmail = null.String{}
 	l.UpdatedUTC = chrono.TimeNow()
 
 	return l
 }
 
-func (l BaseLicence) WithAssignee(a Assignee) BaseLicence {
-	l.AssigneeID = a.FtcID
+func (l BaseLicence) CanBeGranted() bool {
+	return l.Status == LicStatusInvited && l.AssigneeID.IsZero()
+}
+
+// GrantTo links a licence to a ftc reader.
+func (l BaseLicence) GrantTo(ftcID string) BaseLicence {
+	l.AssigneeID = null.StringFrom(ftcID)
 	l.Status = LicStatusGranted
 	l.UpdatedUTC = chrono.TimeNow()
 	return l
