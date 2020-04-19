@@ -64,7 +64,7 @@ func (router BarrierRouter) SignUp(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	jwtAccount, err := router.repo.JWTAccount(signUp.ID)
+	jwtAccount, err := router.repo.LoadPassport(signUp.ID)
 
 	go func() {
 		parcel, err := admin.ComposeVerificationLetter(jwtAccount.Account, signUp)
