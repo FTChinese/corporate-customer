@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/postoffice"
 	"strings"
@@ -15,7 +16,7 @@ type InvitationLetter struct {
 	URL        string
 }
 
-func ComposeInvitationLetter(il InvitedLicence, at AccountTeam) (postoffice.Parcel, error) {
+func ComposeInvitationLetter(il InvitedLicence, pp Passport) (postoffice.Parcel, error) {
 	data := struct {
 		AssigneeName string
 		TeamName     string
@@ -24,10 +25,10 @@ func ComposeInvitationLetter(il InvitedLicence, at AccountTeam) (postoffice.Parc
 		AdminEmail   string
 	}{
 		AssigneeName: il.Assignee.NormalizeName(),
-		TeamName:     at.TeamName.String,
+		TeamName:     pp.TeamName.String,
 		Tier:         il.Plan.Tier,
 		URL:          baseUrl + "/accept-invitation/" + il.Invitation.Token,
-		AdminEmail:   at.Email,
+		AdminEmail:   pp.Email,
 	}
 
 	var body strings.Builder
@@ -97,6 +98,42 @@ func ComposePwResetLetter(a Account, bearer AccountInput) (postoffice.Parcel, er
 		ToAddress:   a.Email,
 		ToName:      data.Name,
 		Subject:     "[FT中文网B2B]重置密码",
+		Body:        body.String(),
+	}, nil
+}
+
+// ComposeLicenceGranted write a letter to admin after
+// a reader accepted an invitation and the corresponding
+// licence is granted.
+// We need to know the admin's account, reader's email
+// the the licence's plan.
+func ComposeLicenceGranted(il InvitedLicence, pp Passport) (postoffice.Parcel, error) {
+
+	var data = struct {
+		Name           string
+		AssigneeEmail  string
+		Tier           enum.Tier
+		ExpirationDate chrono.Date
+	}{
+		Name:           pp.NormalizeName(),
+		AssigneeEmail:  il.Assignee.Email.String,
+		Tier:           il.Plan.Tier,
+		ExpirationDate: il.Licence.ExpireDate,
+	}
+
+	var body strings.Builder
+	err := tmpl.ExecuteTemplate(&body, "licenceGranted", data)
+
+	if err != nil {
+		return postoffice.Parcel{}, err
+	}
+
+	return postoffice.Parcel{
+		FromAddress: "no-reply@ftchinese.com",
+		FromName:    "FT中文网",
+		ToAddress:   pp.Email,
+		ToName:      data.Name,
+		Subject:     "[FT中文网B2B]团队成员获得会员许可",
 		Body:        body.String(),
 	}, nil
 }
