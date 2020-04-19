@@ -8,13 +8,31 @@ SELECT i.id AS invitation_id,
 	i.licence_id AS licence_id,
 	i.team_id AS team_id,
 	i.invitee_email AS email,
-	i.expiration_days AS expiration_days,
 	i.description AS description,
-	i.accepted AS accepted,
-	i.revoked AS revoked,
+	i.expiration_days AS expiration_days,
+	i.current_status AS current_status,
 	i.created_utc AS inv_created_utc,
 	i.updated_utc AS inv_updated_utc
 FROM b2b.invitation AS i`
+
+// LockInvitationByID locks and retrieves a row of invitation
+// upon revoking.
+const LockInvitationByID = selectInvitation + `
+WHERE i.id = ? AND team_id = ?
+LIMIT 1
+FOR UPDATE`
+
+// InvitationByToken retrieves an expanded invitation
+// by the token sent in an email.
+// This is used to verify an invitation email.
+const InvitationByToken = selectInvitation + `
+WHERE i.token = UNHEX(?)
+LIMIT 1`
+
+// LockInvitationByToken searches for an invitation by token
+// and lock it when granting licence.
+const LockInvitationByToken = InvitationByToken + `
+FOR UPDATE`
 
 // ListExpandedInvitation shows a list
 // of invitations with its assignee attached.
@@ -39,26 +57,21 @@ SET id = :invitation_id,
 	created_utc = UTC_TIMESTAMP(),
 	updated_utc = UTC_TIMESTAMP()`
 
-// LockInvitation locks a row of invitation when upon revoking.
-var LockInvitation = selectInvitation + `
-WHERE i.id = ? AND team_id = ?
-LIMIT 1
-FOR UPDATE`
-
 // RevokeInvitation mark an invitation as invalid.
 // If an invitation is already accepted, this operation
 // does nothing.
 const RevokeInvitation = `
 UPDATE b2b.invitation
-SET revoked = 1
+SET current_status = :current_status,
+	updated_utc = UTC_TIMESTAMP()
 WHERE id = :invitation_id
-	AND accepted = 0
 	AND team_id = :team_id
 LIMIT 1`
 
-// FindExpandedInvitation retrieves an expanded invitation
-// by the token sent in an email.
-// This is used to verify an invitation email.
-const FindInvitation = selectInvitation + `
-WHERE i.token = UNHEX(?)
+// AcceptInvitation for a reader who received invitation email.
+const AcceptInvitation = `
+UPDATE b2b.invitation
+SET current_status = :current_status,
+	updated_utc = UTC_TIMESTAMP()
+WHERE id = :invitation_id
 LIMIT 1`
