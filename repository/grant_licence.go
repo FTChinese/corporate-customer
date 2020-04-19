@@ -31,15 +31,16 @@ func (env Env) FindInvitedLicence(claims admin.InviteeClaims) (admin.Licence, er
 	return ls.Licence()
 }
 
-// LockLicence locks a licence for update.
-func (tx GrantTx) LockLicence(id string) (admin.BaseLicence, error) {
-	var l admin.BaseLicence
-	err := tx.Get(&l, stmt.LockLicence, id)
+func (env Env) FindReader(email string) (reader.Reader, error) {
+	var r reader.Reader
+	err := env.db.Get(&r, stmt.SelectReader, email)
 	if err != nil {
-		return l, err
+		return r, err
 	}
 
-	return l, nil
+	r.Normalize()
+
+	return r, nil
 }
 
 func (tx GrantTx) InsertMembership(m reader.Membership) error {
