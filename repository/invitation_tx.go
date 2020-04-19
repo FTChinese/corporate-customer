@@ -53,7 +53,7 @@ func (tx InvitationTx) SetLicenceInvited(lic admin.BaseLicence) error {
 // This retrieves licence from the point of Invitation.
 func (tx InvitationTx) RetrieveInvitation(invitationID, teamID string) (admin.Invitation, error) {
 	var inv admin.Invitation
-	err := tx.Get(&inv, stmt.LockInvitation, invitationID, teamID)
+	err := tx.Get(&inv, stmt.LockInvitationByID, invitationID, teamID)
 	if err != nil {
 		return inv, err
 	}
@@ -94,6 +94,89 @@ func (tx InvitationTx) RevokeInvitation(inv admin.Invitation) error {
 // data from a licence.
 func (tx InvitationTx) UnlinkInvitedLicence(licence admin.Licence) error {
 	_, err := tx.NamedExec(stmt.RevokeLicenceInvitation, licence)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tx InvitationTx) RevokeLicence(lic admin.BaseLicence) error {
+	_, err := tx.NamedExec(stmt.SetLicenceRevoked, lic)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// The above four methods together revokes an invitation.
+
+// The following methods, plus FindInvitedLicence, performs
+// granting licence to a reader.
+
+// FindInvitationByToken retrieves and locks an invitation
+// when reader is trying to accept it.
+func (tx InvitationTx) FindInvitationByToken(token string) (admin.Invitation, error) {
+	var inv admin.Invitation
+	err := tx.Get(&inv, stmt.LockInvitationByToken, token)
+	if err != nil {
+		return inv, err
+	}
+
+	return inv, nil
+}
+
+// InvitationAccepted marks an invitation as accepted
+// so that it cannot be used again.
+func (tx InvitationTx) InvitationAccepted(inv admin.Invitation) error {
+	_, err := tx.NamedExec(stmt.AcceptInvitation, inv)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// LicenceGranted links a licence to an assignee.
+func (tx InvitationTx) LicenceGranted(l admin.BaseLicence) error {
+	_, err := tx.NamedExec(stmt.SetLicenceGranted, l)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RetrieveMembership locks a reader's membership row if it present.
+func (tx InvitationTx) RetrieveMembership(id string) (reader.Membership, error) {
+	var m reader.Membership
+
+	err := tx.Get(&m, stmt.LockMembership, id)
+	if err != nil && err != sql.ErrNoRows {
+		return m, err
+	}
+
+	m.Normalize()
+
+	return m, nil
+}
+
+func (tx InvitationTx) InsertMembership(m reader.Membership) error {
+	_, err := tx.NamedExec(stmt.InsertMembership, m)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tx InvitationTx) UpdateMembership(m reader.Membership) error {
+	_, err := tx.NamedExec(stmt.UpdateMembership, m)
+
 	if err != nil {
 		return err
 	}
