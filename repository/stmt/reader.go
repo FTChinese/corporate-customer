@@ -1,5 +1,25 @@
 package stmt
 
+const CreateReader = `
+INSERT INTO cmstmp01.userinfo
+SET user_id = :ftc_id,
+	email = :email,
+	password = MD5(:password),
+	created_utc = UTC_TIMESTAMP(),
+	updated_utc = UTC_TIMESTAMP()`
+
+const CreateReaderProfile = `
+INSERT INTO user_db.profile
+SET user_id = :ftc_id`
+
+const SaveReaderVrf = `
+INSERT INTO user_db.email_verify
+SET ftc_id = :ftc_id,
+	email = :email,
+	token = UNHEX(:token),
+	created_utc = UTC_TIMESTAMP(),
+	updated_utc = UTC_TIMESTAMP()`
+
 const readerAccountCols = `
 u.user_id AS ftc_id,
 u.email AS email,
@@ -33,6 +53,13 @@ FROM cmstmp01.uerinfo AS u
 WHERE u.email = ?
 LIMIT 1`
 
+const LockMembership = `
+SELECT ` + MembershipSelectCols + `
+FROM premium.ftc_vip AS m
+WHERE vip_id = ?
+LIMIT 1
+FOR UPDATE`
+
 // membershipUpsertCols list shared columns
 // for both inserting and updating membership.
 const membershipUpsertCols = `
@@ -46,7 +73,8 @@ payment_method = :payment_method,
 stripe_subscription_id = :stripe_subs_id,
 stripe_plan = :stripe_plan,
 sub_status = :subs_status,
-apple_subscription_id = :app_subs_id`
+apple_subscription_id = :app_subs_id,
+b2b_licence_id = :b2b_licence_id`
 
 const InsertMembership = `
 INSERT INTO premium.ftc_vip
@@ -66,3 +94,23 @@ SET id = IFNULL(id, :subs_id),
 ` + membershipUpsertCols + `
 WHERE vip_id = :subs_compound_id
 LIMIT 1`
+
+const TakeSnapshot = `
+INSERT INTO premium.member_snapshot
+SET id = :snapshot_id,
+	reason = :reason,
+	created_utc = UTC_TIMESTAMP(),
+	member_id = :subs_id,
+	compound_id = :subs_compound_id,
+	ftc_user_id = :subs_ftc_id,
+	wx_union_id = :subs_union_id,
+	tier = :tier,
+	cycle = :cycle,
+	expire_date = :expire_date,
+	auto_renewal = :auto_renew,
+	payment_method = :payment_method,
+	stripe_subscription_id = :stripe_subs_id,
+	stripe_plan = :stripe_plan,
+	sub_status = :subs_status,
+	apple_subscription_id = :app_subs_id,
+	b2b_licence_id = :b2b_licence_id`
