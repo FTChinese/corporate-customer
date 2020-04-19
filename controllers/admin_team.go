@@ -3,9 +3,12 @@ package controllers
 import (
 	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/repository"
+	"github.com/FTChinese/b2b/repository/stmt"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strconv"
 )
 
 type TeamRouter struct {
@@ -25,7 +28,7 @@ func NewTeamRouter(repo repository.Env) TeamRouter {
 // the jwt in subsequence request will contain the team id.
 // Input: {name: string, invoiceTitle?: string}
 func (router TeamRouter) Create(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var t admin.Team
 	if err := c.Bind(&t); err != nil {
@@ -46,7 +49,7 @@ func (router TeamRouter) Create(c echo.Context) error {
 }
 
 func (router TeamRouter) Load(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	t, err := router.repo.TeamByAdminID(claims.AdminID)
 	if err != nil {
@@ -59,7 +62,7 @@ func (router TeamRouter) Load(c echo.Context) error {
 // Update updates a team's name and invoice title.
 // Input: {name: string, invoiceTitle?: string}
 func (router TeamRouter) Update(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var newVal admin.Team
 	if err := c.Bind(&newVal); err != nil {
@@ -78,4 +81,43 @@ func (router TeamRouter) Update(c echo.Context) error {
 	currentTeam = currentTeam.Update(newVal)
 
 	return c.JSON(http.StatusOK, currentTeam)
+}
+
+func (router TeamRouter) ListMembers(c echo.Context) error {
+	claims := getPassportClaims(c)
+	var page gorest.Pagination
+	if err := c.Bind(page); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	countCh, listCh := router.repo.AsyncCountTeamMembers(stmt.TeamByID), router.repo.AsyncListTeamMembers(claims.TeamID.String, page)
+
+	countResult, listResult := <-countCh, <-listCh
+	if listResult.Err != nil {
+		return render.NewDBError(listResult.Err)
+	}
+
+	listResult.Total = countResult.Total
+	return c.JSON(http.StatusOK, listResult)
+}
+
+// Delete removes an assignee.
+func (router TeamRouter) DeleteMember(c echo.Context) error {
+	claims := getPassportClaims(c)
+
+	memberID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	err = router.repo.DeleteTeamMember(admin.TeamMember{
+		ID:     memberID,
+		TeamID: claims.TeamID.String,
+	})
+
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return nil
 }
