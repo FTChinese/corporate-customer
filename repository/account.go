@@ -5,6 +5,27 @@ import (
 	"github.com/FTChinese/b2b/repository/stmt"
 )
 
+// PassportByAdminID retrieves admin's account and team data
+// by admin id.
+func (env Env) PassportByAdminID(id string) (admin.Passport, error) {
+	var a admin.Passport
+	if err := env.db.Get(&a, stmt.PassportByAdminID, id); err != nil {
+		return a, err
+	}
+
+	return a, nil
+}
+
+// PassportByTeamID retrieves admin's data by team id.
+func (env Env) PassportByTeamID(teamID string) (admin.Passport, error) {
+	var p admin.Passport
+	if err := env.db.Get(&p, stmt.PassportByTeamID, teamID); err != nil {
+		return admin.Passport{}, err
+	}
+
+	return p, nil
+}
+
 // AccountByID retrieves user account by id
 func (env Env) AccountByID(id string) (admin.Account, error) {
 	var a admin.Account
@@ -21,18 +42,6 @@ func (env Env) AccountByVerifier(token string) (admin.Account, error) {
 	var a admin.Account
 	err := env.db.Get(&a, stmt.AccountByVerifier, token)
 	if err != nil {
-		return a, err
-	}
-
-	return a, nil
-}
-
-// AccountTeam retrieves admin's account and team data
-// by admin id.
-// TODO: cache account by admin id.
-func (env Env) AccountTeam(id string) (admin.AccountTeam, error) {
-	var a admin.AccountTeam
-	if err := env.db.Get(&a, stmt.AccountTeam, id); err != nil {
 		return a, err
 	}
 
