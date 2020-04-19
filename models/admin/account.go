@@ -30,9 +30,3 @@ type Profile struct {
 	CreatedUTC chrono.Time `db:"created_utc"`
 	UpdatedUTC chrono.Time `db:"updated_utc"`
 }
-
-type AccountTeam struct {
-	Account
-	TeamID   null.String `json:"teamId" db:"team_id"`
-	TeamName null.String `json:"-" db:"team_name"`
-}
