@@ -61,6 +61,26 @@ func (tx InvitationTx) RetrieveInvitation(invitationID, teamID string) (admin.In
 	return inv, nil
 }
 
+// FindInvitedLicence retrieves the licence belonging
+// to an invitation.
+// A licence could have multiple invitations. Since a licence
+// is only linked to the last invitation created under it,
+// with licence id only you could not tell whether this
+// licence is still linked to this invitation. Therefore
+// we use the last_invitation_id column to load it.
+func (tx InvitationTx) FindInvitedLicence(inv admin.Invitation) (admin.Licence, error) {
+	var ls admin.LicenceSchema
+	err := tx.Get(&ls, stmt.LockInvitedLicence, inv.LicenceID, inv.ID)
+	if err != nil {
+		return admin.Licence{}, err
+	}
+
+	return ls.Licence()
+}
+
+// RevokeInvitation marks an invitation as revoked.
+// The corresponding licence should also remove any traces
+// linking to this invitation.
 func (tx InvitationTx) RevokeInvitation(inv admin.Invitation) error {
 	_, err := tx.NamedExec(stmt.RevokeInvitation, inv)
 	if err != nil {
