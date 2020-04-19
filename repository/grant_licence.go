@@ -84,3 +84,86 @@ func (env Env) TakeSnapshot(snp reader.MemberSnapshot) error {
 
 	return nil
 }
+
+// GrantLicence grants a licence to a reader.
+func (env Env) GrantLicence(claims admin.InviteeClaims) (admin.InvitedLicence, error) {
+	tx, err := env.beginInvTx()
+	if err != nil {
+		return admin.InvitedLicence{}, err
+	}
+	inv, err := tx.RetrieveInvitation(claims.InvitationID, claims.TeamID)
+	// Not found
+	if err != nil {
+		_ = tx.Rollback()
+		return admin.InvitedLicence{}, err
+	}
+	if !inv.IsValid() {
+		return admin.InvitedLicence{}, ErrInvalidInvitation
+	}
+
+	licence, err := tx.FindInvitedLicence(inv)
+	// Not found
+	if err != nil {
+		_ = tx.Rollback()
+		return admin.InvitedLicence{}, err
+	}
+	// If licence cannot be granted, returns forbidden message.
+	if !licence.CanBeGranted() {
+		return admin.InvitedLicence{}, ErrLicenceTaken
+	}
+
+	mmb, err := tx.RetrieveMembership(claims.FtcID)
+	if err != nil {
+		_ = tx.Rollback()
+		return admin.InvitedLicence{}, err
+	}
+
+	inv = inv.Accept()
+	baseLicence := licence.GrantTo(claims.FtcID)
+	newMmb := mmb.WithLicenceGranted(licence)
+
+	// Create new membership based on licence
+	if mmb.HasMembership() {
+		err := tx.InsertMembership(newMmb)
+		if err != nil {
+			_ = tx.Rollback()
+			return admin.InvitedLicence{}, err
+		}
+	} else {
+		// Update current membership based on
+		// licence.
+		err := tx.UpdateMembership(newMmb)
+		if err != nil {
+			_ = tx.Rollback()
+			return admin.InvitedLicence{}, err
+		}
+
+		// Back up.
+		go func() {
+			_ = env.TakeSnapshot(reader.NewMemberSnapshot(mmb))
+		}()
+	}
+
+	if err := tx.LicenceGranted(baseLicence); err != nil {
+		return admin.InvitedLicence{}, err
+	}
+
+	if err := tx.InvitationAccepted(inv); err != nil {
+		return admin.InvitedLicence{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return admin.InvitedLicence{}, err
+	}
+
+	// The returned data is used to compose a letter
+	return admin.InvitedLicence{
+		Invitation: inv,
+		Licence:    baseLicence,
+		Plan:       licence.Plan,
+		Assignee: admin.Assignee{
+			FtcID: null.StringFrom(claims.FtcID),
+			Email: null.StringFrom(claims.Email),
+		},
+	}, nil
+}
