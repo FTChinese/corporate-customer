@@ -2,24 +2,72 @@ package repository
 
 import (
 	"github.com/FTChinese/b2b/models/admin"
+	"github.com/FTChinese/b2b/models/reader"
 	"github.com/FTChinese/b2b/repository/stmt"
 )
 
-// RetrieveLicence get a licence with plan, invitation.
-func (env Env) RetrieveLicence(licID, teamID string) (admin.Licence, error) {
-	var ls admin.LicenceSchema
-	err := env.db.Get(&ls, stmt.SelectLicence, licID, teamID)
+// RevokeLicence revokes a licence granted to a reader.
+// If Licence.Status is not LicStatusGranted, no-ops will
+// be performed.
+// For a licence waiting for its invitation accepted,
+// use RevokeInvitation instead of this one.
+func (env Env) RevokeLicence(id, teamID string) error {
+	tx, err := env.beginInvTx()
 	if err != nil {
-		return admin.Licence{}, err
+		return err
 	}
 
-	return ls.Licence()
+	licence, err := tx.RetrieveLicence(id, teamID)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// If the licence is not granted yet.
+	if licence.Status != admin.LicStatusGranted {
+		_ = tx.Rollback()
+		return nil
+	}
+
+	// Get assignee current membership
+	mmb, err := tx.RetrieveMembership(licence.AssigneeID.String)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Back up current membership.
+	go func() {
+		_ = env.TakeSnapshot(reader.NewMemberSnapshot(mmb))
+	}()
+
+	// Nullify membership's fields.
+	newMmb := mmb.WithLicenceRevoked()
+	// Update membership.
+	err = tx.UpdateMembership(newMmb)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Update licence data.
+	baseLicence := licence.InvitationRevoked()
+	err = tx.RevokeLicence(baseLicence)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // LoadExpLicence retrieves a licence, together with its
 // subscription plan and the user to whom it was assigned.
-// If the licence is not assigned yet, user part should
-// have empty value.
+// If the licence is not assigned yet, assignee fields are empty..
 func (env Env) LoadExpLicence(id, teamID string) (admin.ExpandedLicence, error) {
 	var ls admin.ExpLicenceSchema
 	err := env.db.Get(&ls, stmt.ExpandedLicence, id, teamID)
@@ -51,4 +99,13 @@ func (env Env) ListExpLicence(teamID string) ([]admin.ExpandedLicence, error) {
 		el = append(el, l)
 	}
 	return el, nil
+}
+
+func (env Env) CountLicences(teamID string) (int64, error) {
+	var total int64
+	if err := env.db.Get(&total, stmt.CountLicence, teamID); err != nil {
+		return total, err
+	}
+
+	return total, nil
 }
