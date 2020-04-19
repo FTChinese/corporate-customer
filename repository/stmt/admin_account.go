@@ -19,24 +19,28 @@ SELECT a.id AS admin_id,
 	a.is_active AS active,
 	a.verified AS verified`
 
-// selectAccountTeam retrieves admin's account
+// selectPassport retrieves admin's account
 // and the team linked to it.
-const selectAccountTeam = accountBase + `,
-	t.team_id AS team_id,
+const selectPassport = accountBase + `,
+	t.id AS team_id,
 	t.name AS team_name
 FROM b2b.admin AS a
 	LEFT JOIN b2b.team AS t
 	ON a.id = t.admin_id`
 
-// AccountTeam retrieves Account + Team
+// PassportByAdminID retrieves Account + Team
 // by account id.
-const AccountTeam = selectAccountTeam + `
+const PassportByAdminID = selectPassport + `
 WHERE a.id = ?
+LIMIT 1`
+
+const PassportByTeamID = selectPassport + `
+WHERE t.id = ?
 LIMIT 1`
 
 // Login retrieves Account + Team by comparing
 // credentials.
-const Login = selectAccountTeam + `
+const Login = selectPassport + `
 WHERE (a.email, a.password_sha2) = (?, UNHEX(SHA2(?, 256)))
 LIMIT 1`
 
