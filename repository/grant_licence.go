@@ -19,20 +19,16 @@ func (env Env) FindInvitationByToken(token string) (admin.Invitation, error) {
 	return inv, nil
 }
 
-	m.Normalize()
-
-	return m, nil
-}
-
-// LockInvitation locks an invitation for update.
-func (tx GrantTx) LockInvitation(id string) (admin.Invitation, error) {
-	var i admin.Invitation
-	err := tx.Get(&i, stmt.LockInvitation, id)
+// FindInvitedLicence tries to find a licence belong to
+// an invitation.
+func (env Env) FindInvitedLicence(claims admin.InviteeClaims) (admin.Licence, error) {
+	var ls admin.LicenceSchema
+	err := env.db.Get(&ls, stmt.InvitedLicence, claims.LicenceID, claims.InvitationID)
 	if err != nil {
-		return i, err
+		return admin.Licence{}, err
 	}
 
-	return i, nil
+	return ls.Licence()
 }
 
 // LockLicence locks a licence for update.
