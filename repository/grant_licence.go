@@ -43,39 +43,30 @@ func (env Env) FindReader(email string) (reader.Reader, error) {
 	return r, nil
 }
 
-func (tx GrantTx) InsertMembership(m reader.Membership) error {
-	_, err := tx.NamedExec(stmt.InsertMembership, m)
-
+func (env Env) CreateReader(s reader.SignUp) error {
+	tx, err := env.db.Beginx()
 	if err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func (tx GrantTx) UpdateMembership(m reader.Membership) error {
-	_, err := tx.NamedExec(stmt.UpdateMembership, m)
-
+	_, err = tx.NamedExec(stmt.CreateReader, s)
 	if err != nil {
+		_ = tx.Rollback()
 		return err
 	}
 
-	return nil
-}
-
-const stmtAcceptInvitation = `
-UPDATE b2b.invitation
-SET accepted = 1,
-	updated_utc = UTC_TIMESTAMP()
-WHERE id = ?
-LIMIT 1`
-
-// InvitationAccepted turns the accepted field
-// of invitation to true.
-func (tx GrantTx) InvitationAccepted(id string) error {
-	_, err := tx.NamedExec(stmtAcceptInvitation, id)
-
+	_, err = tx.NamedExec(stmt.CreateReaderProfile, s)
 	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	_, err = tx.NamedExec(stmt.SaveReaderVrf, s)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
