@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"database/sql"
 	"github.com/FTChinese/b2b/models/admin"
+	"github.com/FTChinese/b2b/models/reader"
 	"github.com/FTChinese/b2b/repository/stmt"
 	"github.com/jmoiron/sqlx"
 )
@@ -10,26 +12,18 @@ type InvitationTx struct {
 	*sqlx.Tx
 }
 
-// RetrieveLicence finds the licence used in an invitation
+// RetrieveLicence loads the licence when creating an
+// invitation for it.
+// This retrieves Licence from the point of admin.
 func (tx InvitationTx) RetrieveLicence(licenceID, teamID string) (admin.Licence, error) {
 	var ls admin.LicenceSchema
 
-	err := tx.Get(&ls, stmt.LockLicence, licenceID, teamID)
+	err := tx.Get(&ls, stmt.LockLicenceByID, licenceID, teamID)
 	if err != nil {
 		return admin.Licence{}, err
 	}
 
 	return ls.Licence()
-}
-
-// SetLicenceInvited changes a licence status and set the invitation column.
-func (tx InvitationTx) SetLicenceInvited(lic admin.BaseLicence) error {
-	_, err := tx.NamedExec(stmt.SetLicenceInvited, lic)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // SaveInvitation insert a new row into invitation table.
