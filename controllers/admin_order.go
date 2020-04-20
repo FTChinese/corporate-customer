@@ -3,6 +3,9 @@ package controllers
 import (
 	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/repository"
+	"github.com/FTChinese/b2b/repository/products"
+	"github.com/FTChinese/b2b/repository/stmt"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -10,14 +13,16 @@ import (
 )
 
 type OrderRouter struct {
-	repo repository.Env
-	post postoffice.PostOffice
+	repo         repository.Env
+	productsRepo products.Env
+	post         postoffice.PostOffice
 }
 
-func NewOrderRouter(env repository.Env, office postoffice.PostOffice) OrderRouter {
+func NewOrderRouter(env repository.Env, prodRepo products.Env, office postoffice.PostOffice) OrderRouter {
 	return OrderRouter{
-		repo: env,
-		post: office,
+		repo:         env,
+		productsRepo: prodRepo,
+		post:         office,
 	}
 }
 
@@ -40,7 +45,7 @@ func (router OrderRouter) CreateOrders(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	plans, err := router.repo.PlansInSet(admin.GetCartPlanIDs(cartItems))
+	plans, err := router.productsRepo.PlansInSet(admin.GetCartPlanIDs(cartItems))
 
 	if err != nil {
 		return render.NewDBError(err)
@@ -62,5 +67,20 @@ func (router OrderRouter) CreateOrders(c echo.Context) error {
 }
 
 func (router OrderRouter) ListOrders(c echo.Context) error {
-	return nil
+	claims := getPassportClaims(c)
+
+	var page gorest.Pagination
+	if err := c.Bind(&page); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	listCh, countCh := router.repo.AsyncListOrders(claims.TeamID.String, page), router.repo.AsyncCountOrder(stmt.TeamByID)
+
+	listResult, countResult := <-listCh, <-countCh
+	if listResult.Err != nil {
+		return render.NewDBError(listResult.Err)
+	}
+
+	listResult.Total = countResult.Total
+	return c.JSON(http.StatusOK, listResult)
 }

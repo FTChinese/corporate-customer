@@ -158,3 +158,11 @@ func (ol OrderList) Each(handler func(row sq.InsertRow)) {
 		handler(o)
 	}
 }
+
+// PageOrders contains the count of total orders of a team,
+// and the current page of orders.
+type PagedOrders struct {
+	Total int64   `json:"total"`
+	Data  []Order `json:"data"`
+	Err   error   `json:"-"`
+}

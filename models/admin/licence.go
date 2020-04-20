@@ -145,7 +145,8 @@ func (s ExpLicenceSchema) ExpandedLicence() (ExpandedLicence, error) {
 }
 
 // ExpLicenceList is used to output a list of licence with pagination.
-type ExpLicenceList struct {
+type PagedExpLicences struct {
 	Total int64             `json:"total"` // The total number of rows.
 	Data  []ExpandedLicence `json:"data"`
+	Err   error             `json:"-"`
 }

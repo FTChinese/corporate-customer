@@ -4,6 +4,7 @@ import (
 	"github.com/FTChinese/b2b/models/admin"
 	"github.com/FTChinese/b2b/models/reader"
 	"github.com/FTChinese/b2b/repository/stmt"
+	gorest "github.com/FTChinese/go-rest"
 )
 
 // RevokeLicence revokes a licence granted to a reader.
@@ -81,10 +82,10 @@ func (env Env) LoadExpLicence(id, teamID string) (admin.ExpandedLicence, error) 
 
 // ListExpLicence shows a list all licence.
 // Each licence's plan, invitation, assignee are attached.
-func (env Env) ListExpLicence(teamID string) ([]admin.ExpandedLicence, error) {
+func (env Env) ListExpLicence(teamID string, page gorest.Pagination) ([]admin.ExpandedLicence, error) {
 	var ls = make([]admin.ExpLicenceSchema, 0)
 
-	err := env.db.Select(&ls, stmt.ListExpandedLicences, teamID)
+	err := env.db.Select(&ls, stmt.ListExpandedLicences, teamID, page.Limit, page.Offset())
 
 	if err != nil {
 		return nil, err
@@ -101,6 +102,22 @@ func (env Env) ListExpLicence(teamID string) ([]admin.ExpandedLicence, error) {
 	return el, nil
 }
 
+func (env Env) AsyncListExpLicence(teamID string, page gorest.Pagination) <-chan admin.PagedExpLicences {
+	r := make(chan admin.PagedExpLicences)
+
+	go func() {
+		defer close(r)
+		licences, err := env.ListExpLicence(teamID, page)
+
+		r <- admin.PagedExpLicences{
+			Data: licences,
+			Err:  err,
+		}
+	}()
+
+	return r
+}
+
 func (env Env) CountLicences(teamID string) (int64, error) {
 	var total int64
 	if err := env.db.Get(&total, stmt.CountLicence, teamID); err != nil {
@@ -108,4 +125,20 @@ func (env Env) CountLicences(teamID string) (int64, error) {
 	}
 
 	return total, nil
+}
+
+func (env Env) AsyncCountLicences(teamID string) <-chan admin.PagedExpLicences {
+	r := make(chan admin.PagedExpLicences)
+
+	go func() {
+		defer close(r)
+		total, err := env.CountLicences(teamID)
+
+		r <- admin.PagedExpLicences{
+			Total: total,
+			Err:   err,
+		}
+	}()
+
+	return r
 }
