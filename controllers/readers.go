@@ -167,7 +167,7 @@ func (router ReadersRouter) Grant(c echo.Context) error {
 
 	// Send a notification letter to admin.
 	go func() {
-		pp, err := router.repo.PassportByAdminID(claims.TeamID)
+		pp, err := router.repo.FindInviteeOrg(claims)
 		if err != nil {
 			return
 		}

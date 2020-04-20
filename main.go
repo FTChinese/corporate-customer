@@ -7,6 +7,7 @@ import (
 	"github.com/FTChinese/b2b/database"
 	"github.com/FTChinese/b2b/repository"
 	"github.com/FTChinese/b2b/repository/login"
+	"github.com/FTChinese/b2b/repository/setting"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -69,9 +70,10 @@ func main() {
 
 	repo := repository.NewEnv(db)
 	loginRepo := login.NewEnv(db)
+	settingRepo := setting.NewEnv(db)
 
 	barrierRouter := controllers.NewBarrierRouter(loginRepo, post)
-	accountRouter := controllers.NewAccountRouter(repo, post)
+	accountRouter := controllers.NewAccountRouter(settingRepo, post)
 	teamRouter := controllers.NewTeamRouter(repo)
 	productRouter := controllers.NewProductRouter(repo)
 	orderRouter := controllers.NewOrderRouter(repo, post)
@@ -102,6 +104,7 @@ func main() {
 	api := e.Group("/api")
 	api.POST("/login/", barrierRouter.Login)
 	api.POST("/signup/", barrierRouter.SignUp)
+	api.POST("/verify/:token", barrierRouter.VerifyAccount)
 
 	pwResetGroup := api.Group("/password-reset")
 	{
@@ -124,7 +127,6 @@ func main() {
 		accountGroup.GET("/jwt/", accountRouter.RefreshJWT)
 		accountGroup.GET("/profile/", accountRouter.Profile)
 		accountGroup.POST("/request-verification", accountRouter.RequestVerification)
-		accountGroup.GET("/verify/:token", accountRouter.VerifyEmail)
 		accountGroup.PATCH("/display-name", accountRouter.ChangeName)
 		accountGroup.PATCH("/password", accountRouter.ChangePassword)
 	}

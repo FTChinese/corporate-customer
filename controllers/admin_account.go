@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/FTChinese/b2b/models/admin"
-	"github.com/FTChinese/b2b/repository"
+	"github.com/FTChinese/b2b/repository/setting"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -10,11 +10,11 @@ import (
 )
 
 type AdminAccountRouter struct {
-	repo repository.Env
+	repo setting.Env
 	post postoffice.PostOffice
 }
 
-func NewAccountRouter(repo repository.Env, post postoffice.PostOffice) AdminAccountRouter {
+func NewAccountRouter(repo setting.Env, post postoffice.PostOffice) AdminAccountRouter {
 	return AdminAccountRouter{
 		repo: repo,
 		post: post,
@@ -25,19 +25,24 @@ func NewAccountRouter(repo repository.Env, post postoffice.PostOffice) AdminAcco
 func (router AdminAccountRouter) RefreshJWT(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	jwtAccount, err := router.repo.LoadPassport(claims.AdminID)
+	pp, err := router.repo.LoadPassport(claims.AdminID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	return c.JSON(http.StatusOK, jwtAccount)
+	bearer, err := admin.NewPassportBearer(pp)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, bearer)
 }
 
 // Account sends user's account data.
 func (router AdminAccountRouter) Account(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	account, err := router.repo.AccountByID(claims.AdminID)
+	account, err := router.repo.Account(claims.AdminID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -52,7 +57,7 @@ func (router AdminAccountRouter) Account(c echo.Context) error {
 func (router AdminAccountRouter) Profile(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	profile, err := router.repo.AdminProfile(claims.AdminID)
+	profile, err := router.repo.Profile(claims.AdminID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -70,7 +75,7 @@ func (router AdminAccountRouter) RequestVerification(c echo.Context) error {
 	claims := getPassportClaims(c)
 
 	// Find the account
-	account, err := router.repo.AccountByID(claims.AdminID)
+	account, err := router.repo.Account(claims.AdminID)
 	// 404 Not Found
 	if err != nil {
 		return render.NewDBError(err)
@@ -104,32 +109,6 @@ func (router AdminAccountRouter) RequestVerification(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// VerifyEmail finds the account associated with a token
-// and set is as verified if found.
-// Status codes:
-// 404 - Account not found for this token.
-// 204 - Verified successfully.
-func (router AdminAccountRouter) VerifyEmail(c echo.Context) error {
-	token := c.Param("token")
-
-	account, err := router.repo.AccountByVerifier(token)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-	// If it is already verified, return immediately.
-	if account.Verified {
-		return c.NoContent(http.StatusNoContent)
-	}
-
-	account.Verified = true
-	err = router.repo.SetEmailVerified(account)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.NoContent(http.StatusNoContent)
-}
-
 // ChangeName updates display name.
 // Input: {displayName: string}.
 // StatusCodes:
@@ -146,7 +125,7 @@ func (router AdminAccountRouter) ChangeName(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	account, err := router.repo.AccountByID(claims.AdminID)
+	account, err := router.repo.Account(claims.AdminID)
 	if err != nil {
 		return render.NewDBError(err)
 	}

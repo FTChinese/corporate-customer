@@ -9,6 +9,18 @@ import (
 	"github.com/guregu/null"
 )
 
+// AdminTeam retrieves admin's account and team data
+// by admin id.
+// This is used in the invitation letter sent to reader.
+func (env Env) AdminTeam(adminID string) (admin.Passport, error) {
+	var a admin.Passport
+	if err := env.db.Get(&a, stmt.PassportByAdminID, adminID); err != nil {
+		return a, err
+	}
+
+	return a, nil
+}
+
 // CreateInvitation creates a new invitation for a licence.
 // To create an invitation letter, we need the following
 // information:

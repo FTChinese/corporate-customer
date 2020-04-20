@@ -166,3 +166,15 @@ func (env Env) GrantLicence(claims admin.InviteeClaims) (admin.InvitedLicence, e
 		},
 	}, nil
 }
+
+// FindInviteeOrg retrieves admin's data by team id.
+// This is used to send admin an email after reader accepted
+// an invitation
+func (env Env) FindInviteeOrg(claims admin.InviteeClaims) (admin.Passport, error) {
+	var p admin.Passport
+	if err := env.db.Get(&p, stmt.PassportByTeamID, claims.TeamID); err != nil {
+		return admin.Passport{}, err
+	}
+
+	return p, nil
+}

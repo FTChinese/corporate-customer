@@ -91,7 +91,7 @@ func (router InvitationRouter) Send(c echo.Context) error {
 	// Send invitation letter
 	go func() {
 
-		accountTeam, err := router.repo.PassportByAdminID(claims.Id)
+		accountTeam, err := router.repo.AdminTeam(claims.Id)
 		if err != nil {
 			return
 		}

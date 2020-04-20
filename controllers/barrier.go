@@ -177,3 +177,29 @@ func (router BarrierRouter) ResetPassword(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+// VerifyEmail finds the account associated with a token
+// and set is as verified if found.
+// Status codes:
+// 404 - Account not found for this token.
+// 204 - Verified successfully.
+func (router BarrierRouter) VerifyAccount(c echo.Context) error {
+	token := c.Param("token")
+
+	account, err := router.repo.VerifyingAccount(token)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+	// If it is already verified, return immediately.
+	if account.Verified {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	account.Verified = true
+	err = router.repo.SetAccountVerified(account)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}

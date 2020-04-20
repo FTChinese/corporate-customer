@@ -1,4 +1,4 @@
-package repository
+package setting
 
 import (
 	"github.com/FTChinese/b2b/models/admin"
@@ -7,49 +7,30 @@ import (
 
 // PassportByAdminID retrieves admin's account and team data
 // by admin id.
-func (env Env) PassportByAdminID(id string) (admin.Passport, error) {
+func (env Env) LoadPassport(adminID string) (admin.Passport, error) {
 	var a admin.Passport
-	if err := env.db.Get(&a, stmt.PassportByAdminID, id); err != nil {
+	if err := env.db.Get(&a, stmt.PassportByAdminID, adminID); err != nil {
+		logger.WithField("trace", "LoadPassport").Error()
 		return a, err
 	}
 
 	return a, nil
 }
 
-// PassportByTeamID retrieves admin's data by team id.
-func (env Env) PassportByTeamID(teamID string) (admin.Passport, error) {
-	var p admin.Passport
-	if err := env.db.Get(&p, stmt.PassportByTeamID, teamID); err != nil {
-		return admin.Passport{}, err
-	}
-
-	return p, nil
-}
-
-// AccountByID retrieves user account by id
-func (env Env) AccountByID(id string) (admin.Account, error) {
+// Account retrieves user account by id
+func (env Env) Account(adminID string) (admin.Account, error) {
 	var a admin.Account
-	err := env.db.Get(&a, stmt.AccountByID, id)
+	err := env.db.Get(&a, stmt.AccountByID, adminID)
 	if err != nil {
+		logger.WithField("trace", "RetrieveAccount").Error(err)
 		return a, err
 	}
 
 	return a, nil
 }
 
-// AccountByVerifier retrieves user account by verification token.
-func (env Env) AccountByVerifier(token string) (admin.Account, error) {
-	var a admin.Account
-	err := env.db.Get(&a, stmt.AccountByVerifier, token)
-	if err != nil {
-		return a, err
-	}
-
-	return a, nil
-}
-
-// AdminProfile loads admin's full account data.
-func (env Env) AdminProfile(id string) (admin.Profile, error) {
+// Profile loads admin's full account data.
+func (env Env) Profile(id string) (admin.Profile, error) {
 	var p admin.Profile
 	err := env.db.Get(&p, stmt.AdminProfile, id)
 	if err != nil {
@@ -57,19 +38,6 @@ func (env Env) AdminProfile(id string) (admin.Profile, error) {
 	}
 
 	return p, nil
-}
-
-// SetEmailVerified set the verified field to true.
-// You should check whether it is already true before
-// performing this operation.
-func (env Env) SetEmailVerified(account admin.Account) error {
-	_, err := env.db.Exec(stmt.EmailVerified, account)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // RegenerateVerifier re-generate a verification token
