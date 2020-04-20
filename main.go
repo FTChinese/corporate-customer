@@ -7,6 +7,7 @@ import (
 	"github.com/FTChinese/b2b/database"
 	"github.com/FTChinese/b2b/repository"
 	"github.com/FTChinese/b2b/repository/login"
+	"github.com/FTChinese/b2b/repository/products"
 	"github.com/FTChinese/b2b/repository/setting"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/labstack/echo/v4"
@@ -71,12 +72,13 @@ func main() {
 	repo := repository.NewEnv(db)
 	loginRepo := login.NewEnv(db)
 	settingRepo := setting.NewEnv(db)
+	productsRepo := products.NewEnv(db)
 
 	barrierRouter := controllers.NewBarrierRouter(loginRepo, post)
 	accountRouter := controllers.NewAccountRouter(settingRepo, post)
 	teamRouter := controllers.NewTeamRouter(repo)
-	productRouter := controllers.NewProductRouter(repo)
-	orderRouter := controllers.NewOrderRouter(repo, post)
+	productRouter := controllers.NewProductRouter(productsRepo)
+	orderRouter := controllers.NewOrderRouter(repo, productsRepo, post)
 	licenceRouter := controllers.NewLicenceRouter(repo)
 	invRouter := controllers.NewInvitationRouter(repo, post)
 	readerRouter := controllers.NewReaderRouter(repo, post)
