@@ -53,7 +53,9 @@ func (router InvitationRouter) Send(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	// TODO: validation
+	if ve := input.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
+	}
 
 	input.TeamID = claims.TeamID.String
 

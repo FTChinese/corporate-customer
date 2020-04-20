@@ -2,9 +2,12 @@ package admin
 
 import (
 	"github.com/FTChinese/b2b/models/plan"
+	"github.com/FTChinese/b2b/models/validator"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
+	"strings"
 	"time"
 )
 
@@ -98,6 +101,25 @@ func (i InvitationInput) NewInvitation() (Invitation, error) {
 		CreatedUTC:     chrono.TimeNow(),
 		UpdatedUTC:     chrono.TimeNow(),
 	}, nil
+}
+
+func (i *InvitationInput) Validate() *render.ValidationError {
+	i.Email = strings.TrimSpace(i.Email)
+	desc := strings.TrimSpace(i.Description.String)
+	i.Description = null.NewString(desc, desc != "")
+	i.LicenceID = strings.TrimSpace(i.LicenceID)
+
+	ve := validator.New("email").Required().Email().Validate(i.Email)
+	if ve != nil {
+		return ve
+	}
+
+	ve = validator.New("description").Max(128).Validate(i.Description.String)
+	if ve != nil {
+		return ve
+	}
+
+	return validator.New("licenceId").Required().Validate(i.LicenceID)
 }
 
 // InvitedLicence wraps all related information after
