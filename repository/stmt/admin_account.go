@@ -81,6 +81,20 @@ const AccountByEmail = selectAccount + `
 WHERE email = ?
 LIMIT`
 
+// InsertPasswordResetToken generates a new token
+// to help resetting password.
+const InsertPwResetToken = `
+INSERT INTO b2b.password_reset
+SET email = :email,
+	token = UNHEX(:token),
+	is_used = 0,
+	created_utc = UTC_TIMESTAMP(),
+	updated_utc = UTC_TIMESTAMP()
+ON DUPLICATE KEY UPDATE
+	token = UNHEX(:token),
+	is_used = 0,
+	updated_utc = UTC_TIMESTAMP()`
+
 const AccountForPwReset = accountBase + `
 FROM b2b.password_reset AS r
 	INNER JOIN b2b.admin AS a
@@ -88,6 +102,14 @@ FROM b2b.password_reset AS r
 WHERE r.token = UNHEX(?)
 	AND r.is_used = 0
 	AND DATE_ADD(r.updated_utc, INTERVAL r.expires_in SECOND) > UTC_TIMESTAMP()
+LIMIT 1`
+
+// DeactivatePasswordResetToken set a token's is_used
+// column to true so that it won't be retrieved in the future.
+const DeactivatePwResetToken = `
+UPDATE b2b.password_reset
+	SET is_used = 1
+WHERE token = UNHEX(?)
 LIMIT 1`
 
 const AdminProfile = accountBase + `,

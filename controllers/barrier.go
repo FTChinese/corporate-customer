@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/FTChinese/b2b/models/admin"
-	"github.com/FTChinese/b2b/repository"
+	"github.com/FTChinese/b2b/repository/login"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -11,12 +11,12 @@ import (
 
 // BarrierRouter defines what an admin can do before login.
 type BarrierRouter struct {
-	repo repository.Env
+	repo login.Env
 	post postoffice.PostOffice
 }
 
 // NewBarrierRouter creates a new instance of BarrierRouter.
-func NewBarrierRouter(repo repository.Env, p postoffice.PostOffice) BarrierRouter {
+func NewBarrierRouter(repo login.Env, p postoffice.PostOffice) BarrierRouter {
 	return BarrierRouter{
 		repo: repo,
 		post: p,
@@ -105,7 +105,7 @@ func (router BarrierRouter) PasswordResetEmail(c echo.Context) error {
 	}
 
 	// Find account by email
-	account, err := router.repo.AccountByEmail(input.Email)
+	account, err := router.repo.FindPwResetAccount(input.Email)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -117,7 +117,7 @@ func (router BarrierRouter) PasswordResetEmail(c echo.Context) error {
 	}
 
 	// Save token
-	err = router.repo.SavePasswordResetter(pr)
+	err = router.repo.SavePwResetToken(pr)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -141,7 +141,7 @@ func (router BarrierRouter) PasswordResetEmail(c echo.Context) error {
 func (router BarrierRouter) VerifyPasswordToken(c echo.Context) error {
 	token := c.Param("token")
 
-	account, err := router.repo.AccountToResetPassword(token)
+	account, err := router.repo.FindAccountByPwToken(token)
 
 	if err != nil {
 		return render.NewDBError(err)
@@ -162,18 +162,18 @@ func (router BarrierRouter) ResetPassword(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	account, err := router.repo.AccountToResetPassword(input.Token)
+	account, err := router.repo.FindAccountByPwToken(input.Token)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	err = router.repo.UpdatePassword(input.Credentials(account.ID))
+	err = router.repo.ResetPassword(input.Credentials(account.ID))
 
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	_ = router.repo.RemovePasswordResetToken(input.Token)
+	_ = router.repo.RemovePwResetToken(input.Token)
 
 	return c.NoContent(http.StatusNoContent)
 }

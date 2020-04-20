@@ -6,6 +6,7 @@ import (
 	"github.com/FTChinese/b2b/controllers"
 	"github.com/FTChinese/b2b/database"
 	"github.com/FTChinese/b2b/repository"
+	"github.com/FTChinese/b2b/repository/login"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -67,8 +68,9 @@ func main() {
 		emailConn.Pass)
 
 	repo := repository.NewEnv(db)
+	loginRepo := login.NewEnv(db)
 
-	barrierRouter := controllers.NewBarrierRouter(repo, post)
+	barrierRouter := controllers.NewBarrierRouter(loginRepo, post)
 	accountRouter := controllers.NewAccountRouter(repo, post)
 	teamRouter := controllers.NewTeamRouter(repo)
 	productRouter := controllers.NewProductRouter(repo)

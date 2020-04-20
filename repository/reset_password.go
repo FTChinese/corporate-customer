@@ -5,6 +5,8 @@ import (
 	"github.com/FTChinese/b2b/repository/stmt"
 )
 
+// AccountByEmail loads admin account by email.
+// This email is used to receive a password reset letter.
 func (env Env) AccountByEmail(email string) (admin.Account, error) {
 	var a admin.Account
 	err := env.db.Get(&a, stmt.AccountByEmail, email)
@@ -27,23 +29,9 @@ func (env Env) AccountToResetPassword(token string) (admin.Account, error) {
 	return a, nil
 }
 
-// InsertPasswordResetToken generates a new token
-// to help resetting password.
-const stmtInsertPwResetToken = `
-INSERT INTO b2b.password_reset
-SET email = :email,
-	token = UNHEX(:token),
-	is_used = 0,
-	created_utc = UTC_TIMESTAMP(),
-	updated_utc = UTC_TIMESTAMP()
-ON DUPLICATE KEY UPDATE
-	token = UNHEX(:token),
-	is_used = 0,
-	updated_utc = UTC_TIMESTAMP()`
-
 // SavePasswordResetter
 func (env Env) SavePasswordResetter(pr admin.AccountInput) error {
-	_, err := env.db.NamedExec(stmtInsertPwResetToken, pr)
+	_, err := env.db.NamedExec(stmt.InsertPwResetToken, pr)
 
 	if err != nil {
 		return err
@@ -52,16 +40,8 @@ func (env Env) SavePasswordResetter(pr admin.AccountInput) error {
 	return nil
 }
 
-// DeactivatePasswordResetToken set a token's is_used
-// column to true so that it won't be retrieved in the future.
-const stmtDeactivatePwResetToken = `
-UPDATE b2b.password_reset
-	SET is_used = 1
-WHERE token = UNHEX(?)
-LIMIT 1`
-
 func (env Env) RemovePasswordResetToken(token string) error {
-	_, err := env.db.Exec(stmtDeactivatePwResetToken, token)
+	_, err := env.db.Exec(stmt.DeactivatePwResetToken, token)
 	if err != nil {
 		return err
 	}

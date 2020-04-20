@@ -15,23 +15,12 @@ func (env Env) SignUp(s admin.AccountInput) error {
 	return nil
 }
 
-// PassportByAdminID retrieves admin's account and team data
-// by admin id.
-func (env Env) adminPassport(id string) (admin.Passport, error) {
-	var a admin.Passport
-	if err := env.db.Get(&a, stmt.PassportByAdminID, id); err != nil {
-		return a, err
-	}
-
-	return a, nil
-}
-
 // LoadPassport retrieves and build PassportBearer
 // after signup.
 func (env Env) LoadPassport(adminID string) (admin.PassportBearer, error) {
 
-	pp, err := env.adminPassport(adminID)
-	if err != nil {
+	var pp admin.Passport
+	if err := env.db.Get(&pp, stmt.PassportByAdminID, adminID); err != nil {
 		return admin.PassportBearer{}, err
 	}
 
