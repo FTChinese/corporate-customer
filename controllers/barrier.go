@@ -9,11 +9,13 @@ import (
 	"net/http"
 )
 
+// BarrierRouter defines what an admin can do before login.
 type BarrierRouter struct {
 	repo repository.Env
 	post postoffice.PostOffice
 }
 
+// NewBarrierRouter creates a new instance of BarrierRouter.
 func NewBarrierRouter(repo repository.Env, p postoffice.PostOffice) BarrierRouter {
 	return BarrierRouter{
 		repo: repo,
@@ -23,6 +25,16 @@ func NewBarrierRouter(repo repository.Env, p postoffice.PostOffice) BarrierRoute
 
 // Login verifies email + password.
 // Input: {email: string, password: string}
+// Status code:
+// 400 Bad Request if request body cannot be parsed.
+// 404 Not Found if email or password, or both, are incorrect.
+// 422 Unprocessable
+// * if email is missing:
+// { error: { field: "email", code: "missing_field"}}
+// * if email is invalid:
+// {error: {field: "email", code: "invalid"}}
+// * if password is missing:
+// {error: { field: "password", code: "missing_field"}}
 func (router BarrierRouter) Login(c echo.Context) error {
 	var input admin.AccountInput
 	if err := c.Bind(&input); err != nil {
