@@ -3,13 +3,12 @@ BINARY := b2b
 
 LINUX_BIN := $(BUILD_DIR)/linux/$(BINARY)
 
-VERSION := `git describe --tags`
 BUILD_AT := `date +%FT%T%z`
-LDFLAGS := -ldflags "-w -s -X main.version=${VERSION} -X main.build=${BUILD_AT}"
+LDFLAGS := -ldflags "-w -s -X main.build=${BUILD_AT}"
 
 .PHONY: build run publish linux restart config lastcommit clean test
 build :
-	go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY) -v .
+	go build -o $(BUILD_DIR) $(LDFLAGS) -v cmd/fta_app
 
 run :
 	./$(BUILD_DIR)/$(BINARY)
