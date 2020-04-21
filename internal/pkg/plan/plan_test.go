@@ -14,19 +14,17 @@ func TestGeneratePlanID(t *testing.T) {
 }
 
 var stdPlan = BasePlan{
-	PlanID:    "plan_ICMPPM0UXcpZ",
-	Price:     258,
-	Tier:      enum.TierStandard,
-	Cycle:     enum.CycleYear,
-	TrialDays: 3,
+	PlanID: "plan_ICMPPM0UXcpZ",
+	Price:  258,
+	Tier:   enum.TierStandard,
+	Cycle:  enum.CycleYear,
 }
 
 var prmPlan = BasePlan{
-	PlanID:    "plan_5iIonqaehig4",
-	Price:     1998,
-	Tier:      enum.TierPremium,
-	Cycle:     enum.CycleYear,
-	TrialDays: 3,
+	PlanID: "plan_5iIonqaehig4",
+	Price:  1998,
+	Tier:   enum.TierPremium,
+	Cycle:  enum.CycleYear,
 }
 
 var stdDiscountA = Discount{
