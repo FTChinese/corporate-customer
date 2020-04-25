@@ -1,0 +1,13 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <ng-container *ngFor="let ctrl of controls">
+    <app-dynamic-control [control]="ctrl" [form]="form"></app-dynamic-control>
+  </ng-container>
+
+  <div class="d-flex justify-content-between">
+
+    <button class="btn btn-primary" [class.btn-block]="button.block" type="submit" [disabled]="!form.valid">{{button.text}}</button>
+
+  </div>
+
+
+</form>

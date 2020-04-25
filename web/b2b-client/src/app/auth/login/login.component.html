@@ -1,0 +1,27 @@
+<h2 class="text-center">Superyard Login</h2>
+
+<!-- <ng-template appFlash></ng-template> -->
+<app-flash *ngIf="errMsg" [message]="errMsg"></app-flash>
+
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label class="form-label" for="userName">User name</label>
+    <input class="form-control" type="text" id="userName" formControlName="userName" required (click)="clearFeedback()"/>
+
+    <app-feedback-invalid *ngIf="formErr.userName" [message]="formErr.userName"></app-feedback-invalid>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="password">Password</label>
+
+    <input class="form-control" type="password" id="password" formControlName="password" required (click)="clearFeedback()"/>
+
+    <app-feedback-invalid *ngIf="formErr.password" [message]="formErr.password">{{formErr.password}}</app-feedback-invalid>
+  </div>
+
+  <button class="btn btn-block btn-primary" type="submit" [disabled]="!loginForm.valid">Login</button>
+</form>
+
+<div class="mt-4">
+  <a routerLink="/forgot-password">Forgot password?</a>
+</div>

@@ -1,0 +1,20 @@
+<form (ngSubmit)="onSubmit()" [formGroup]="form">
+
+  <div class="form-group">
+
+    <div class="input-group">
+      <input class="form-control"
+        id="searchBox"
+        type="search"
+        formControlName="search"
+        required
+        placeholder="{{placeHolder}}">
+
+      <div class="input-group-append">
+        <button type="submit" class="btn btn-primary">Search</button>
+      </div>
+
+    </div>
+
+  </div>
+</form>

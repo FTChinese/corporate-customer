@@ -1,0 +1,26 @@
+<header class="o-header">
+  <div class="container d-flex justify-content-between">
+    <a class="navbar-brand" href="/">FTC CMS</a>
+
+    <div class="d-flx align-items-center" *ngIf="authService.isLoggedIn">
+      <a class="" routerLink="/settings">{{authService.displayName}}</a>
+
+      <button class="btn btn-link" (click)="logout()">Logout</button>
+    </div>
+  </div>
+</header>
+
+<main class="page-content mt-3" role="main">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-3" role="navigation">
+        <app-sidebar></app-sidebar>
+      </div>
+
+      <div class="col-sm-9">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
+</main>
+

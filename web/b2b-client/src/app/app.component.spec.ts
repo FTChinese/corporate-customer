@@ -20,16 +20,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'b2b-client'`, () => {
+  it(`should have as title 'superyard-client'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('b2b-client');
+    expect(app.title).toEqual('superyard-client');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement;
-    expect(compiled.querySelector('.content span').textContent).toContain('b2b-client app is running!');
+    expect(compiled.querySelector('.content span').textContent).toContain('superyard-client app is running!');
   });
 });

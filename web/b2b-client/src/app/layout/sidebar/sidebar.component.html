@@ -1,0 +1,4 @@
+<nav class="nav flex-column sidebar">
+  <a *ngFor="let item of navItems" class="nav-link" [routerLink]="item.href" routerLinkActive="active">{{ item.name }}</a>
+</nav>
+
