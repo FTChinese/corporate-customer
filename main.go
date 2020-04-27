@@ -110,7 +110,7 @@ func main() {
 	api := e.Group("/api")
 	api.POST("/login/", barrierRouter.Login)
 	api.POST("/signup/", barrierRouter.SignUp)
-	api.POST("/verify/:token", barrierRouter.VerifyAccount)
+	api.GET("/verify/:token", barrierRouter.VerifyAccount)
 
 	pwResetGroup := api.Group("/password-reset")
 	{
@@ -143,7 +143,7 @@ func main() {
 		teamGroup.POST("/", teamRouter.Create)
 		teamGroup.PATCH("/", teamRouter.Update)
 		teamGroup.GET("/members", teamRouter.ListMembers)
-		teamGroup.DELETE("/member/:id", teamRouter.DeleteMember)
+		teamGroup.DELETE("/members/:id", teamRouter.DeleteMember)
 	}
 
 	productGroup := api.Group("/products", dk.RequireLoggedIn)
@@ -191,10 +191,10 @@ func main() {
 	{
 		// Verify the invitation is valid. Cache the invitation for a short period
 		// so that the next step won't hit db.
-		readerGroup.GET("/verify-token/:token", readerRouter.VerifyInvitation)
+		readerGroup.GET("/verify/:token", readerRouter.VerifyInvitation)
 		// Pass back data acquired from previous step
 		// and get back licence data.
-		readerGroup.GET("/verify-licence", readerRouter.VerifyLicence, dk.CheckInviteeClaims)
+		readerGroup.GET("/licence", readerRouter.VerifyLicence, dk.CheckInviteeClaims)
 		// Pass back data acquired from previous step
 		// and get reader account.
 		// If response is not found, go to signup.
