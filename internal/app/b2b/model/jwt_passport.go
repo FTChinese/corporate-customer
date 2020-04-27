@@ -30,7 +30,9 @@ type PassportClaims struct {
 	jwt.StandardClaims
 }
 
-// Passport is used by client to identify a user.
+// Passport an admin's identity and the team it belongs to.
+// This is used to compose invitation letter, find out
+// admin for an invitation, cached by client, etc..
 type Passport struct {
 	Account
 	TeamID   null.String `json:"teamId" db:"team_id"`
