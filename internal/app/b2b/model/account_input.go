@@ -30,7 +30,7 @@ func GenerateToken() (string, error) {
 // Sign Up      | Email + Password | Email + Password + ID + Token
 // Reset letter | Email            | N/A
 // Reset pw     | Password + Token | ID + Password
-// Update pw    | Password         | ID + Password
+// Update pw    | Password + OldPassword | ID + Password
 // Display name | DisplayName      | ID + DisplayName
 type AccountInput struct {
 	ID          string      `db:"admin_id"`
