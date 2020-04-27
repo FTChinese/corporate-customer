@@ -5,31 +5,27 @@ export interface INavItem {
 
 export const navigation: INavItem[] = [
   {
-    name: 'Admin',
-    href: '/admin',
+    name: '许可',
+    href: '/licences',
   },
   {
-    name: 'Push Notification',
-    href: '/apn',
+    name: '成员',
+    href: '/members',
   },
   {
-    name: 'API Access',
-    href: '/oauth'
+    name: '邀请',
+    href: '/invitations'
   },
   {
-    name: 'Readers',
-    href: '/readers',
+    name: '交易历史',
+    href: '/orders',
   },
   {
-    name: 'B2B Subscription',
-    href: '/b2b',
-  },
-  {
-    name: 'Android',
-    href: '/android',
-  },
-  {
-    name: 'Settings',
+    name: '设置',
     href: '/settings',
-  }
+  },
+  {
+    name: '退出',
+    href: '/logout',
+  },
 ];

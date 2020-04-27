@@ -1,9 +1,9 @@
 import { Component} from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { StaffAccount, ILogin } from '../../models/staff';
+import { Credentials, Passport } from '../../models/admin';
 import { RequestError } from '../../models/request-result';
-import { AuthService } from '../auth.service';
+import { AuthService } from '../../core/auth.service';
 import { Router, NavigationExtras } from '@angular/router';
 
 @Component({
@@ -14,12 +14,12 @@ import { Router, NavigationExtras } from '@angular/router';
 export class LoginComponent {
 
   loginForm = this.formBuilder.group({
-    userName: ['', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
   });
 
 
-  formErr: Partial<ILogin> = {};
+  formErr: Partial<Credentials> = {};
   errMsg: string;
 
   constructor(
@@ -30,14 +30,14 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.invalid) {
-      const nameErr = this.loginForm.getError('required', 'userName');
+      const nameErr = this.loginForm.getError('required', 'email');
       if (nameErr) {
-        this.formErr.userName = 'User name is required';
+        this.formErr.email = '请输入有效的邮箱地址';
       }
 
       const pwErr = this.loginForm.getError('required', 'password');
       if (pwErr) {
-        this.formErr.password = 'Invalid password';
+        this.formErr.password = '密码无效';
       }
 
       return;
@@ -48,7 +48,7 @@ export class LoginComponent {
     this.authService
       .login(this.loginForm.value)
       .subscribe({
-        next: (data: StaffAccount) => {
+        next: (data: Passport) => {
           console.log(data);
           if (this.authService.isLoggedIn) {
             const redirect = this.authService.redirectUrl ? this.router.parseUrl(this.authService.redirectUrl) : '/';

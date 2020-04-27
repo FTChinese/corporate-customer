@@ -3,7 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 import { CenterLayoutComponent } from './center-layout/center-layout.component';
 import { HomeComponent } from './home/home.component';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard } from '../core/guards/auth.guard';
 import { MainLayoutComponent } from './main-layout/main-layout.component';
 
 /**

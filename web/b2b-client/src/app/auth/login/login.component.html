@@ -5,14 +5,14 @@
 
 <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
   <div class="form-group">
-    <label class="form-label" for="userName">User name</label>
-    <input class="form-control" type="text" id="userName" formControlName="userName" required (click)="clearFeedback()"/>
+    <label class="form-label" for="email">邮箱</label>
+    <input class="form-control" type="text" id="email" formControlName="email" required (click)="clearFeedback()"/>
 
-    <app-feedback-invalid *ngIf="formErr.userName" [message]="formErr.userName"></app-feedback-invalid>
+    <app-feedback-invalid *ngIf="formErr.email" [message]="formErr.email"></app-feedback-invalid>
   </div>
 
   <div class="form-group">
-    <label class="form-label" for="password">Password</label>
+    <label class="form-label" for="password">密码</label>
 
     <input class="form-control" type="password" id="password" formControlName="password" required (click)="clearFeedback()"/>
 
@@ -22,6 +22,9 @@
   <button class="btn btn-block btn-primary" type="submit" [disabled]="!loginForm.valid">Login</button>
 </form>
 
-<div class="mt-4">
-  <a routerLink="/forgot-password">Forgot password?</a>
+<div class="mt-4 d-flex justify-content-between">
+  <a routerLink="/forgot-password">忘记密码?</a>
+  <a routerLink="/signup">新建账号</a>
 </div>
+
+<div class="mt-4 text-muted">B2B账号独立于FT中文网的账号，该账号仅用于登录B2B服务。如果您尚未注册B2B服务，请先创建账号。</div>

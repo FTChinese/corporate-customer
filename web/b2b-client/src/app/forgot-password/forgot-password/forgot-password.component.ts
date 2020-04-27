@@ -7,7 +7,6 @@ import { Button } from 'src/app/shared/button';
 @Component({
   selector: 'app-forgot-password',
   templateUrl: './forgot-password.component.html',
-  styleUrls: ['./forgot-password.component.scss'],
   providers: [FormService],
 })
 export class ForgotPasswordComponent implements OnInit {
