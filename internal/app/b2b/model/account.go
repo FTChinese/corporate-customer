@@ -27,6 +27,6 @@ func (a Account) NormalizeName() string {
 
 type Profile struct {
 	Account
-	CreatedUTC chrono.Time `db:"created_utc"`
-	UpdatedUTC chrono.Time `db:"updated_utc"`
+	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
+	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }
