@@ -8,7 +8,7 @@ LDFLAGS := -ldflags "-w -s -X main.build=${BUILD_AT}"
 
 .PHONY: build run publish linux restart config lastcommit clean test
 build :
-	go build -o $(BUILD_DIR) $(LDFLAGS) -v cmd/fta_app
+	go build -o $(BUILD_DIR) $(LDFLAGS) -v .
 
 run :
 	./$(BUILD_DIR)/$(BINARY)

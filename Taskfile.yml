@@ -9,7 +9,7 @@ tasks:
   build:
     desc: Build the go binary for current platform.
     cmds:
-      - cd cmd/{{.BINARY}} && go build -o ../../{{.BUILD_DIR}}/{{.BINARY}}{{exeExt}} {{.LDFLAGS}} -v .
+      - go build -o ./{{.BUILD_DIR}}/{{.BINARY}}{{exeExt}} {{.LDFLAGS}} -v .
 
   run:
     desc: Run the program
