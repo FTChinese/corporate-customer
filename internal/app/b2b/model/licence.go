@@ -121,7 +121,7 @@ func (ls LicenceSchema) Licence() (Licence, error) {
 // and the assignee if it is already granted.
 type ExpandedLicence struct {
 	Licence
-	Assignee Assignee // If no use is granted to use this licence, its fields are empty.
+	Assignee Assignee `json:"assignee"` // If no use is granted to use this licence, its fields are empty.
 }
 
 // ExpLicenceSchema is used to save/retrieve licence.
