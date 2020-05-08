@@ -19,7 +19,7 @@ import (
 // the AssigneeID field.
 type BaseLicence struct {
 	ID               string        `json:"id" db:"licence_id"`
-	TeamID           string        `json:"team_id" db:"team_id"`
+	TeamID           string        `json:"teamId" db:"team_id"`
 	AssigneeID       null.String   `json:"-" db:"assignee_id"` // Only exists after reader accepted an invitation.
 	ExpireDate       chrono.Date   `json:"expireDate" db:"expire_date"`
 	TrialStart       chrono.Date   `json:"trialStart" db:"trial_start_date"`
