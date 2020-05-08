@@ -99,7 +99,7 @@ type Licence struct {
 // LicenceSchema defines the DB schema for licence table.
 type LicenceSchema struct {
 	BaseLicence
-	CurrentPlan string `db:"current_plan"` // The raw JSON column is a string.
+	CurrentPlan string `json:"-" db:"current_plan"` // The raw JSON column is a string.
 }
 
 // Licence create the Licence instance from raw db data.
