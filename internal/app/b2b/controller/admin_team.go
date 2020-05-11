@@ -110,7 +110,7 @@ func (router TeamRouter) DeleteMember(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	err = router.repo.DeleteTeamMember(model.TeamMember{
+	err = router.repo.DeleteTeamMember(model.Staffer{
 		ID:     memberID,
 		TeamID: claims.TeamID.String,
 	})

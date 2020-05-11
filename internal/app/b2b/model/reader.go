@@ -52,8 +52,8 @@ func NewSignUp(input AccountInput) (SignUp, error) {
 }
 
 // Turn the SignUp into a new Reader type.
-func (s SignUp) TeamMember(teamID string) TeamMember {
-	return TeamMember{
+func (s SignUp) TeamMember(teamID string) Staffer {
+	return Staffer{
 		Email:  s.Email,
 		FtcID:  null.StringFrom(s.ID),
 		TeamID: teamID,

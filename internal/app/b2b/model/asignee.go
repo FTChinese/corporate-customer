@@ -25,26 +25,25 @@ func (a Assignee) NormalizeName() string {
 	return strings.Split(a.Email.String, "@")[0]
 }
 
-func (a Assignee) TeamMember(teamID string) TeamMember {
-	return TeamMember{
+func (a Assignee) TeamMember(teamID string) Staffer {
+	return Staffer{
 		Email:  a.Email.String,
-		FtcID:  a.FtcID,
 		TeamID: teamID,
+		FtcID:  a.FtcID,
 	}
 }
 
-// TeamMember is a member belong to a team under admin's
+// Staffer is a member belong to a team under admin's
 // management.
-type TeamMember struct {
-	ID     int64       `json:"id" db:"id"`
+type Staffer struct {
 	Email  string      `json:"email" db:"email"`
-	FtcID  null.String `json:"ftcId" db:"ftc_id"`
 	TeamID string      `json:"teamId" db:"team_id"`
+	FtcID  null.String `json:"ftcId" db:"ftc_id"`
 }
 
-// TeamMemberList contains a list of assignee rows and the total number of rows for current team.
-type TeamMemberList struct {
-	Total int64        `json:"total"`
-	Data  []TeamMember `json:"data"`
-	Err   error        `json:"-"` // Contains possible error when used to pass data from a goroutine.
+// StaffList contains a list of assignee rows and the total number of rows for current team.
+type StaffList struct {
+	Total int64     `json:"total"`
+	Data  []Staffer `json:"data"`
+	Err   error     `json:"-"` // Contains possible error when used to pass data from a goroutine.
 }
