@@ -44,7 +44,7 @@ func (env Env) UpdateTeam(t model.Team) error {
 }
 
 func (env Env) SaveStaffer(m model.Staffer) error {
-	_, err := env.db.NamedExec(stmt.InsertTeamMember, m)
+	_, err := env.db.NamedExec(stmt.InsertStaffer, m)
 
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (env Env) SaveStaffer(m model.Staffer) error {
 // UpdateStaffer add a member's ftc if missing.
 // This is used after a reader signup upon verifying invitation.
 func (env Env) UpdateStaffer(m model.Staffer) error {
-	_, err := env.db.NamedExec(stmt.SetTeamMemberFtcID, m)
+	_, err := env.db.NamedExec(stmt.SetStaffFtcID, m)
 
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (env Env) UpdateStaffer(m model.Staffer) error {
 func (env Env) ListStaff(teamID string, page gorest.Pagination) ([]model.Staffer, error) {
 	list := make([]model.Staffer, 0)
 
-	err := env.db.Select(&list, stmt.ListTeamMembers, teamID, page.Limit, page.Offset())
+	err := env.db.Select(&list, stmt.ListStaff, teamID, page.Limit, page.Offset())
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (env Env) AsyncListStaff(teamID string, page gorest.Pagination) <-chan mode
 
 func (env Env) CountStaff(teamID string) (int64, error) {
 	var total int64
-	err := env.db.Get(&total, stmt.CountTeamMembers, teamID)
+	err := env.db.Get(&total, stmt.CountStaff, teamID)
 	if err != nil {
 		return 0, err
 	}
@@ -120,7 +120,7 @@ func (env Env) AsyncCountStaff(teamID string) <-chan model.StaffList {
 }
 
 func (env Env) DeleteStaffer(m model.Staffer) error {
-	_, err := env.db.NamedExec(stmt.DeleteTeamMember, m)
+	_, err := env.db.NamedExec(stmt.DeleteStaffer, m)
 	if err != nil {
 		return err
 	}
