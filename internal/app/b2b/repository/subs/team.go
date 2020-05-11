@@ -43,7 +43,7 @@ func (env Env) UpdateTeam(t model.Team) error {
 	return nil
 }
 
-func (env Env) SaveTeamMember(m model.Staffer) error {
+func (env Env) SaveStaffer(m model.Staffer) error {
 	_, err := env.db.NamedExec(stmt.InsertTeamMember, m)
 
 	if err != nil {
@@ -53,9 +53,9 @@ func (env Env) SaveTeamMember(m model.Staffer) error {
 	return nil
 }
 
-// UpdateTeamMember add a member's ftc if missing.
+// UpdateStaffer add a member's ftc if missing.
 // This is used after a reader signup upon verifying invitation.
-func (env Env) UpdateTeamMember(m model.Staffer) error {
+func (env Env) UpdateStaffer(m model.Staffer) error {
 	_, err := env.db.NamedExec(stmt.SetTeamMemberFtcID, m)
 
 	if err != nil {
@@ -65,7 +65,7 @@ func (env Env) UpdateTeamMember(m model.Staffer) error {
 	return nil
 }
 
-func (env Env) ListTeamMembers(teamID string, page gorest.Pagination) ([]model.Staffer, error) {
+func (env Env) ListStaff(teamID string, page gorest.Pagination) ([]model.Staffer, error) {
 	list := make([]model.Staffer, 0)
 
 	err := env.db.Select(&list, stmt.ListTeamMembers, teamID, page.Limit, page.Offset())
@@ -76,13 +76,13 @@ func (env Env) ListTeamMembers(teamID string, page gorest.Pagination) ([]model.S
 	return list, nil
 }
 
-func (env Env) AsyncListTeamMembers(teamID string, page gorest.Pagination) <-chan model.StaffList {
+func (env Env) AsyncListStaff(teamID string, page gorest.Pagination) <-chan model.StaffList {
 	r := make(chan model.StaffList)
 
 	go func() {
 		defer close(r)
 
-		list, err := env.ListTeamMembers(teamID, page)
+		list, err := env.ListStaff(teamID, page)
 
 		r <- model.StaffList{
 			Data: list,
@@ -93,7 +93,7 @@ func (env Env) AsyncListTeamMembers(teamID string, page gorest.Pagination) <-cha
 	return r
 }
 
-func (env Env) CountTeamMembers(teamID string) (int64, error) {
+func (env Env) CountStaff(teamID string) (int64, error) {
 	var total int64
 	err := env.db.Get(&total, stmt.CountTeamMembers, teamID)
 	if err != nil {
@@ -103,12 +103,12 @@ func (env Env) CountTeamMembers(teamID string) (int64, error) {
 	return total, nil
 }
 
-func (env Env) AsyncCountTeamMembers(teamID string) <-chan model.StaffList {
+func (env Env) AsyncCountStaff(teamID string) <-chan model.StaffList {
 	r := make(chan model.StaffList)
 
 	go func() {
 		defer close(r)
-		total, err := env.CountTeamMembers(teamID)
+		total, err := env.CountStaff(teamID)
 
 		r <- model.StaffList{
 			Total: total,
@@ -119,7 +119,7 @@ func (env Env) AsyncCountTeamMembers(teamID string) <-chan model.StaffList {
 	return r
 }
 
-func (env Env) DeleteTeamMember(m model.Staffer) error {
+func (env Env) DeleteStaffer(m model.Staffer) error {
 	_, err := env.db.NamedExec(stmt.DeleteTeamMember, m)
 	if err != nil {
 		return err

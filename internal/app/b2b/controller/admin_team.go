@@ -90,7 +90,7 @@ func (router TeamRouter) ListMembers(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	countCh, listCh := router.repo.AsyncCountTeamMembers(stmt.TeamByID), router.repo.AsyncListTeamMembers(claims.TeamID.String, page)
+	countCh, listCh := router.repo.AsyncCountStaff(stmt.TeamByID), router.repo.AsyncListStaff(claims.TeamID.String, page)
 
 	countResult, listResult := <-countCh, <-listCh
 	if listResult.Err != nil {
@@ -110,7 +110,7 @@ func (router TeamRouter) DeleteMember(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	err = router.repo.DeleteTeamMember(model.Staffer{
+	err = router.repo.DeleteStaffer(model.Staffer{
 		ID:     memberID,
 		TeamID: claims.TeamID.String,
 	})

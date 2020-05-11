@@ -109,7 +109,7 @@ func (router InvitationRouter) Send(c echo.Context) error {
 
 	// Add the invitee to team member
 	go func() {
-		_ = router.repo.SaveTeamMember(invitedLicence.Assignee.TeamMember(claims.TeamID.String))
+		_ = router.repo.SaveStaffer(invitedLicence.Assignee.TeamMember(claims.TeamID.String))
 	}()
 
 	return c.NoContent(http.StatusNoContent)

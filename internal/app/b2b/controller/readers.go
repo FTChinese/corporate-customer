@@ -127,7 +127,7 @@ func (router ReadersRouter) SignUp(c echo.Context) error {
 
 	// Add the missing ftc id for a team member.
 	go func() {
-		_ = router.repo.UpdateTeamMember(signUp.TeamMember(claims.TeamID))
+		_ = router.repo.UpdateStaffer(signUp.TeamMember(claims.TeamID))
 	}()
 
 	// Add the missing ftc id for new reader.
