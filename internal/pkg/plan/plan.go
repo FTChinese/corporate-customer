@@ -95,7 +95,7 @@ func (p Plan) FindDiscount(q int64) Discount {
 	// Use a zero value to init.
 	var previous = Discount{}
 	for _, v := range p.Discounts {
-		if q > previous.Quantity && q < v.Quantity {
+		if q >= previous.Quantity && q < v.Quantity {
 			return previous
 		}
 
