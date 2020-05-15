@@ -119,6 +119,9 @@ func (env Env) AsyncCountStaff(teamID string) <-chan model.StaffList {
 	return r
 }
 
+// DeleteStaffer deletes a staffer that is not a member of a team.
+// TODO: A this staffer is still using a licence of this team,
+// delete should be ignored.
 func (env Env) DeleteStaffer(m model.Staffer) error {
 	_, err := env.db.NamedExec(stmt.DeleteStaffer, m)
 	if err != nil {
