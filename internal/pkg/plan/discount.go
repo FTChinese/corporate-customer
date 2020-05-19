@@ -8,7 +8,7 @@ import "github.com/guregu/null"
 // licence will off 10.
 // Example:
 type Discount struct {
-	DiscountID null.Int `json:"-" db:"discount_id"`
+	DiscountID null.Int `json:"id" db:"discount_id"`
 	Quantity   int64    `json:"quantity" db:"quantity"`  // The amount of minimum copies of licences purchased when this discount becomes available.
 	PriceOff   float64  `json:"priceOff" db:"price_off"` // Deducted from Plan.Price
 }
