@@ -1,5 +1,5 @@
 BUILD_DIR := build
-BINARY := b2b
+BINARY := ftacademy
 
 LINUX_BIN := $(BUILD_DIR)/linux/$(BINARY)
 
@@ -8,7 +8,7 @@ LDFLAGS := -ldflags "-w -s -X main.build=${BUILD_AT}"
 
 .PHONY: build run publish linux restart config lastcommit clean test
 build :
-	go build -o $(BUILD_DIR) $(LDFLAGS) -v .
+	go build -o $(BUILD_DIR)/$(BINARY) $(LDFLAGS) -v .
 
 run :
 	./$(BUILD_DIR)/$(BINARY)
@@ -33,6 +33,11 @@ lastcommit :
 clean :
 	go clean -x
 	rm -r build/*
+
+static :
+	mkdir -p build/static/b2b
+	cp ../b2b-client/dist/b2b-client/*js build/static/b2b/
+	cp ../b2b-client/dist/index.html.go internal/app/b2b/controller/
 
 test :
 	echo $(BUILD)
