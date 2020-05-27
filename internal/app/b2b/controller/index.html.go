@@ -28,17 +28,17 @@ const B2BIndexHTML = `
 <body>
     <app-root></app-root>
     
-    <script src="/static/b2b/runtime-es2015.409e6590615fb48d139f.js" type="module"></script>
+    <script src="/frontend/b2b/runtime-es2015.409e6590615fb48d139f.js" type="module"></script>
     
-    <script src="/static/b2b/runtime-es5.409e6590615fb48d139f.js" nomodule defer></script>
+    <script src="/frontend/b2b/runtime-es5.409e6590615fb48d139f.js" nomodule defer></script>
     
-    <script src="/static/b2b/polyfills-es5.341d48ffc88eaeae911d.js" nomodule defer></script>
+    <script src="/frontend/b2b/polyfills-es5.341d48ffc88eaeae911d.js" nomodule defer></script>
     
-    <script src="/static/b2b/polyfills-es2015.95bb65e853d2781ac3bd.js" type="module"></script>
+    <script src="/frontend/b2b/polyfills-es2015.95bb65e853d2781ac3bd.js" type="module"></script>
     
-    <script src="/static/b2b/main-es2015.bb0ae2c9057ca1cc2111.js" type="module"></script>
+    <script src="/frontend/b2b/main-es2015.bb0ae2c9057ca1cc2111.js" type="module"></script>
     
-    <script src="/static/b2b/main-es5.bb0ae2c9057ca1cc2111.js" nomodule defer></script>
+    <script src="/frontend/b2b/main-es5.bb0ae2c9057ca1cc2111.js" nomodule defer></script>
     
 </body>
 </html>
