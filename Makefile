@@ -47,7 +47,6 @@ deploy : config linux
 build :
 	gvm install go1.14.3
 	gvm use go1.14.3
-	go get github.com/GeertJohan/go.rice/rice
 	rice embed-go
 	$(BUILD_LINUX)
 
