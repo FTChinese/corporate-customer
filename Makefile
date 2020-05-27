@@ -44,7 +44,7 @@ deploy : config linux
 
 # For CI/CD
 build :
-	gvm install go1.13.6
+	gvm install go1.14.3
 	gvm use go1.13.6
 	$(BUILD_LINUX)
 
