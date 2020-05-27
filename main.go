@@ -207,5 +207,5 @@ func main() {
 		readerGroup.POST("/grant", readerRouter.Grant, dk.CheckInviteeClaims)
 	}
 
-	e.Logger.Fatal(e.Start(":3100"))
+	e.Logger.Fatal(e.Start(":4000"))
 }
