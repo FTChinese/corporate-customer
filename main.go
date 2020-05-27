@@ -16,7 +16,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"log"
-	"net/http"
 	"os"
 )
 
@@ -103,8 +102,8 @@ func main() {
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
 
-	e.GET("/b2b/", func(context echo.Context) error {
-		return context.Render(http.StatusOK, "home.html", nil)
+	e.GET("/b2b/*", func(context echo.Context) error {
+		return controller.RenderIndex(context.Response().Writer)
 	})
 
 	api := e.Group("/api")
