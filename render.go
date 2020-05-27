@@ -30,7 +30,7 @@ func NewRenderer(conf config.Config) (Renderer, error) {
 	}
 
 	log.Info("Production environment using rice template loader")
-	box, err := rice.FindBox("../../web/template")
+	box, err := rice.FindBox("web/template")
 	if err != nil {
 		return Renderer{}, err
 	}

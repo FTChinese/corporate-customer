@@ -31,6 +31,7 @@ static :
 
 # Cross compiling linux on for dev.
 linux :
+	rice embed-go
 	$(BUILD_LINUX)
 
 # From local machine to production server
@@ -46,6 +47,7 @@ deploy : config linux
 build :
 	gvm install go1.14.3
 	gvm use go1.14.3
+	rice embed-go
 	$(BUILD_LINUX)
 
 downconfig :
