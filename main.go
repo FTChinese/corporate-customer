@@ -92,7 +92,7 @@ func main() {
 	e.HTTPErrorHandler = errorHandler
 
 	if !isProduction {
-		e.Static("/static", "build/dev")
+		e.Static("/static", "build/static")
 	}
 
 	e.Use(b2b.DumpRequest)
