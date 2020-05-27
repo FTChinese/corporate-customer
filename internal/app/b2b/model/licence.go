@@ -2,7 +2,7 @@ package model
 
 import (
 	"encoding/json"
-	"github.com/FTChinese/b2b/internal/pkg/plan"
+	"github.com/FTChinese/ftacademy/internal/pkg/plan"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
 )

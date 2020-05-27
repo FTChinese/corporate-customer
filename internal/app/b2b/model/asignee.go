@@ -36,6 +36,7 @@ func (a Assignee) TeamMember(teamID string) Staffer {
 // Staffer is a member belong to a team under admin's
 // management.
 type Staffer struct {
+	ID     int64       `json:"id" db:"id"`
 	Email  string      `json:"email" db:"email"`
 	TeamID string      `json:"teamId" db:"team_id"`
 	FtcID  null.String `json:"ftcId" db:"ftc_id"`

@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"github.com/FTChinese/b2b/internal/app/b2b/model"
-	"github.com/FTChinese/b2b/internal/app/b2b/repository/products"
-	"github.com/FTChinese/b2b/internal/app/b2b/repository/subs"
-	"github.com/FTChinese/b2b/internal/app/b2b/stmt"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"

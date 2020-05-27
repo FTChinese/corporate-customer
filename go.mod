@@ -1,4 +1,4 @@
-module github.com/FTChinese/b2b
+module github.com/FTChinese/ftacademy
 
 go 1.13
 

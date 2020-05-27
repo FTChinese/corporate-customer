@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/FTChinese/b2b/internal/pkg/plan"
-	"github.com/FTChinese/b2b/internal/pkg/validator"
+	"github.com/FTChinese/ftacademy/internal/pkg/plan"
+	"github.com/FTChinese/ftacademy/internal/pkg/validator"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/FTChinese/go-rest/render"

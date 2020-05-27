@@ -1,6 +1,6 @@
 package view
 
-import "github.com/FTChinese/b2b/pkg/widget"
+import "github.com/FTChinese/ftacademy/pkg/widget"
 
 type FooterColumn struct {
 	Title string

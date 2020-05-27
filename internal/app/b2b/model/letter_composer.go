@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const baseUrl = "https://www.ftacademy.cn/b2b"
+const baseUrl = "https://next.ftacademy.cn/b2b"
 
 type InvitationLetter struct {
 	AdminEmail string

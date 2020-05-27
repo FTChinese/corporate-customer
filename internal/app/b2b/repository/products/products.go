@@ -1,8 +1,8 @@
 package products
 
 import (
-	"github.com/FTChinese/b2b/internal/app/b2b/stmt"
-	"github.com/FTChinese/b2b/internal/pkg/plan"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
+	"github.com/FTChinese/ftacademy/internal/pkg/plan"
 )
 
 func (env Env) LoadProducts() ([]plan.Product, error) {

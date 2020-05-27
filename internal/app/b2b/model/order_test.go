@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/FTChinese/b2b/internal/pkg/sq"
+	"github.com/FTChinese/ftacademy/internal/pkg/sq"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"

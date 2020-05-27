@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/FTChinese/b2b/internal/app/b2b/model"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
-var logger = logrus.WithField("package", "b2b.controller")
+var logger = logrus.WithField("package", "ftacademy.controller")
 
 const claimsCtxKey = "claims"
 

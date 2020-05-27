@@ -1,6 +1,6 @@
 package stmt
 
-import "github.com/FTChinese/b2b/internal/pkg/sq"
+import "github.com/FTChinese/ftacademy/internal/pkg/sq"
 
 var OrderBuilder = sq.NewInsert().
 	Into(sq.NewTable("b2b.order")).

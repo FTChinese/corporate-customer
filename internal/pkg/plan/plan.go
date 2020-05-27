@@ -1,5 +1,5 @@
 // Package plan describes the subscription plans we offered to
-// b2b customers.
+// ftacademy customers.
 package plan
 
 import (

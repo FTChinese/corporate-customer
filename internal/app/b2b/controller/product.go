@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/FTChinese/b2b/internal/app/b2b/repository/products"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"

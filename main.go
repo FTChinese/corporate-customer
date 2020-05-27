@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/FTChinese/b2b/internal/app/b2b"
-	"github.com/FTChinese/b2b/internal/app/b2b/controller"
-	"github.com/FTChinese/b2b/internal/app/b2b/repository/login"
-	"github.com/FTChinese/b2b/internal/app/b2b/repository/products"
-	"github.com/FTChinese/b2b/internal/app/b2b/repository/setting"
-	"github.com/FTChinese/b2b/internal/app/b2b/repository/subs"
-	"github.com/FTChinese/b2b/internal/pkg/config"
+	"github.com/FTChinese/ftacademy/internal/app/b2b"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/controller"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/login"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/setting"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
+	"github.com/FTChinese/ftacademy/internal/pkg/config"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -24,7 +24,7 @@ var (
 	version      string
 	build        string
 	conf         config.Config
-	logger       = logrus.WithField("project", "b2b").WithField("package", "main")
+	logger       = logrus.WithField("project", "ftacademy").WithField("package", "main")
 )
 
 func init() {
@@ -68,7 +68,7 @@ func main() {
 		emailConn.User,
 		emailConn.Pass)
 
-	appKey := config.MustGetAppKey("web_app.b2b")
+	appKey := config.MustGetAppKey("web_app.ftacademy")
 
 	dk := controller.NewDoorkeeper(appKey.GetJWTKey())
 	subsRepo := subs.NewEnv(db)
@@ -92,8 +92,6 @@ func main() {
 	e.HTTPErrorHandler = errorHandler
 
 	if !isProduction {
-		e.Static("/css", "client/node_modules/bootstrap/dist/css")
-		e.Static("/js", "client/node_modules/bootstrap.native/dist")
 		e.Static("/static", "build/dev")
 	}
 
@@ -102,7 +100,7 @@ func main() {
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
 
-	e.GET("/b2b/*", func(context echo.Context) error {
+	e.GET("/ftacademy/*", func(context echo.Context) error {
 		return controller.RenderIndex(context.Response().Writer)
 	})
 

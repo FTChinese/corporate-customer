@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"github.com/FTChinese/b2b/internal/app/b2b/model"
-	"github.com/FTChinese/b2b/internal/app/b2b/repository/subs"
-	"github.com/FTChinese/b2b/internal/app/b2b/stmt"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -105,13 +105,13 @@ func (router TeamRouter) ListMembers(c echo.Context) error {
 func (router TeamRouter) DeleteMember(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	memberID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	staffID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
 	err = router.repo.DeleteStaffer(model.Staffer{
-		ID:     memberID,
+		ID:     staffID,
 		TeamID: claims.TeamID.String,
 	})
 

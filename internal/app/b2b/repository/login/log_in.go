@@ -1,8 +1,8 @@
 package login
 
 import (
-	"github.com/FTChinese/b2b/internal/app/b2b/model"
-	"github.com/FTChinese/b2b/internal/app/b2b/stmt"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
 )
 
 // Login verifies user email + password.

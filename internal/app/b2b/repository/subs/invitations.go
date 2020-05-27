@@ -3,8 +3,8 @@ package subs
 import (
 	"database/sql"
 	"errors"
-	"github.com/FTChinese/b2b/internal/app/b2b/model"
-	"github.com/FTChinese/b2b/internal/app/b2b/stmt"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/guregu/null"
 )

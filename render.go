@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"github.com/FTChinese/b2b/internal/pkg/config"
+	"github.com/FTChinese/ftacademy/internal/pkg/config"
 	"github.com/FTChinese/go-rest/render"
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/flosch/pongo2"

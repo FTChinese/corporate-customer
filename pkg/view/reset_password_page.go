@@ -1,8 +1,8 @@
 package view
 
 import (
-	"github.com/FTChinese/b2b/internal/app/b2b/model"
-	"github.com/FTChinese/b2b/pkg/widget"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
+	"github.com/FTChinese/ftacademy/pkg/widget"
 )
 
 func NewResetLetterForm(a model.AccountInput) widget.Form {

@@ -1,7 +1,7 @@
 package view
 
 import (
-	"github.com/FTChinese/b2b/pkg/widget"
+	"github.com/FTChinese/ftacademy/pkg/widget"
 	"github.com/flosch/pongo2"
 )
 
