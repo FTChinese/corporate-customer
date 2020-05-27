@@ -68,7 +68,7 @@ func main() {
 		emailConn.User,
 		emailConn.Pass)
 
-	appKey := config.MustGetAppKey("web_app.ftacademy")
+	appKey := config.MustGetAppKey("web_app.b2b")
 
 	dk := controller.NewDoorkeeper(appKey.GetJWTKey())
 	subsRepo := subs.NewEnv(db)
@@ -100,7 +100,7 @@ func main() {
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
 
-	e.GET("/ftacademy/*", func(context echo.Context) error {
+	e.GET("/b2b/*", func(context echo.Context) error {
 		return controller.RenderIndex(context.Response().Writer)
 	})
 
