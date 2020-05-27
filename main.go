@@ -100,7 +100,7 @@ func main() {
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
 
-	e.GET("/b2b/*", func(context echo.Context) error {
+	e.GET("/corporate/*", func(context echo.Context) error {
 		return controller.RenderIndex(context.Response().Writer)
 	})
 
