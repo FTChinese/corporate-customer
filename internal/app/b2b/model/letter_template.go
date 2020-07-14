@@ -6,7 +6,7 @@ import (
 
 const letterTemplates = `
 {{define "verification"}}
-FT中文网B2B管理员 {{.Name}}，你好！
+FT中文网企业订阅管理员 {{.Name}}，你好！
 
 {{if .IsSignUp}}
 感谢您注册FT中文网B2B订阅服务。您在此可以为您所属机构的成员订阅FT付费服务。请注意，B2B服务的账号独立于FT中文网的账号，如果您未使用此邮箱注册FT中文网账号，则此邮箱只能登录B2B服务。
