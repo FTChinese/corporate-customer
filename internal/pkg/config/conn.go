@@ -50,7 +50,7 @@ func MustGetDBConn(c Config) Conn {
 
 // MustGEtEmailConn gets email server configuration.
 func MustGetEmailConn() Conn {
-	conn, err := GetConn("email.ftc")
+	conn, err := GetConn("email.hanqi")
 	if err != nil {
 		log.Fatal(err)
 	}
