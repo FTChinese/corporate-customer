@@ -16,6 +16,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -86,22 +87,23 @@ func main() {
 	readerRouter := controller.NewReaderRouter(subsRepo, post, dk)
 
 	e := echo.New()
-	e.Pre(middleware.AddTrailingSlash())
-
 	e.Renderer = MustNewRenderer(conf)
-	e.HTTPErrorHandler = errorHandler
 
 	if !isProduction {
-		e.Static("/frontend", "build/static")
+		e.Static("/static", "build/public/static")
 	}
+
+	e.Pre(middleware.AddTrailingSlash())
+
+	e.HTTPErrorHandler = errorHandler
 
 	e.Use(b2b.DumpRequest)
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
 
-	e.GET("/corporate/*", func(context echo.Context) error {
-		return controller.RenderIndex(context.Response().Writer)
+	e.GET("/corporate/*", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "b2b/home.html", nil)
 	})
 
 	api := e.Group("/api")
