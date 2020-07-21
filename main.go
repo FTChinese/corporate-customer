@@ -103,6 +103,11 @@ func main() {
 	//e.Use(middleware.CSRF())
 
 	e.GET("/corporate/*", func(c echo.Context) error {
+		c.Response().Header().Add("Cache-Control", "no-cache")
+		c.Response().Header().Add("Cache-Control", "no-store")
+		c.Response().Header().Add("Cache-Control", "must-revalidate")
+		c.Response().Header().Add("Pragma", "no-cache")
+
 		return c.Render(http.StatusOK, "b2b/home.html", nil)
 	})
 
