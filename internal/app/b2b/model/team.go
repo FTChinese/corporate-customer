@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg/validator"
+	validator2 "github.com/FTChinese/ftacademy/pkg/validator"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/FTChinese/go-rest/render"
@@ -26,12 +26,12 @@ func (t *Team) Validate() *render.ValidationError {
 	title := strings.TrimSpace(t.InvoiceTitle.String)
 	t.InvoiceTitle = null.NewString(title, title != "")
 
-	ve := validator.New("name").Required().Max(128).Validate(t.Name)
+	ve := validator2.New("name").Required().Max(128).Validate(t.Name)
 	if ve != nil {
 		return ve
 	}
 
-	return validator.New("invoiceTitle").Max(512).Validate(title)
+	return validator2.New("invoiceTitle").Max(512).Validate(title)
 }
 
 func (t Team) BuildOn(adminID string) Team {

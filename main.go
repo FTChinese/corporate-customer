@@ -9,7 +9,7 @@ import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/setting"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
-	"github.com/FTChinese/ftacademy/internal/pkg/config"
+	config2 "github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -24,7 +24,7 @@ var (
 	isProduction bool
 	version      string
 	build        string
-	conf         config.Config
+	conf         config2.Config
 	logger       = logrus.WithField("project", "ftacademy").WithField("package", "main")
 )
 
@@ -49,7 +49,7 @@ func init() {
 		os.Exit(1)
 	}
 
-	conf = config.Config{
+	conf = config2.Config{
 		Debug:   !isProduction,
 		Version: version,
 		BuiltAt: build,
@@ -57,19 +57,19 @@ func init() {
 }
 
 func main() {
-	db, err := config.NewDB(config.MustGetDBConn(conf))
+	db, err := config2.NewDB(config2.MustGetDBConn(conf))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	emailConn := config.MustGetEmailConn()
+	emailConn := config2.MustGetEmailConn()
 	post := postoffice.New(
 		emailConn.Host,
 		emailConn.Port,
 		emailConn.User,
 		emailConn.Pass)
 
-	appKey := config.MustGetAppKey("web_app.b2b")
+	appKey := config2.MustGetAppKey("web_app.b2b")
 
 	dk := controller.NewDoorkeeper(appKey.GetJWTKey())
 	subsRepo := subs.NewEnv(db)

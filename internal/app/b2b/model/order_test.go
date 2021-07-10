@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg/sq"
+	sq2 "github.com/FTChinese/ftacademy/pkg/sq"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
@@ -32,7 +32,7 @@ func TestNewOrder(t *testing.T) {
 		orders = append(orders, o)
 	}
 
-	values := sq.BuildInsertValues(orders)
+	values := sq2.BuildInsertValues(orders)
 
 	t.Logf("%v", values)
 }

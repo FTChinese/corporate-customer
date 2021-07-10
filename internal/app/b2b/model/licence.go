@@ -2,7 +2,7 @@ package model
 
 import (
 	"encoding/json"
-	"github.com/FTChinese/ftacademy/internal/pkg/plan"
+	plan2 "github.com/FTChinese/ftacademy/pkg/plan"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
 )
@@ -93,7 +93,7 @@ func (l BaseLicence) GrantTo(ftcID string) BaseLicence {
 // Licence contains all data of a licence.
 type Licence struct {
 	BaseLicence
-	Plan plan.BasePlan
+	Plan plan2.BasePlan
 }
 
 // LicenceSchema defines the DB schema for licence table.
@@ -104,7 +104,7 @@ type LicenceSchema struct {
 
 // Licence create the Licence instance from raw db data.
 func (ls LicenceSchema) Licence() (Licence, error) {
-	var p plan.BasePlan
+	var p plan2.BasePlan
 
 	if err := json.Unmarshal([]byte(ls.CurrentPlan), &p); err != nil {
 		return Licence{}, err

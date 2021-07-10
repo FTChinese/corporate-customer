@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg/validator"
+	validator2 "github.com/FTChinese/ftacademy/pkg/validator"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/google/uuid"
@@ -58,14 +58,14 @@ func NewVerifier(id string) (AccountInput, error) {
 func (a *AccountInput) ValidateEmail() *render.ValidationError {
 	a.Email = strings.TrimSpace(a.Email)
 
-	return validator.New("email").Required().Email().Validate(a.Email)
+	return validator2.New("email").Required().Email().Validate(a.Email)
 }
 
 func (a *AccountInput) ValidateDisplayName() *render.ValidationError {
 	name := strings.TrimSpace(a.DisplayName.String)
 	a.DisplayName = null.NewString(name, name != "")
 
-	return validator.New("displayName").Max(64).Validate(name)
+	return validator2.New("displayName").Max(64).Validate(name)
 }
 
 // ValidatePassword validates password fields.
@@ -73,7 +73,7 @@ func (a *AccountInput) ValidateDisplayName() *render.ValidationError {
 func (a *AccountInput) ValidatePassword() *render.ValidationError {
 	a.Password = strings.TrimSpace(a.Password)
 
-	ve := validator.New("password").Required().Validate(a.Password)
+	ve := validator2.New("password").Required().Validate(a.Password)
 	if ve != nil {
 		return ve
 	}
@@ -84,7 +84,7 @@ func (a *AccountInput) ValidatePassword() *render.ValidationError {
 func (a *AccountInput) ValidatePasswordUpdate() *render.ValidationError {
 	a.OldPassword = strings.TrimSpace(a.OldPassword)
 
-	ve := validator.New("oldPassword").Required().Validate(a.OldPassword)
+	ve := validator2.New("oldPassword").Required().Validate(a.OldPassword)
 	if ve != nil {
 		return ve
 	}
@@ -141,7 +141,7 @@ func (a AccountInput) Passport() Passport {
 func (a *AccountInput) ValidatePwReset() *render.ValidationError {
 	a.Token = strings.TrimSpace(a.Token)
 
-	ve := validator.New("token").Required().Validate(a.Token)
+	ve := validator2.New("token").Required().Validate(a.Token)
 	if ve != nil {
 		return ve
 	}

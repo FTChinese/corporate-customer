@@ -3,14 +3,14 @@ package subs
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
-	"github.com/FTChinese/ftacademy/internal/pkg/sq"
+	sq2 "github.com/FTChinese/ftacademy/pkg/sq"
 	gorest "github.com/FTChinese/go-rest"
 )
 
 func (env Env) CreateOrders(o model.OrderList) error {
 	query := stmt.OrderBuilder.Rows(len(o)).Build()
 
-	_, err := env.db.Exec(query, sq.BuildInsertValues(o)...)
+	_, err := env.db.Exec(query, sq2.BuildInsertValues(o)...)
 	if err != nil {
 		return err
 	}

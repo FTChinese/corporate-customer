@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg/plan"
-	"github.com/FTChinese/ftacademy/internal/pkg/validator"
+	plan2 "github.com/FTChinese/ftacademy/pkg/plan"
+	validator2 "github.com/FTChinese/ftacademy/pkg/validator"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/FTChinese/go-rest/render"
@@ -109,26 +109,26 @@ func (i *InvitationInput) Validate() *render.ValidationError {
 	i.Description = null.NewString(desc, desc != "")
 	i.LicenceID = strings.TrimSpace(i.LicenceID)
 
-	ve := validator.New("email").Required().Email().Validate(i.Email)
+	ve := validator2.New("email").Required().Email().Validate(i.Email)
 	if ve != nil {
 		return ve
 	}
 
-	ve = validator.New("description").Max(128).Validate(i.Description.String)
+	ve = validator2.New("description").Max(128).Validate(i.Description.String)
 	if ve != nil {
 		return ve
 	}
 
-	return validator.New("licenceId").Required().Validate(i.LicenceID)
+	return validator2.New("licenceId").Required().Validate(i.LicenceID)
 }
 
 // InvitedLicence wraps all related information after
 // an invitation is created.
 type InvitedLicence struct {
 	Invitation Invitation
-	Licence    BaseLicence   // The licence to grant
-	Plan       plan.BasePlan // The plan of this licence
-	Assignee   Assignee      // Who will be granted the licence.
+	Licence    BaseLicence    // The licence to grant
+	Plan       plan2.BasePlan // The plan of this licence
+	Assignee   Assignee       // Who will be granted the licence.
 }
 
 // InvitationList is used for restful output.

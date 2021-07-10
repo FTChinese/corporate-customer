@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg/plan"
-	"github.com/FTChinese/ftacademy/internal/pkg/sq"
+	plan2 "github.com/FTChinese/ftacademy/pkg/plan"
+	sq2 "github.com/FTChinese/ftacademy/pkg/sq"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
@@ -26,10 +26,10 @@ func GetCartPlanIDs(items []CartItem) []string {
 // CartItem is the plan user is subscribing
 // and the number of copies for this plan.
 type CartItem struct {
-	PlanID     string            `json:"planId"`
-	Quantity   int64             `json:"quantity"`
-	CycleCount int64             `json:"cycleCount"`
-	Plan       plan.DiscountPlan `json:"-"`
+	PlanID     string             `json:"planId"`
+	Quantity   int64              `json:"quantity"`
+	CycleCount int64              `json:"cycleCount"`
+	Plan       plan2.DiscountPlan `json:"-"`
 }
 
 type CheckoutItem struct {
@@ -48,7 +48,7 @@ type Cart struct {
 	Items      []CartItem
 }
 
-func NewCart(items []CartItem, plans plan.GroupedPlans) (Cart, *render.ValidationError) {
+func NewCart(items []CartItem, plans plan2.GroupedPlans) (Cart, *render.ValidationError) {
 	cart := Cart{
 		CheckoutID: "chk_" + rand.String(12),
 		Items:      nil,
@@ -153,7 +153,7 @@ func (o Order) RowValues() []interface{} {
 
 type OrderList []Order
 
-func (ol OrderList) Each(handler func(row sq.InsertRow)) {
+func (ol OrderList) Each(handler func(row sq2.InsertRow)) {
 	for _, o := range ol {
 		handler(o)
 	}
