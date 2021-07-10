@@ -105,23 +105,27 @@ func main() {
 	})
 
 	api := e.Group("/api")
-	api.POST("/login/", barrierRouter.Login)
-	api.POST("/signup/", barrierRouter.SignUp)
-	api.GET("/verify/:token", barrierRouter.VerifyAccount)
 
-	pwResetGroup := api.Group("/password-reset")
+	authGroup := api.Group("/auth")
 	{
-		// Handle resetting password
-		pwResetGroup.POST("/", barrierRouter.ResetPassword)
+		authGroup.POST("/login/", barrierRouter.Login)
+		authGroup.POST("/signup/", barrierRouter.SignUp)
+		authGroup.GET("/verify/:token", barrierRouter.VerifyAccount)
 
-		// Sending forgot-password email
-		pwResetGroup.POST("/letter/", barrierRouter.PasswordResetEmail)
+		pwResetGroup := authGroup.Group("/password-reset")
+		{
+			// Handle resetting password
+			pwResetGroup.POST("/", barrierRouter.ResetPassword)
 
-		// Verify forgot-password token.
-		// If valid, redirect to /forgot-password.
-		// If invalid, redirect to /forgot-password/letter to ask
-		// user to enter email again.
-		pwResetGroup.GET("/token/:token/", barrierRouter.VerifyPasswordToken)
+			// Sending forgot-password email
+			pwResetGroup.POST("/letter/", barrierRouter.PasswordResetEmail)
+
+			// Verify forgot-password token.
+			// If valid, redirect to /forgot-password.
+			// If invalid, redirect to /forgot-password/letter to ask
+			// user to enter email again.
+			pwResetGroup.GET("/token/:token/", barrierRouter.VerifyPasswordToken)
+		}
 	}
 
 	accountGroup := api.Group("/account", dk.RequireLoggedIn)
@@ -143,11 +147,13 @@ func main() {
 		teamGroup.DELETE("/members/:id", teamRouter.DeleteMember)
 	}
 
+	// TODO: use subscription api.
 	productGroup := api.Group("/products", dk.RequireLoggedIn)
 	{
 		productGroup.GET("/", productRouter.ListProducts)
 	}
 
+	// TODO: delete
 	orderGroup := api.Group("/orders", dk.RequireLoggedIn)
 	{
 		// List orders
