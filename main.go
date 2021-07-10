@@ -9,13 +9,13 @@ import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/setting"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
-	config2 "github.com/FTChinese/ftacademy/pkg/config"
-	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/FTChinese/ftacademy/pkg/config"
+	"github.com/FTChinese/ftacademy/pkg/db"
+	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
 	"net/http"
 	"os"
 )
@@ -24,7 +24,7 @@ var (
 	isProduction bool
 	version      string
 	build        string
-	conf         config2.Config
+	conf         config.Config
 	logger       = logrus.WithField("project", "ftacademy").WithField("package", "main")
 )
 
@@ -49,7 +49,7 @@ func init() {
 		os.Exit(1)
 	}
 
-	conf = config2.Config{
+	conf = config.Config{
 		Debug:   !isProduction,
 		Version: version,
 		BuiltAt: build,
@@ -57,34 +57,27 @@ func init() {
 }
 
 func main() {
-	db, err := config2.NewDB(config2.MustGetDBConn(conf))
-	if err != nil {
-		log.Fatal(err)
-	}
+	// TODO: use read/write/delete dbs
+	myDB := db.MustNewMySQL(config.MustMySQLWriteConn(isProduction))
 
-	emailConn := config2.MustGetEmailConn()
-	post := postoffice.New(
-		emailConn.Host,
-		emailConn.Port,
-		emailConn.User,
-		emailConn.Pass)
+	pm := postman.New(config.MustGetHanqiConn())
 
-	appKey := config2.MustGetAppKey("web_app.b2b")
+	appKey := config.MustGetAppKey("web_app.b2b")
 
 	dk := controller.NewDoorkeeper(appKey.GetJWTKey())
-	subsRepo := subs.NewEnv(db)
-	loginRepo := login.NewEnv(db)
-	settingRepo := setting.NewEnv(db)
-	productsRepo := products.NewEnv(db)
+	subsRepo := subs.NewEnv(myDB)
+	loginRepo := login.NewEnv(myDB)
+	settingRepo := setting.NewEnv(myDB)
+	productsRepo := products.NewEnv(myDB)
 
-	barrierRouter := controller.NewBarrierRouter(loginRepo, post, dk)
-	accountRouter := controller.NewAccountRouter(settingRepo, post, dk)
+	barrierRouter := controller.NewBarrierRouter(loginRepo, pm, dk)
+	accountRouter := controller.NewAccountRouter(settingRepo, pm, dk)
 	teamRouter := controller.NewTeamRouter(subsRepo)
 	productRouter := controller.NewProductRouter(productsRepo)
-	orderRouter := controller.NewOrderRouter(subsRepo, productsRepo, post)
+	orderRouter := controller.NewOrderRouter(subsRepo, productsRepo, pm)
 	licenceRouter := controller.NewLicenceRouter(subsRepo)
-	invRouter := controller.NewInvitationRouter(subsRepo, post)
-	readerRouter := controller.NewReaderRouter(subsRepo, post, dk)
+	invRouter := controller.NewInvitationRouter(subsRepo, pm)
+	readerRouter := controller.NewReaderRouter(subsRepo, pm, dk)
 
 	e := echo.New()
 	e.Renderer = MustNewRenderer(conf)
