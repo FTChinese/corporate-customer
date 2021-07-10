@@ -114,7 +114,7 @@ func (i *InvitationInput) Validate() *render.ValidationError {
 		return ve
 	}
 
-	ve = validator2.New("description").Max(128).Validate(i.Description.String)
+	ve = validator2.New("description").MaxLen(128).Validate(i.Description.String)
 	if ve != nil {
 		return ve
 	}

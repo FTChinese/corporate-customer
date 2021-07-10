@@ -26,12 +26,12 @@ func (t *Team) Validate() *render.ValidationError {
 	title := strings.TrimSpace(t.InvoiceTitle.String)
 	t.InvoiceTitle = null.NewString(title, title != "")
 
-	ve := validator2.New("name").Required().Max(128).Validate(t.Name)
+	ve := validator2.New("name").Required().MaxLen(128).Validate(t.Name)
 	if ve != nil {
 		return ve
 	}
 
-	return validator2.New("invoiceTitle").Max(512).Validate(title)
+	return validator2.New("invoiceTitle").MaxLen(512).Validate(title)
 }
 
 func (t Team) BuildOn(adminID string) Team {

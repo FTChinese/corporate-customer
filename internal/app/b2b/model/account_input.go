@@ -65,7 +65,7 @@ func (a *AccountInput) ValidateDisplayName() *render.ValidationError {
 	name := strings.TrimSpace(a.DisplayName.String)
 	a.DisplayName = null.NewString(name, name != "")
 
-	return validator2.New("displayName").Max(64).Validate(name)
+	return validator2.New("displayName").MaxLen(64).Validate(name)
 }
 
 // ValidatePassword validates password fields.
