@@ -5,8 +5,8 @@ import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
+	"github.com/FTChinese/ftacademy/pkg/postman"
 	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -15,14 +15,14 @@ import (
 type OrderRouter struct {
 	repo         subs.Env
 	productsRepo products.Env
-	post         postoffice.PostOffice
+	post         postman.Postman
 }
 
-func NewOrderRouter(env subs.Env, prodRepo products.Env, office postoffice.PostOffice) OrderRouter {
+func NewOrderRouter(env subs.Env, prodRepo products.Env, p postman.Postman) OrderRouter {
 	return OrderRouter{
 		repo:         env,
 		productsRepo: prodRepo,
-		post:         office,
+		post:         p,
 	}
 }
 

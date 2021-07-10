@@ -1,9 +1,9 @@
 package model
 
 import (
+	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/FTChinese/go-rest/postoffice"
 	"strings"
 )
 
@@ -16,7 +16,7 @@ type InvitationLetter struct {
 	URL        string
 }
 
-func ComposeInvitationLetter(il InvitedLicence, pp Passport) (postoffice.Parcel, error) {
+func ComposeInvitationLetter(il InvitedLicence, pp Passport) (postman.Parcel, error) {
 	data := struct {
 		AssigneeName string
 		TeamName     string
@@ -35,10 +35,10 @@ func ComposeInvitationLetter(il InvitedLicence, pp Passport) (postoffice.Parcel,
 	err := tmpl.ExecuteTemplate(&body, "invitation", data)
 
 	if err != nil {
-		return postoffice.Parcel{}, err
+		return postman.Parcel{}, err
 	}
 
-	return postoffice.Parcel{
+	return postman.Parcel{
 		FromAddress: "no-reply@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   il.Assignee.Email.String,
@@ -48,7 +48,7 @@ func ComposeInvitationLetter(il InvitedLicence, pp Passport) (postoffice.Parcel,
 	}, nil
 }
 
-func ComposeVerificationLetter(a Account, verifier AccountInput) (postoffice.Parcel, error) {
+func ComposeVerificationLetter(a Account, verifier AccountInput) (postman.Parcel, error) {
 
 	data := struct {
 		Name     string
@@ -63,10 +63,10 @@ func ComposeVerificationLetter(a Account, verifier AccountInput) (postoffice.Par
 	err := tmpl.ExecuteTemplate(&body, "verification", data)
 
 	if err != nil {
-		return postoffice.Parcel{}, err
+		return postman.Parcel{}, err
 	}
 
-	return postoffice.Parcel{
+	return postman.Parcel{
 		FromAddress: "no-reply@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   a.Email,
@@ -76,7 +76,7 @@ func ComposeVerificationLetter(a Account, verifier AccountInput) (postoffice.Par
 	}, nil
 }
 
-func ComposePwResetLetter(a Account, bearer AccountInput) (postoffice.Parcel, error) {
+func ComposePwResetLetter(a Account, bearer AccountInput) (postman.Parcel, error) {
 
 	data := struct {
 		Name string
@@ -89,10 +89,10 @@ func ComposePwResetLetter(a Account, bearer AccountInput) (postoffice.Parcel, er
 	err := tmpl.ExecuteTemplate(&body, "passwordReset", data)
 
 	if err != nil {
-		return postoffice.Parcel{}, err
+		return postman.Parcel{}, err
 	}
 
-	return postoffice.Parcel{
+	return postman.Parcel{
 		FromAddress: "no-reply@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   a.Email,
@@ -107,7 +107,7 @@ func ComposePwResetLetter(a Account, bearer AccountInput) (postoffice.Parcel, er
 // licence is granted.
 // We need to know the admin's account, reader's email
 // the the licence's plan.
-func ComposeLicenceGranted(il InvitedLicence, pp Passport) (postoffice.Parcel, error) {
+func ComposeLicenceGranted(il InvitedLicence, pp Passport) (postman.Parcel, error) {
 
 	var data = struct {
 		Name           string
@@ -125,10 +125,10 @@ func ComposeLicenceGranted(il InvitedLicence, pp Passport) (postoffice.Parcel, e
 	err := tmpl.ExecuteTemplate(&body, "licenceGranted", data)
 
 	if err != nil {
-		return postoffice.Parcel{}, err
+		return postman.Parcel{}, err
 	}
 
-	return postoffice.Parcel{
+	return postman.Parcel{
 		FromAddress: "no-reply@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   pp.Email,

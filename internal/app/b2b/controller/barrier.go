@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/login"
-	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -13,11 +13,11 @@ import (
 type BarrierRouter struct {
 	keeper Doorkeeper
 	repo   login.Env
-	post   postoffice.PostOffice
+	post   postman.Postman
 }
 
 // NewBarrierRouter creates a new instance of BarrierRouter.
-func NewBarrierRouter(repo login.Env, p postoffice.PostOffice, dk Doorkeeper) BarrierRouter {
+func NewBarrierRouter(repo login.Env, p postman.Postman, dk Doorkeeper) BarrierRouter {
 	return BarrierRouter{
 		keeper: dk,
 		repo:   repo,

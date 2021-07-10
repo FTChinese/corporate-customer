@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
-	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -12,10 +12,10 @@ import (
 type ReadersRouter struct {
 	dk   Doorkeeper
 	repo subs.Env
-	post postoffice.PostOffice
+	post postman.Postman
 }
 
-func NewReaderRouter(env subs.Env, post postoffice.PostOffice, dk Doorkeeper) ReadersRouter {
+func NewReaderRouter(env subs.Env, post postman.Postman, dk Doorkeeper) ReadersRouter {
 	return ReadersRouter{
 		dk:   dk,
 		repo: env,

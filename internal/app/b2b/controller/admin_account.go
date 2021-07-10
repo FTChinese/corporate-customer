@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/setting"
-	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -12,10 +12,10 @@ import (
 type AdminAccountRouter struct {
 	keeper Doorkeeper
 	repo   setting.Env
-	post   postoffice.PostOffice
+	post   postman.Postman
 }
 
-func NewAccountRouter(repo setting.Env, post postoffice.PostOffice, keeper Doorkeeper) AdminAccountRouter {
+func NewAccountRouter(repo setting.Env, post postman.Postman, keeper Doorkeeper) AdminAccountRouter {
 	return AdminAccountRouter{
 		keeper: keeper,
 		repo:   repo,

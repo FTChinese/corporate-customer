@@ -3,8 +3,8 @@ package controller
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
+	"github.com/FTChinese/ftacademy/pkg/postman"
 	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -12,10 +12,10 @@ import (
 
 type InvitationRouter struct {
 	repo subs.Env
-	post postoffice.PostOffice
+	post postman.Postman
 }
 
-func NewInvitationRouter(env subs.Env, office postoffice.PostOffice) InvitationRouter {
+func NewInvitationRouter(env subs.Env, office postman.Postman) InvitationRouter {
 	return InvitationRouter{
 		repo: env,
 		post: office,
