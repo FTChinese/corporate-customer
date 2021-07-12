@@ -1,31 +1,31 @@
-package stmt
+package admin
 
-const CreateTeam = `
+const StmtCreateTeam = `
 INSERT INTO b2b.team
 SET id = :team_id,
 	admin_id = :admin_id,
-	name = :name,
+	org_name = :org_name,
 	invoice_title = :invoice_title,
 	created_utc = UTC_TIMESTAMP(),
 	updated_utc = UTC_TIMESTAMP()`
 
-const selectTeam = `
+const colTeam = `
 SELECT id AS team_id
 	admin_id
-	name,
+	org_name,
 	invoice_tile,
 	created_utc
 FROM b2b.team`
 
-const TeamByAdminID = selectTeam + `
+const StmtTeamByAdminID = colTeam + `
 WHERE admin_id = ?
 LIMIT 1`
 
-const TeamByID = selectTeam + `
+const StmtTeamByID = colTeam + `
 WHERE id = ?
 LIMIT 1`
 
-const UpdateTeam = `
+const StmtUpdateTeam = `
 UPDATE b2b.team
 SET name = :name,
 	invoice_title = :invoice_title
