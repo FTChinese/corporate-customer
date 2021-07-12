@@ -1,6 +1,6 @@
 package admin
 
-const CreateAdmin = `
+const StmtCreateAdmin = `
 INSERT INTO b2b.admin
 SET id = :admin_id,
 	email = :email,
