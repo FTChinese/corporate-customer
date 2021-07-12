@@ -1,13 +1,12 @@
 package model
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	plan2 "github.com/FTChinese/ftacademy/pkg/plan"
-	validator2 "github.com/FTChinese/ftacademy/pkg/validator"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
-	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
-	"strings"
 	"time"
 )
 
@@ -31,8 +30,28 @@ type Invitation struct {
 	UpdatedUTC     chrono.Time      `json:"updatedUtc" db:"updated_utc"`
 }
 
-// Expires tests whether the invitation is expired.
-func (i Invitation) Expired() bool {
+func NewInvitation(i input.InvitationParams, claims admin.PassportClaims) (Invitation, error) {
+	token, err := rand.Hex(32)
+	if err != nil {
+		return Invitation{}, err
+	}
+
+	return Invitation{
+		ID:             "inv_" + rand.String(12),
+		LicenceID:      i.LicenceID,
+		TeamID:         claims.TeamID.String, // TODO: ensure this is not empty
+		Token:          token,
+		Email:          i.Email,
+		Description:    i.Description,
+		ExpirationDays: 7,
+		Status:         InvitationStatusCreated,
+		CreatedUTC:     chrono.TimeNow(),
+		UpdatedUTC:     chrono.TimeNow(),
+	}, nil
+}
+
+// IsExpired tests whether the invitation is expired.
+func (i Invitation) IsExpired() bool {
 	now := time.Now().Unix()
 
 	created := i.CreatedUTC.Time.Unix()
@@ -45,7 +64,7 @@ func (i Invitation) Expired() bool {
 // A valid invitation must be not expires, not revoked by admin, not accepted by any one.
 // A valid invitation can be accepted or revoked.
 func (i Invitation) IsValid() bool {
-	return i.Status == InvitationStatusCreated && !i.Expired()
+	return i.Status == InvitationStatusCreated && !i.IsExpired()
 }
 
 func (i Invitation) CanBeRevoked() bool {
@@ -70,56 +89,6 @@ func (i Invitation) Accept() Invitation {
 	i.UpdatedUTC = chrono.TimeNow()
 
 	return i
-}
-
-// InvitationInput contains the essential data client
-// submitted to create a new invitation.
-type InvitationInput struct {
-	Email       string      `json:"email"` // To whom the invitation should be sent.
-	Description null.String `json:"description"`
-	LicenceID   string      `json:"licenceId"` // Which licence is being granted.
-	TeamID      string      `json:"-"`
-}
-
-// NewInvitation creates a new Invitation instance based
-// on user input.
-func (i InvitationInput) NewInvitation() (Invitation, error) {
-	token, err := GenerateToken()
-	if err != nil {
-		return Invitation{}, err
-	}
-
-	return Invitation{
-		ID:             "inv_" + rand.String(12),
-		LicenceID:      i.LicenceID,
-		TeamID:         i.TeamID,
-		Token:          token,
-		Email:          i.Email,
-		Description:    i.Description,
-		ExpirationDays: 7,
-		Status:         InvitationStatusCreated,
-		CreatedUTC:     chrono.TimeNow(),
-		UpdatedUTC:     chrono.TimeNow(),
-	}, nil
-}
-
-func (i *InvitationInput) Validate() *render.ValidationError {
-	i.Email = strings.TrimSpace(i.Email)
-	desc := strings.TrimSpace(i.Description.String)
-	i.Description = null.NewString(desc, desc != "")
-	i.LicenceID = strings.TrimSpace(i.LicenceID)
-
-	ve := validator2.New("email").Required().Email().Validate(i.Email)
-	if ve != nil {
-		return ve
-	}
-
-	ve = validator2.New("description").MaxLen(128).Validate(i.Description.String)
-	if ve != nil {
-		return ve
-	}
-
-	return validator2.New("licenceId").Required().Validate(i.LicenceID)
 }
 
 // InvitedLicence wraps all related information after

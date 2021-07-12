@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	admin2 "github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/dgrijalva/jwt-go"
 	"time"
 )
@@ -27,7 +28,7 @@ func NewInviteeClaims(inv Invitation) InviteeClaims {
 		TeamID:         inv.TeamID,
 		Email:          inv.Email,
 		FtcID:          "",
-		StandardClaims: NewStandardClaims(time.Now().Unix() + 600),
+		StandardClaims: admin2.NewStandardClaims(time.Now().Unix() + 600),
 	}
 }
 

@@ -1,8 +1,6 @@
 package model
 
 import (
-	"github.com/FTChinese/go-rest/rand"
-	"github.com/google/uuid"
 	"github.com/guregu/null"
 )
 
@@ -29,26 +27,12 @@ type Reader struct {
 }
 
 // SignUp is used to create a new ftc user.
+// Deprecated.
 type SignUp struct {
 	ID       string `db:"ftc_id"`
 	Email    string `db:"email"`
 	Password string `db:"password"`
 	Token    string `db:"token"` // verification token
-}
-
-func NewSignUp(input AccountInput) (SignUp, error) {
-	t, err := rand.Hex(32)
-
-	if err != nil {
-		return SignUp{}, err
-	}
-
-	return SignUp{
-		ID:       uuid.New().String(),
-		Email:    input.Email,
-		Password: input.Password,
-		Token:    t,
-	}, nil
 }
 
 // Turn the SignUp into a new Reader type.
