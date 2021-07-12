@@ -1,65 +1,40 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
-	"github.com/FTChinese/ftacademy/pkg/postman"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
+	"github.com/FTChinese/ftacademy/internal/pkg/letter"
+	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
-type InvitationRouter struct {
-	repo subs.Env
-	post postman.Postman
-}
-
-func NewInvitationRouter(env subs.Env, office postman.Postman) InvitationRouter {
-	return InvitationRouter{
-		repo: env,
-		post: office,
-	}
-}
-
-// List shows all invitations
-// Query: ?page=1&per_page=10
-func (router InvitationRouter) List(c echo.Context) error {
-	claims := getPassportClaims(c)
-
-	var page gorest.Pagination
-	if err := c.Bind(&page); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-
-	countCh, listCh := router.repo.AsyncCountInvitation(claims.TeamID.String), router.repo.AsyncListInvitations(claims.TeamID.String, page)
-
-	countResult, listResult := <-countCh, <-listCh
-	if listResult.Err != nil {
-		return render.NewDBError(listResult.Err)
-	}
-
-	listResult.Total = countResult.Total
-	return c.JSON(http.StatusOK, listResult)
-}
-
-// Send creates an invitation for a licence and send it to a user.
+// CreateInvitation creates an invitation for a licence and send it to a user.
 // Input: {email: string, description: string, licenceId: string}
-func (router InvitationRouter) Send(c echo.Context) error {
+func (router SubsRouter) CreateInvitation(c echo.Context) error {
+	defer router.logger.Sync()
+	sugar := router.logger.Sugar()
+
 	claims := getPassportClaims(c)
 
-	var input model.InvitationInput
-	if err := c.Bind(&input); err != nil {
+	var params input.InvitationParams
+	if err := c.Bind(&params); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.Validate(); ve != nil {
+	if ve := params.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	input.TeamID = claims.TeamID.String
+	inv, err := model2.NewInvitation(params, claims)
+	if err != nil {
+		sugar.Error(err)
+		return render.NewInternalError(err.Error())
+	}
 
-	invitedLicence, err := router.repo.CreateInvitation(input)
+	invitedLicence, err := router.repo.CreateInvitation(inv)
 	if err != nil {
 		switch err {
 		case subs.ErrLicenceUnavailable:
@@ -91,19 +66,21 @@ func (router InvitationRouter) Send(c echo.Context) error {
 	// Send invitation letter
 	go func() {
 
-		accountTeam, err := router.repo.AdminTeam(claims.Id)
+		adminProfile, err := router.repo.AdminProfile(claims.AdminID)
 		if err != nil {
+			sugar.Error(err)
 			return
 		}
 
-		parcel, err := model.ComposeInvitationLetter(invitedLicence, accountTeam)
+		parcel, err := letter.InvitationParcel(invitedLicence, adminProfile)
 		if err != nil {
+			sugar.Error()
 			return
 		}
 
 		err = router.post.Deliver(parcel)
 		if err != nil {
-			logger.WithField("trace", "DeliverInvitationLetter").Error(err)
+			sugar.Error(err)
 		}
 	}()
 
@@ -115,10 +92,10 @@ func (router InvitationRouter) Send(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// Revoke cancels an invitation before it is accepted by user.
+// RevokeInvitation cancels an invitation before it is accepted by user.
 // If the invitation is already accepted, revoke has no effect.
 // Admin should revoke a licence for this purpose.
-func (router InvitationRouter) Revoke(c echo.Context) error {
+func (router SubsRouter) RevokeInvitation(c echo.Context) error {
 	invID := c.Param("id") // the invitation id
 	claims := getPassportClaims(c)
 
@@ -128,4 +105,25 @@ func (router InvitationRouter) Revoke(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// ListInvitations shows all invitations
+// Query: ?page=1&per_page=10
+func (router SubsRouter) ListInvitations(c echo.Context) error {
+	claims := getPassportClaims(c)
+
+	var page gorest.Pagination
+	if err := c.Bind(&page); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	countCh, listCh := router.repo.AsyncCountInvitation(claims.TeamID.String), router.repo.AsyncListInvitations(claims.TeamID.String, page)
+
+	countResult, listResult := <-countCh, <-listCh
+	if listResult.Err != nil {
+		return render.NewDBError(listResult.Err)
+	}
+
+	listResult.Total = countResult.Total
+	return c.JSON(http.StatusOK, listResult)
 }

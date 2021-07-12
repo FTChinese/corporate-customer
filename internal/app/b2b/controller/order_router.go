@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
+	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
 	"github.com/FTChinese/ftacademy/pkg/postman"
-	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -40,18 +40,18 @@ func NewOrderRouter(env subs.Env, prodRepo products.Env, p postman.Postman) Orde
 func (router OrderRouter) CreateOrders(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	var cartItems []model.CartItem
+	var cartItems []model2.CartItem
 	if err := c.Bind(&cartItems); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	plans, err := router.productsRepo.PlansInSet(model.GetCartPlanIDs(cartItems))
+	plans, err := router.productsRepo.PlansInSet(model2.GetCartPlanIDs(cartItems))
 
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	cart, ve := model.NewCart(cartItems, plans)
+	cart, ve := model2.NewCart(cartItems, plans)
 	if ve != nil {
 		return render.NewUnprocessable(ve)
 	}
@@ -74,7 +74,7 @@ func (router OrderRouter) ListOrders(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	listCh, countCh := router.repo.AsyncListOrders(claims.TeamID.String, page), router.repo.AsyncCountOrder(stmt.TeamByID)
+	listCh, countCh := router.repo.AsyncListOrders(claims.TeamID.String, page), router.repo.AsyncCountOrder(admin.StmtTeamByID)
 
 	listResult, countResult := <-listCh, <-countCh
 	if listResult.Err != nil {
