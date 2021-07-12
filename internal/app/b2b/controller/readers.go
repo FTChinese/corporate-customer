@@ -1,8 +1,9 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
+	"github.com/FTChinese/ftacademy/internal/pkg/letter"
+	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
 	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -40,7 +41,7 @@ func (router ReadersRouter) VerifyInvitation(c echo.Context) error {
 		return render.NewNotFound("the invitation is expired, revoked or already used")
 	}
 
-	bearer, err := model.NewInviteeClaims(inv).Bearer(router.dk.signingKey)
+	bearer, err := model2.NewInviteeClaims(inv).Bearer(router.dk.signingKey)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -107,31 +108,32 @@ func (router ReadersRouter) FindAccount(c echo.Context) error {
 func (router ReadersRouter) SignUp(c echo.Context) error {
 	claims := getInviteeClaims(c)
 
-	var input model.AccountInput
-	if err := c.Bind(input); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
+	// TODO: forward raw data to api.
+	//var input model2.AccountInput
+	//if err := c.Bind(input); err != nil {
+	//	return render.NewBadRequest(err.Error())
+	//}
 
-	if ve := input.ValidateLogin(); ve != nil {
-		return render.NewUnprocessable(ve)
-	}
+	//if ve := input.ValidateLogin(); ve != nil {
+	//	return render.NewUnprocessable(ve)
+	//}
 
-	signUp, err := model.NewSignUp(input)
-	if err != nil {
-		return render.NewBadRequest(err.Error())
-	}
+	//signUp, err := model2.NewSignUp(input)
+	//if err != nil {
+	//	return render.NewBadRequest(err.Error())
+	//}
 
-	if err := router.repo.CreateReader(signUp); err != nil {
-		return render.NewDBError(err)
-	}
+	//if err := router.repo.CreateReader(signUp); err != nil {
+	//	return render.NewDBError(err)
+	//}
 
 	// Add the missing ftc id for a team member.
-	go func() {
-		_ = router.repo.UpdateStaffer(signUp.TeamMember(claims.TeamID))
-	}()
+	//go func() {
+	//	_ = router.repo.UpdateStaffer(signUp.TeamMember(claims.TeamID))
+	//}()
 
 	// Add the missing ftc id for new reader.
-	claims.FtcID = signUp.ID
+	//claims.FtcID = signUp.ID
 	bearer, err := claims.Bearer(router.dk.signingKey)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -139,13 +141,13 @@ func (router ReadersRouter) SignUp(c echo.Context) error {
 	return c.JSON(http.StatusOK, bearer)
 }
 
-// Grant links a licence to a reader invited to accept it.
+// GrantLicence links a licence to a reader invited to accept it.
 // Status code:
 // 400 if invitation is not found, or is invalid,
 // or licence is not found or cannot be granted,
 // or account is not found.
 // 403 Forbidden if reader already has valid membership.
-func (router ReadersRouter) Grant(c echo.Context) error {
+func (router SubsRouter) GrantLicence(c echo.Context) error {
 	claims := getInviteeClaims(c)
 
 	if claims.FtcID == "" {
@@ -168,19 +170,19 @@ func (router ReadersRouter) Grant(c echo.Context) error {
 
 	// Send a notification letter to admin.
 	go func() {
-		pp, err := router.repo.FindInviteeOrg(claims)
+		// TODO: fix this.
+		profile, err := router.repo.AdminProfile("")
 		if err != nil {
 			return
 		}
 
-		parcel, err := model.ComposeLicenceGranted(il, pp)
+		parcel, err := letter.LicenceGrantedParcel(il, profile.BaseAccount)
 		if err != nil {
 			return
 		}
 
 		err = router.post.Deliver(parcel)
 		if err != nil {
-			logger.WithField("trace", "ReaderRouter").Error(err)
 		}
 	}()
 

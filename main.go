@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"github.com/FTChinese/ftacademy/internal/app/b2b"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/controller"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/login"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/setting"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
@@ -57,26 +55,26 @@ func init() {
 }
 
 func main() {
+	logger := config.MustGetLogger(isProduction)
 	// TODO: use read/write/delete dbs
 	myDB := db.MustNewMySQL(config.MustMySQLWriteConn(isProduction))
+	myDBs := db.MustNewMyDBs(isProduction)
 
 	pm := postman.New(config.MustGetHanqiConn())
 
 	appKey := config.MustGetAppKey("web_app.b2b")
 
 	dk := controller.NewDoorkeeper(appKey.GetJWTKey())
-	subsRepo := subs.NewEnv(myDB)
-	loginRepo := login.NewEnv(myDB)
-	settingRepo := setting.NewEnv(myDB)
+	// TODO: deprecate
+	subsRepo := subs.NewEnv(myDBs, logger)
 	productsRepo := products.NewEnv(myDB)
 
-	barrierRouter := controller.NewBarrierRouter(loginRepo, pm, dk)
-	accountRouter := controller.NewAccountRouter(settingRepo, pm, dk)
-	teamRouter := controller.NewTeamRouter(subsRepo)
+	adminRouter := controller.NewAdminRouter(myDBs, pm, dk, logger)
+	subsRouter := controller.NewSubsRouter(myDBs, pm, logger)
 	productRouter := controller.NewProductRouter(productsRepo)
+	// TODO: deprecate
 	orderRouter := controller.NewOrderRouter(subsRepo, productsRepo, pm)
 	licenceRouter := controller.NewLicenceRouter(subsRepo)
-	invRouter := controller.NewInvitationRouter(subsRepo, pm)
 	readerRouter := controller.NewReaderRouter(subsRepo, pm, dk)
 
 	e := echo.New()
@@ -108,43 +106,40 @@ func main() {
 
 	authGroup := api.Group("/auth")
 	{
-		authGroup.POST("/login/", barrierRouter.Login)
-		authGroup.POST("/signup/", barrierRouter.SignUp)
-		authGroup.GET("/verify/:token", barrierRouter.VerifyAccount)
+		authGroup.POST("/login/", adminRouter.Login)
+		authGroup.POST("/signup/", adminRouter.SignUp)
+		authGroup.GET("/verify/:token", adminRouter.VerifyEmail)
 
 		pwResetGroup := authGroup.Group("/password-reset")
 		{
 			// Handle resetting password
-			pwResetGroup.POST("/", barrierRouter.ResetPassword)
+			pwResetGroup.POST("/", adminRouter.ResetPassword)
 
 			// Sending forgot-password email
-			pwResetGroup.POST("/letter/", barrierRouter.PasswordResetEmail)
+			pwResetGroup.POST("/letter/", adminRouter.ForgotPassword)
 
 			// Verify forgot-password token.
 			// If valid, redirect to /forgot-password.
 			// If invalid, redirect to /forgot-password/letter to ask
 			// user to enter email again.
-			pwResetGroup.GET("/token/:token/", barrierRouter.VerifyPasswordToken)
+			pwResetGroup.GET("/token/:token/", adminRouter.VerifyResetToken)
 		}
 	}
 
 	accountGroup := api.Group("/account", dk.RequireLoggedIn)
 	{
-		accountGroup.GET("/", accountRouter.Account)
-		accountGroup.GET("/jwt/", accountRouter.RefreshJWT)
-		accountGroup.GET("/profile/", accountRouter.Profile)
-		accountGroup.POST("/request-verification", accountRouter.RequestVerification)
-		accountGroup.PATCH("/display-name", accountRouter.ChangeName)
-		accountGroup.PATCH("/password", accountRouter.ChangePassword)
+		//accountGroup.GET("/", accountRouter.Account)
+		accountGroup.GET("/jwt/", adminRouter.RefreshJWT)
+		accountGroup.POST("/request-verification", adminRouter.RequestVerification)
+		accountGroup.PATCH("/display-name", adminRouter.ChangeName)
+		accountGroup.PATCH("/password", adminRouter.ChangePassword)
 	}
 
 	teamGroup := api.Group("/team", dk.RequireLoggedIn)
 	{
-		teamGroup.GET("/", teamRouter.Load)
-		teamGroup.POST("/", teamRouter.Create)
-		teamGroup.PATCH("/", teamRouter.Update)
-		teamGroup.GET("/members", teamRouter.ListMembers)
-		teamGroup.DELETE("/members/:id", teamRouter.DeleteMember)
+		teamGroup.GET("/", adminRouter.LoadTeam)
+		teamGroup.POST("/", adminRouter.CreateTeam)
+		teamGroup.PATCH("/", adminRouter.UpdateTeam)
 	}
 
 	// TODO: use subscription api.
@@ -158,7 +153,7 @@ func main() {
 	{
 		// List orders
 		orderGroup.GET("/", orderRouter.ListOrders)
-		// Create orders, or renew/upgrade in bulk.
+		// CreateTeam orders, or renew/upgrade in bulk.
 		orderGroup.POST("/", orderRouter.CreateOrders)
 	}
 
@@ -175,14 +170,14 @@ func main() {
 	invitationGroup := api.Group("/invitations", dk.RequireLoggedIn)
 	{
 		// List invitations
-		invitationGroup.GET("/", invRouter.List)
-		// Create invitation.
+		invitationGroup.GET("/", subsRouter.ListInvitations)
+		// CreateTeam invitation.
 		// Also update the linked licence's status.
-		invitationGroup.POST("/", invRouter.Send)
+		invitationGroup.POST("/", subsRouter.CreateInvitation)
 		// Revoke invitation before licence is accepted.
 		// Also revert the status of a licence from invitation sent
 		// back to available.
-		invitationGroup.DELETE("/:id", invRouter.Revoke)
+		invitationGroup.DELETE("/:id", subsRouter.RevokeInvitation)
 	}
 
 	// Steps to accept an invitation:
@@ -210,7 +205,7 @@ func main() {
 		// 4. Set invitation being used; link licence to reader id; backup existing
 		// membership if exists; upsert membership.
 		// 5. Sent email to reader and admin about the result.
-		readerGroup.POST("/grant", readerRouter.Grant, dk.CheckInviteeClaims)
+		readerGroup.POST("/grant", subsRouter.GrantLicence, dk.CheckInviteeClaims)
 	}
 
 	e.Logger.Fatal(e.Start(":4000"))
