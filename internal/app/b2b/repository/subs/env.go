@@ -1,22 +1,24 @@
 package subs
 
 import (
-	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
+	"github.com/FTChinese/ftacademy/pkg/db"
+	"go.uber.org/zap"
 )
 
-var logger = logrus.WithField("package", "repository")
-
 type Env struct {
-	db *sqlx.DB
+	dbs    db.ReadWriteMyDBs
+	logger *zap.Logger
 }
 
-func NewEnv(db *sqlx.DB) Env {
-	return Env{db: db}
+func NewEnv(DBs db.ReadWriteMyDBs, logger *zap.Logger) Env {
+	return Env{
+		dbs:    DBs,
+		logger: logger,
+	}
 }
 
 func (env Env) beginInvTx() (InvitationTx, error) {
-	tx, err := env.db.Beginx()
+	tx, err := env.dbs.Write.Beginx()
 
 	if err != nil {
 		return InvitationTx{}, err
