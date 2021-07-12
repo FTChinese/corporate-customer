@@ -1,13 +1,12 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
+	admin2 "github.com/FTChinese/ftacademy/internal/pkg/admin"
+	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
+	"github.com/labstack/gommon/log"
 )
-
-var logger = logrus.WithField("package", "ftacademy.controller")
 
 const claimsCtxKey = "claims"
 
@@ -26,13 +25,13 @@ func (keeper Doorkeeper) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc
 		authHeader := c.Request().Header.Get("Authorization")
 		ss, err := ParseBearer(authHeader)
 		if err != nil {
-			logger.Printf("Error parsing Authorization header: %v", err)
+			log.Errorf("Error parsing Authorization header: %v", err)
 			return render.NewUnauthorized(err.Error())
 		}
 
-		claims, err := model.ParsePassportClaims(ss, keeper.signingKey)
+		claims, err := admin2.ParsePassportClaims(ss, keeper.signingKey)
 		if err != nil {
-			logger.Printf("Error parsing JWT %v", err)
+			log.Errorf("Error parsing JWT %v", err)
 			return render.NewUnauthorized(err.Error())
 		}
 
@@ -46,13 +45,13 @@ func (keeper Doorkeeper) CheckInviteeClaims(next echo.HandlerFunc) echo.HandlerF
 		authHeader := c.Request().Header.Get("Authorization")
 		ss, err := ParseBearer(authHeader)
 		if err != nil {
-			logger.Printf("Error parsing Authorization header: %v", err)
+			log.Printf("Error parsing Authorization header: %v", err)
 			return render.NewUnauthorized(err.Error())
 		}
 
-		claims, err := model.ParseInviteeClaims(ss, keeper.signingKey)
+		claims, err := model2.ParseInviteeClaims(ss, keeper.signingKey)
 		if err != nil {
-			logger.Printf("Error parsing JWT %v", err)
+			log.Printf("Error parsing JWT %v", err)
 			return render.NewUnauthorized(err.Error())
 		}
 
@@ -61,10 +60,10 @@ func (keeper Doorkeeper) CheckInviteeClaims(next echo.HandlerFunc) echo.HandlerF
 	}
 }
 
-func getPassportClaims(c echo.Context) model.PassportClaims {
-	return c.Get(claimsCtxKey).(model.PassportClaims)
+func getPassportClaims(c echo.Context) admin2.PassportClaims {
+	return c.Get(claimsCtxKey).(admin2.PassportClaims)
 }
 
-func getInviteeClaims(c echo.Context) model.InviteeClaims {
-	return c.Get(claimsCtxKey).(model.InviteeClaims)
+func getInviteeClaims(c echo.Context) model2.InviteeClaims {
+	return c.Get(claimsCtxKey).(model2.InviteeClaims)
 }
