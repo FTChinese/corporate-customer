@@ -1,15 +1,16 @@
 package subs
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/model"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
+	admin2 "github.com/FTChinese/ftacademy/internal/pkg/admin"
+	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
 	"github.com/guregu/null"
 )
 
 // FindInvitationByToken tries to find an Invitation by token.
-func (env Env) FindInvitationByToken(token string) (model.Invitation, error) {
-	var inv model.Invitation
-	err := env.db.Get(&inv, stmt.InvitationByToken, token)
+func (env Env) FindInvitationByToken(token string) (model2.Invitation, error) {
+	var inv model2.Invitation
+	err := env.dbs.Read.Get(&inv, stmt.InvitationByToken, token)
 	if err != nil {
 		return inv, err
 	}
@@ -19,19 +20,21 @@ func (env Env) FindInvitationByToken(token string) (model.Invitation, error) {
 
 // FindInvitedLicence tries to find a licence belong to
 // an invitation.
-func (env Env) FindInvitedLicence(claims model.InviteeClaims) (model.Licence, error) {
-	var ls model.LicenceSchema
-	err := env.db.Get(&ls, stmt.InvitedLicence, claims.LicenceID, claims.InvitationID)
+func (env Env) FindInvitedLicence(claims model2.InviteeClaims) (model2.Licence, error) {
+	var ls model2.LicenceSchema
+	err := env.dbs.Read.Get(&ls, stmt.InvitedLicence, claims.LicenceID, claims.InvitationID)
 	if err != nil {
-		return model.Licence{}, err
+		return model2.Licence{}, err
 	}
 
 	return ls.Licence()
 }
 
-func (env Env) FindReader(email string) (model.Reader, error) {
-	var r model.Reader
-	err := env.db.Get(&r, stmt.SelectReader, email)
+// FindReader by email.
+// Deprecated. Use API.
+func (env Env) FindReader(email string) (model2.Reader, error) {
+	var r model2.Reader
+	err := env.dbs.Read.Get(&r, stmt.SelectReader, email)
 	if err != nil {
 		return r, err
 	}
@@ -41,8 +44,10 @@ func (env Env) FindReader(email string) (model.Reader, error) {
 	return r, nil
 }
 
-func (env Env) CreateReader(s model.SignUp) error {
-	tx, err := env.db.Beginx()
+// CreateReader creates new FTC user.
+// Deprecated. Use API.
+func (env Env) CreateReader(s model2.SignUp) error {
+	tx, err := env.dbs.Write.Beginx()
 	if err != nil {
 		return err
 	}
@@ -73,8 +78,8 @@ func (env Env) CreateReader(s model.SignUp) error {
 
 // TakeSnapshot backs up a membership before
 // modifying it.
-func (env Env) TakeSnapshot(snp model.MemberSnapshot) error {
-	_, err := env.db.NamedExec(stmt.TakeSnapshot, snp)
+func (env Env) TakeSnapshot(snp model2.MemberSnapshot) error {
+	_, err := env.dbs.Write.NamedExec(stmt.TakeSnapshot, snp)
 
 	if err != nil {
 		return err
@@ -84,36 +89,36 @@ func (env Env) TakeSnapshot(snp model.MemberSnapshot) error {
 }
 
 // GrantLicence grants a licence to a reader.
-func (env Env) GrantLicence(claims model.InviteeClaims) (model.InvitedLicence, error) {
+func (env Env) GrantLicence(claims model2.InviteeClaims) (model2.InvitedLicence, error) {
 	tx, err := env.beginInvTx()
 	if err != nil {
-		return model.InvitedLicence{}, err
+		return model2.InvitedLicence{}, err
 	}
 	inv, err := tx.RetrieveInvitation(claims.InvitationID, claims.TeamID)
 	// Not found
 	if err != nil {
 		_ = tx.Rollback()
-		return model.InvitedLicence{}, err
+		return model2.InvitedLicence{}, err
 	}
 	if !inv.IsValid() {
-		return model.InvitedLicence{}, ErrInvalidInvitation
+		return model2.InvitedLicence{}, ErrInvalidInvitation
 	}
 
 	licence, err := tx.FindInvitedLicence(inv)
 	// Not found
 	if err != nil {
 		_ = tx.Rollback()
-		return model.InvitedLicence{}, err
+		return model2.InvitedLicence{}, err
 	}
 	// If licence cannot be granted, returns forbidden message.
 	if !licence.CanBeGranted() {
-		return model.InvitedLicence{}, ErrLicenceTaken
+		return model2.InvitedLicence{}, ErrLicenceTaken
 	}
 
 	mmb, err := tx.RetrieveMembership(claims.FtcID)
 	if err != nil {
 		_ = tx.Rollback()
-		return model.InvitedLicence{}, err
+		return model2.InvitedLicence{}, err
 	}
 
 	inv = inv.Accept()
@@ -125,7 +130,7 @@ func (env Env) GrantLicence(claims model.InviteeClaims) (model.InvitedLicence, e
 		err := tx.InsertMembership(newMmb)
 		if err != nil {
 			_ = tx.Rollback()
-			return model.InvitedLicence{}, err
+			return model2.InvitedLicence{}, err
 		}
 	} else {
 		// Update current membership based on
@@ -133,33 +138,33 @@ func (env Env) GrantLicence(claims model.InviteeClaims) (model.InvitedLicence, e
 		err := tx.UpdateMembership(newMmb)
 		if err != nil {
 			_ = tx.Rollback()
-			return model.InvitedLicence{}, err
+			return model2.InvitedLicence{}, err
 		}
 
 		// Back up.
 		go func() {
-			_ = env.TakeSnapshot(model.NewMemberSnapshot(mmb))
+			_ = env.TakeSnapshot(model2.NewMemberSnapshot(mmb))
 		}()
 	}
 
 	if err := tx.LicenceGranted(baseLicence); err != nil {
-		return model.InvitedLicence{}, err
+		return model2.InvitedLicence{}, err
 	}
 
 	if err := tx.InvitationAccepted(inv); err != nil {
-		return model.InvitedLicence{}, err
+		return model2.InvitedLicence{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return model.InvitedLicence{}, err
+		return model2.InvitedLicence{}, err
 	}
 
 	// The returned data is used to compose a letter
-	return model.InvitedLicence{
+	return model2.InvitedLicence{
 		Invitation: inv,
 		Licence:    baseLicence,
 		Plan:       licence.Plan,
-		Assignee: model.Assignee{
+		Assignee: model2.Assignee{
 			FtcID: null.StringFrom(claims.FtcID),
 			Email: null.StringFrom(claims.Email),
 		},
@@ -169,10 +174,10 @@ func (env Env) GrantLicence(claims model.InviteeClaims) (model.InvitedLicence, e
 // FindInviteeOrg retrieves admin's data by team id.
 // This is used to send admin an email after reader accepted
 // an invitation
-func (env Env) FindInviteeOrg(claims model.InviteeClaims) (model.Passport, error) {
-	var p model.Passport
-	if err := env.db.Get(&p, stmt.PassportByTeamID, claims.TeamID); err != nil {
-		return model.Passport{}, err
+func (env Env) FindInviteeOrg(claims model2.InviteeClaims) (admin2.Passport, error) {
+	var p admin2.Passport
+	if err := env.dbs.Read.Get(&p, admin2.PassportByTeamID, claims.TeamID); err != nil {
+		return admin2.Passport{}, err
 	}
 
 	return p, nil
