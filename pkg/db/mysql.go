@@ -54,7 +54,7 @@ type ReadWriteMyDBs struct {
 	Delete *sqlx.DB
 }
 
-func NewMyDBs(prod bool) ReadWriteMyDBs {
+func MustNewMyDBs(prod bool) ReadWriteMyDBs {
 	return ReadWriteMyDBs{
 		Read:   MustNewMySQL(config.MustMySQLReadConn(prod)),
 		Write:  MustNewMySQL(config.MustMySQLWriteConn(prod)),
