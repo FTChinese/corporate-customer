@@ -1,7 +1,8 @@
-package model
+package licence
 
 import (
 	"encoding/json"
+	"github.com/FTChinese/ftacademy/internal/pkg/model"
 	plan2 "github.com/FTChinese/ftacademy/pkg/plan"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
@@ -18,17 +19,17 @@ import (
 // current membership status and delete that row, clear
 // the AssigneeID field.
 type BaseLicence struct {
-	ID               string        `json:"id" db:"licence_id"`
-	TeamID           string        `json:"teamId" db:"team_id"`
-	AssigneeID       null.String   `json:"-" db:"assignee_id"` // Only exists after reader accepted an invitation.
-	ExpireDate       chrono.Date   `json:"expireDate" db:"expire_date"`
-	TrialStart       chrono.Date   `json:"trialStart" db:"trial_start_date"`
-	TrialEnd         chrono.Date   `json:"trialEnd" db:"trial_end_date"`
-	Status           LicenceStatus `json:"status" db:"current_status"`
-	CreatedUTC       chrono.Time   `json:"createdUtc" db:"created_utc"`
-	UpdatedUTC       chrono.Time   `json:"updatedUtc" db:"updated_utc"`
-	LastInvitationID null.String   `json:"lastInvitationId" db:"last_invitation_id"`
-	LastInviteeEmail null.String   `json:"lastInviteeEmail" db:"last_invitee_email"`
+	ID               string      `json:"id" db:"licence_id"`
+	TeamID           string      `json:"teamId" db:"team_id"`
+	AssigneeID       null.String `json:"-" db:"assignee_id"` // Only exists after reader accepted an invitation.
+	ExpireDate       chrono.Date `json:"expireDate" db:"expire_date"`
+	TrialStart       chrono.Date `json:"trialStart" db:"trial_start_date"`
+	TrialEnd         chrono.Date `json:"trialEnd" db:"trial_end_date"`
+	Status           Status      `json:"status" db:"current_status"`
+	CreatedUTC       chrono.Time `json:"createdUtc" db:"created_utc"`
+	UpdatedUTC       chrono.Time `json:"updatedUtc" db:"updated_utc"`
+	LastInvitationID null.String `json:"lastInvitationId" db:"last_invitation_id"`
+	LastInviteeEmail null.String `json:"lastInviteeEmail" db:"last_invitee_email"`
 }
 
 // IsAvailable checks whether the licence is
@@ -121,13 +122,13 @@ func (ls LicenceSchema) Licence() (Licence, error) {
 // and the assignee if it is already granted.
 type ExpandedLicence struct {
 	Licence
-	Assignee Assignee `json:"assignee"` // If no use is granted to use this licence, its fields are empty.
+	Assignee model.Assignee `json:"assignee"` // If no use is granted to use this licence, its fields are empty.
 }
 
 // ExpLicenceSchema is used to save/retrieve licence.
 type ExpLicenceSchema struct {
 	LicenceSchema
-	Assignee
+	model.Assignee
 }
 
 // ExpandedLicence transforms a row retrieved from DB to output format.

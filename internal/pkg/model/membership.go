@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
@@ -32,7 +33,7 @@ type Membership struct {
 	B2BLicenceID   null.String     `db:"b2b_licence_id"`
 }
 
-func (m Membership) WithLicenceGranted(l Licence) Membership {
+func (m Membership) WithLicenceGranted(l licence.Licence) Membership {
 	if m.HasMembership() {
 		m.SubsID = null.StringFrom(GenerateMemberID())
 		m.SubsCompoundID = l.AssigneeID

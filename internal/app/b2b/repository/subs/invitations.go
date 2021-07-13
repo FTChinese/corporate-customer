@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
-	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/go-rest"
 	"github.com/guregu/null"
 )
@@ -15,10 +15,10 @@ import (
 // * Assignee
 // * Invitation.Token
 // * Plan
-func (env Env) CreateInvitation(inv model2.Invitation) (model2.InvitedLicence, error) {
+func (env Env) CreateInvitation(inv licence.Invitation) (licence.InvitedLicence, error) {
 	tx, err := env.beginInvTx()
 	if err != nil {
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 
 	// Retrieve the licence.
@@ -26,20 +26,20 @@ func (env Env) CreateInvitation(inv model2.Invitation) (model2.InvitedLicence, e
 	// There is an not found error here.
 	if err != nil {
 		_ = tx.Rollback()
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 
 	// If this licence is not available to grant.
 	if !licence.IsAvailable() {
 		_ = tx.Rollback()
-		return model2.InvitedLicence{}, ErrLicenceUnavailable
+		return licence.InvitedLicence{}, ErrLicenceUnavailable
 	}
 
 	// If another reader is already invited to accept this licence.
 	// Admin should first revoke the invitation before invite another reader.
 	if !licence.LastInviteeEmail.Valid && licence.LastInviteeEmail.String != inv.Email {
 		_ = tx.Rollback()
-		return model2.InvitedLicence{}, ErrInviteeMismatch
+		return licence.InvitedLicence{}, ErrInviteeMismatch
 	}
 
 	// Try to find the reader account by email.
@@ -47,14 +47,14 @@ func (env Env) CreateInvitation(inv model2.Invitation) (model2.InvitedLicence, e
 	invitee, err := env.FindReader(inv.Email)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		_ = tx.Rollback()
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 
 	// If this reader has a valid membership, disallow
 	// granting a new licence.
 	if !invitee.Membership.IsExpired() {
 		_ = tx.Rollback()
-		return model2.InvitedLicence{}, ErrAlreadyMember
+		return licence.InvitedLicence{}, ErrAlreadyMember
 	}
 
 	if invitee.FtcID.IsZero() {
@@ -66,20 +66,20 @@ func (env Env) CreateInvitation(inv model2.Invitation) (model2.InvitedLicence, e
 	err = tx.SetLicenceInvited(baseLicence)
 	if err != nil {
 		_ = tx.Rollback()
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 
 	// Save the invitation
 	err = tx.SaveInvitation(inv)
 	if err != nil {
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 
-	return model2.InvitedLicence{
+	return licence.InvitedLicence{
 		Invitation: inv,
 		Licence:    baseLicence,
 		Plan:       licence.Plan,
@@ -133,8 +133,8 @@ func (env Env) RevokeInvitation(invID, teamID string) error {
 }
 
 // List invitations shows a list of invitations for a team.
-func (env Env) ListInvitations(teamID string, page gorest.Pagination) ([]model2.Invitation, error) {
-	var invs = make([]model2.Invitation, 0)
+func (env Env) ListInvitations(teamID string, page gorest.Pagination) ([]licence.Invitation, error) {
+	var invs = make([]licence.Invitation, 0)
 
 	err := env.dbs.Read.Select(&invs, stmt.ListInvitation, teamID, page.Limit, page.Offset())
 
@@ -145,15 +145,15 @@ func (env Env) ListInvitations(teamID string, page gorest.Pagination) ([]model2.
 	return invs, nil
 }
 
-func (env Env) AsyncListInvitations(teamID string, page gorest.Pagination) <-chan model2.InvitationList {
-	r := make(chan model2.InvitationList)
+func (env Env) AsyncListInvitations(teamID string, page gorest.Pagination) <-chan licence.InvitationList {
+	r := make(chan licence.InvitationList)
 
 	go func() {
 		defer close(r)
 
 		inv, err := env.ListInvitations(teamID, page)
 
-		r <- model2.InvitationList{
+		r <- licence.InvitationList{
 			Data: inv,
 			Err:  err,
 		}
@@ -174,14 +174,14 @@ func (env Env) CountInvitation(teamID string) (int64, error) {
 	return total, nil
 }
 
-func (env Env) AsyncCountInvitation(teamID string) <-chan model2.InvitationList {
-	r := make(chan model2.InvitationList)
+func (env Env) AsyncCountInvitation(teamID string) <-chan licence.InvitationList {
+	r := make(chan licence.InvitationList)
 
 	go func() {
 		defer close(r)
 		total, err := env.CountInvitation(teamID)
 
-		r <- model2.InvitationList{
+		r <- licence.InvitationList{
 			Total: total,
 			Err:   err,
 		}

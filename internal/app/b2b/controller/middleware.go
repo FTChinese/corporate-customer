@@ -2,7 +2,7 @@ package controller
 
 import (
 	admin2 "github.com/FTChinese/ftacademy/internal/pkg/admin"
-	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
@@ -50,7 +50,7 @@ func (keeper Doorkeeper) CheckInviteeClaims(next echo.HandlerFunc) echo.HandlerF
 			return render.NewUnauthorized(err.Error())
 		}
 
-		claims, err := model2.ParseInviteeClaims(ss, keeper.signingKey)
+		claims, err := licence.ParseInviteeClaims(ss, keeper.signingKey)
 		if err != nil {
 			log.Printf("Error parsing JWT %v", err)
 			return render.NewUnauthorized(err.Error())
@@ -65,8 +65,8 @@ func getPassportClaims(c echo.Context) admin2.PassportClaims {
 	return c.Get(claimsCtxKey).(admin2.PassportClaims)
 }
 
-func getInviteeClaims(c echo.Context) model2.InviteeClaims {
-	return c.Get(claimsCtxKey).(model2.InviteeClaims)
+func getInviteeClaims(c echo.Context) licence.InviteeClaims {
+	return c.Get(claimsCtxKey).(licence.InviteeClaims)
 }
 
 func DumpRequest(next echo.HandlerFunc) echo.HandlerFunc {

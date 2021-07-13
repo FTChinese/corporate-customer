@@ -1,8 +1,9 @@
-package model
+package licence
 
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
+	"github.com/FTChinese/ftacademy/internal/pkg/model"
 	plan2 "github.com/FTChinese/ftacademy/pkg/plan"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
@@ -97,7 +98,7 @@ type InvitedLicence struct {
 	Invitation Invitation
 	Licence    BaseLicence    // The licence to grant
 	Plan       plan2.BasePlan // The plan of this licence
-	Assignee   Assignee       // Who will be granted the licence.
+	Assignee   model.Assignee // Who will be granted the licence.
 }
 
 // InvitationList is used for restful output.

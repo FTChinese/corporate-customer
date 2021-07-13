@@ -1,4 +1,4 @@
-package model
+package licence
 
 import (
 	"database/sql/driver"

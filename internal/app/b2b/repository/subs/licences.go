@@ -2,6 +2,7 @@ package subs
 
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
+	licence2 "github.com/FTChinese/ftacademy/internal/pkg/licence"
 	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
 	gorest "github.com/FTChinese/go-rest"
 )
@@ -24,7 +25,7 @@ func (env Env) RevokeLicence(id, teamID string) error {
 	}
 
 	// If the licence is not granted yet.
-	if licence.Status != model2.LicStatusGranted {
+	if licence.Status != licence2.LicStatusGranted {
 		_ = tx.Rollback()
 		return nil
 	}
@@ -68,12 +69,12 @@ func (env Env) RevokeLicence(id, teamID string) error {
 // LoadExpLicence retrieves a licence, together with its
 // subscription plan and the user to whom it was assigned.
 // If the licence is not assigned yet, assignee fields are empty..
-func (env Env) LoadExpLicence(id, teamID string) (model2.ExpandedLicence, error) {
-	var ls model2.ExpLicenceSchema
+func (env Env) LoadExpLicence(id, teamID string) (licence2.ExpandedLicence, error) {
+	var ls licence2.ExpLicenceSchema
 	err := env.dbs.Read.Get(&ls, stmt.ExpandedLicence, id, teamID)
 
 	if err != nil {
-		return model2.ExpandedLicence{}, err
+		return licence2.ExpandedLicence{}, err
 	}
 
 	return ls.ExpandedLicence()
@@ -81,8 +82,8 @@ func (env Env) LoadExpLicence(id, teamID string) (model2.ExpandedLicence, error)
 
 // ListExpLicence shows a list all licence.
 // Each licence's plan, invitation, assignee are attached.
-func (env Env) ListExpLicence(teamID string, page gorest.Pagination) ([]model2.ExpandedLicence, error) {
-	var ls = make([]model2.ExpLicenceSchema, 0)
+func (env Env) ListExpLicence(teamID string, page gorest.Pagination) ([]licence2.ExpandedLicence, error) {
+	var ls = make([]licence2.ExpLicenceSchema, 0)
 
 	err := env.dbs.Read.Select(&ls, stmt.ListExpandedLicences, teamID, page.Limit, page.Offset())
 
@@ -90,7 +91,7 @@ func (env Env) ListExpLicence(teamID string, page gorest.Pagination) ([]model2.E
 		return nil, err
 	}
 
-	el := make([]model2.ExpandedLicence, 0)
+	el := make([]licence2.ExpandedLicence, 0)
 	for _, v := range ls {
 		l, err := v.ExpandedLicence()
 		if err != nil {
@@ -101,14 +102,14 @@ func (env Env) ListExpLicence(teamID string, page gorest.Pagination) ([]model2.E
 	return el, nil
 }
 
-func (env Env) AsyncListExpLicence(teamID string, page gorest.Pagination) <-chan model2.PagedExpLicences {
-	r := make(chan model2.PagedExpLicences)
+func (env Env) AsyncListExpLicence(teamID string, page gorest.Pagination) <-chan licence2.PagedExpLicences {
+	r := make(chan licence2.PagedExpLicences)
 
 	go func() {
 		defer close(r)
 		licences, err := env.ListExpLicence(teamID, page)
 
-		r <- model2.PagedExpLicences{
+		r <- licence2.PagedExpLicences{
 			Data: licences,
 			Err:  err,
 		}
@@ -126,14 +127,14 @@ func (env Env) CountLicences(teamID string) (int64, error) {
 	return total, nil
 }
 
-func (env Env) AsyncCountLicences(teamID string) <-chan model2.PagedExpLicences {
-	r := make(chan model2.PagedExpLicences)
+func (env Env) AsyncCountLicences(teamID string) <-chan licence2.PagedExpLicences {
+	r := make(chan licence2.PagedExpLicences)
 
 	go func() {
 		defer close(r)
 		total, err := env.CountLicences(teamID)
 
-		r <- model2.PagedExpLicences{
+		r <- licence2.PagedExpLicences{
 			Total: total,
 			Err:   err,
 		}

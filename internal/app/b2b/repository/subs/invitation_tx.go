@@ -3,6 +3,7 @@ package subs
 import (
 	"database/sql"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
 	"github.com/jmoiron/sqlx"
 )
@@ -14,19 +15,19 @@ type InvitationTx struct {
 // RetrieveLicence loads the licence when creating an
 // invitation for it.
 // This retrieves Licence from the point of admin.
-func (tx InvitationTx) RetrieveLicence(licenceID, teamID string) (model2.Licence, error) {
-	var ls model2.LicenceSchema
+func (tx InvitationTx) RetrieveLicence(licenceID, teamID string) (licence.Licence, error) {
+	var ls licence.LicenceSchema
 
 	err := tx.Get(&ls, stmt.LockLicenceByID, licenceID, teamID)
 	if err != nil {
-		return model2.Licence{}, err
+		return licence.Licence{}, err
 	}
 
 	return ls.Licence()
 }
 
 // SaveInvitation insert a new row into invitation table.
-func (tx InvitationTx) SaveInvitation(inv model2.Invitation) error {
+func (tx InvitationTx) SaveInvitation(inv licence.Invitation) error {
 	_, err := tx.NamedExec(stmt.CreateInvitation, inv)
 
 	if err != nil {
@@ -37,7 +38,7 @@ func (tx InvitationTx) SaveInvitation(inv model2.Invitation) error {
 }
 
 // SetLicenceInvited links a licence to an invitation.
-func (tx InvitationTx) SetLicenceInvited(lic model2.BaseLicence) error {
+func (tx InvitationTx) SetLicenceInvited(lic licence.BaseLicence) error {
 	_, err := tx.NamedExec(stmt.SetLicenceInvited, lic)
 	if err != nil {
 		return err
@@ -50,8 +51,8 @@ func (tx InvitationTx) SetLicenceInvited(lic model2.BaseLicence) error {
 
 // RetrieveInvitation when admin wants to revoke it.
 // This retrieves licence from the point of Invitation.
-func (tx InvitationTx) RetrieveInvitation(invitationID, teamID string) (model2.Invitation, error) {
-	var inv model2.Invitation
+func (tx InvitationTx) RetrieveInvitation(invitationID, teamID string) (licence.Invitation, error) {
+	var inv licence.Invitation
 	err := tx.Get(&inv, stmt.LockInvitationByID, invitationID, teamID)
 	if err != nil {
 		return inv, err
@@ -67,11 +68,11 @@ func (tx InvitationTx) RetrieveInvitation(invitationID, teamID string) (model2.I
 // with licence id only you could not tell whether this
 // licence is still linked to this invitation. Therefore
 // we use the last_invitation_id column to load it.
-func (tx InvitationTx) FindInvitedLicence(inv model2.Invitation) (model2.Licence, error) {
-	var ls model2.LicenceSchema
+func (tx InvitationTx) FindInvitedLicence(inv licence.Invitation) (licence.Licence, error) {
+	var ls licence.LicenceSchema
 	err := tx.Get(&ls, stmt.LockInvitedLicence, inv.LicenceID, inv.ID)
 	if err != nil {
-		return model2.Licence{}, err
+		return licence.Licence{}, err
 	}
 
 	return ls.Licence()
@@ -80,7 +81,7 @@ func (tx InvitationTx) FindInvitedLicence(inv model2.Invitation) (model2.Licence
 // RevokeInvitation marks an invitation as revoked.
 // The corresponding licence should also remove any traces
 // linking to this invitation.
-func (tx InvitationTx) RevokeInvitation(inv model2.Invitation) error {
+func (tx InvitationTx) RevokeInvitation(inv licence.Invitation) error {
 	_, err := tx.NamedExec(stmt.RevokeInvitation, inv)
 	if err != nil {
 		return err
@@ -91,7 +92,7 @@ func (tx InvitationTx) RevokeInvitation(inv model2.Invitation) error {
 
 // UnlinkInvitedLicence removes invitation related
 // data from a licence.
-func (tx InvitationTx) UnlinkInvitedLicence(licence model2.Licence) error {
+func (tx InvitationTx) UnlinkInvitedLicence(licence licence.Licence) error {
 	_, err := tx.NamedExec(stmt.RevokeLicenceInvitation, licence)
 	if err != nil {
 		return err
@@ -100,7 +101,7 @@ func (tx InvitationTx) UnlinkInvitedLicence(licence model2.Licence) error {
 	return nil
 }
 
-func (tx InvitationTx) RevokeLicence(lic model2.BaseLicence) error {
+func (tx InvitationTx) RevokeLicence(lic licence.BaseLicence) error {
 	_, err := tx.NamedExec(stmt.SetLicenceRevoked, lic)
 	if err != nil {
 		return err
@@ -116,8 +117,8 @@ func (tx InvitationTx) RevokeLicence(lic model2.BaseLicence) error {
 
 // FindInvitationByToken retrieves and locks an invitation
 // when reader is trying to accept it.
-func (tx InvitationTx) FindInvitationByToken(token string) (model2.Invitation, error) {
-	var inv model2.Invitation
+func (tx InvitationTx) FindInvitationByToken(token string) (licence.Invitation, error) {
+	var inv licence.Invitation
 	err := tx.Get(&inv, stmt.LockInvitationByToken, token)
 	if err != nil {
 		return inv, err
@@ -128,7 +129,7 @@ func (tx InvitationTx) FindInvitationByToken(token string) (model2.Invitation, e
 
 // InvitationAccepted marks an invitation as accepted
 // so that it cannot be used again.
-func (tx InvitationTx) InvitationAccepted(inv model2.Invitation) error {
+func (tx InvitationTx) InvitationAccepted(inv licence.Invitation) error {
 	_, err := tx.NamedExec(stmt.AcceptInvitation, inv)
 
 	if err != nil {
@@ -139,7 +140,7 @@ func (tx InvitationTx) InvitationAccepted(inv model2.Invitation) error {
 }
 
 // LicenceGranted links a licence to an assignee.
-func (tx InvitationTx) LicenceGranted(l model2.BaseLicence) error {
+func (tx InvitationTx) LicenceGranted(l licence.BaseLicence) error {
 	_, err := tx.NamedExec(stmt.SetLicenceGranted, l)
 
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/letter"
-	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -28,7 +28,7 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	inv, err := model2.NewInvitation(params, claims)
+	inv, err := licence.NewInvitation(params, claims)
 	if err != nil {
 		sugar.Error(err)
 		return render.NewInternalError(err.Error())

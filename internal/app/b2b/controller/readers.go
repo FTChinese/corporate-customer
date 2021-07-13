@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
 	"github.com/FTChinese/ftacademy/internal/pkg/letter"
-	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -41,7 +41,7 @@ func (router ReadersRouter) VerifyInvitation(c echo.Context) error {
 		return render.NewNotFound("the invitation is expired, revoked or already used")
 	}
 
-	bearer, err := model2.NewInviteeClaims(inv).Bearer(router.dk.signingKey)
+	bearer, err := licence.NewInviteeClaims(inv).Bearer(router.dk.signingKey)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}

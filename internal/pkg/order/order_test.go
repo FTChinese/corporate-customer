@@ -1,4 +1,4 @@
-package model
+package order
 
 import (
 	sq2 "github.com/FTChinese/ftacademy/pkg/sq"

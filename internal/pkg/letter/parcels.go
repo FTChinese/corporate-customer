@@ -2,7 +2,7 @@ package letter
 
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
-	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/postman"
 )
 
@@ -46,7 +46,7 @@ func PasswordResetParcel(a admin.BaseAccount, session admin.PwResetSession) (pos
 	}, nil
 }
 
-func InvitationParcel(il model2.InvitedLicence, adminProfile admin.Profile) (postman.Parcel, error) {
+func InvitationParcel(il licence.InvitedLicence, adminProfile admin.Profile) (postman.Parcel, error) {
 	body, err := CtxInvitation{
 		AssigneeName: il.Assignee.NormalizeName(),
 		TeamName:     adminProfile.OrgName,
@@ -74,7 +74,7 @@ func InvitationParcel(il model2.InvitedLicence, adminProfile admin.Profile) (pos
 // licence is granted.
 // We need to know the admin's account, reader's email
 // the the licence's plan.
-func LicenceGrantedParcel(il model2.InvitedLicence, adminAccount admin.BaseAccount) (postman.Parcel, error) {
+func LicenceGrantedParcel(il licence.InvitedLicence, adminAccount admin.BaseAccount) (postman.Parcel, error) {
 
 	var data = CtxLicenceGranted{
 		Name:           adminAccount.NormalizeName(),

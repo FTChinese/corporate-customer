@@ -3,13 +3,14 @@ package subs
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
 	admin2 "github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
 	"github.com/guregu/null"
 )
 
 // FindInvitationByToken tries to find an Invitation by token.
-func (env Env) FindInvitationByToken(token string) (model2.Invitation, error) {
-	var inv model2.Invitation
+func (env Env) FindInvitationByToken(token string) (licence.Invitation, error) {
+	var inv licence.Invitation
 	err := env.dbs.Read.Get(&inv, stmt.InvitationByToken, token)
 	if err != nil {
 		return inv, err
@@ -20,11 +21,11 @@ func (env Env) FindInvitationByToken(token string) (model2.Invitation, error) {
 
 // FindInvitedLicence tries to find a licence belong to
 // an invitation.
-func (env Env) FindInvitedLicence(claims model2.InviteeClaims) (model2.Licence, error) {
-	var ls model2.LicenceSchema
+func (env Env) FindInvitedLicence(claims licence.InviteeClaims) (licence.Licence, error) {
+	var ls licence.LicenceSchema
 	err := env.dbs.Read.Get(&ls, stmt.InvitedLicence, claims.LicenceID, claims.InvitationID)
 	if err != nil {
-		return model2.Licence{}, err
+		return licence.Licence{}, err
 	}
 
 	return ls.Licence()
@@ -89,36 +90,36 @@ func (env Env) TakeSnapshot(snp model2.MemberSnapshot) error {
 }
 
 // GrantLicence grants a licence to a reader.
-func (env Env) GrantLicence(claims model2.InviteeClaims) (model2.InvitedLicence, error) {
+func (env Env) GrantLicence(claims licence.InviteeClaims) (licence.InvitedLicence, error) {
 	tx, err := env.beginInvTx()
 	if err != nil {
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 	inv, err := tx.RetrieveInvitation(claims.InvitationID, claims.TeamID)
 	// Not found
 	if err != nil {
 		_ = tx.Rollback()
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 	if !inv.IsValid() {
-		return model2.InvitedLicence{}, ErrInvalidInvitation
+		return licence.InvitedLicence{}, ErrInvalidInvitation
 	}
 
 	licence, err := tx.FindInvitedLicence(inv)
 	// Not found
 	if err != nil {
 		_ = tx.Rollback()
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 	// If licence cannot be granted, returns forbidden message.
 	if !licence.CanBeGranted() {
-		return model2.InvitedLicence{}, ErrLicenceTaken
+		return licence.InvitedLicence{}, ErrLicenceTaken
 	}
 
 	mmb, err := tx.RetrieveMembership(claims.FtcID)
 	if err != nil {
 		_ = tx.Rollback()
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 
 	inv = inv.Accept()
@@ -130,7 +131,7 @@ func (env Env) GrantLicence(claims model2.InviteeClaims) (model2.InvitedLicence,
 		err := tx.InsertMembership(newMmb)
 		if err != nil {
 			_ = tx.Rollback()
-			return model2.InvitedLicence{}, err
+			return licence.InvitedLicence{}, err
 		}
 	} else {
 		// Update current membership based on
@@ -138,7 +139,7 @@ func (env Env) GrantLicence(claims model2.InviteeClaims) (model2.InvitedLicence,
 		err := tx.UpdateMembership(newMmb)
 		if err != nil {
 			_ = tx.Rollback()
-			return model2.InvitedLicence{}, err
+			return licence.InvitedLicence{}, err
 		}
 
 		// Back up.
@@ -148,19 +149,19 @@ func (env Env) GrantLicence(claims model2.InviteeClaims) (model2.InvitedLicence,
 	}
 
 	if err := tx.LicenceGranted(baseLicence); err != nil {
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 
 	if err := tx.InvitationAccepted(inv); err != nil {
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return model2.InvitedLicence{}, err
+		return licence.InvitedLicence{}, err
 	}
 
 	// The returned data is used to compose a letter
-	return model2.InvitedLicence{
+	return licence.InvitedLicence{
 		Invitation: inv,
 		Licence:    baseLicence,
 		Plan:       licence.Plan,
@@ -174,7 +175,7 @@ func (env Env) GrantLicence(claims model2.InviteeClaims) (model2.InvitedLicence,
 // FindInviteeOrg retrieves admin's data by team id.
 // This is used to send admin an email after reader accepted
 // an invitation
-func (env Env) FindInviteeOrg(claims model2.InviteeClaims) (admin2.Passport, error) {
+func (env Env) FindInviteeOrg(claims licence.InviteeClaims) (admin2.Passport, error) {
 	var p admin2.Passport
 	if err := env.dbs.Read.Get(&p, admin2.PassportByTeamID, claims.TeamID); err != nil {
 		return admin2.Passport{}, err

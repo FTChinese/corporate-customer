@@ -1,4 +1,4 @@
-package model
+package order
 
 import (
 	plan2 "github.com/FTChinese/ftacademy/pkg/plan"
