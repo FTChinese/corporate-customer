@@ -6,6 +6,7 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	"net/http/httputil"
 )
 
 const claimsCtxKey = "claims"
@@ -66,4 +67,17 @@ func getPassportClaims(c echo.Context) admin2.PassportClaims {
 
 func getInviteeClaims(c echo.Context) model2.InviteeClaims {
 	return c.Get(claimsCtxKey).(model2.InviteeClaims)
+}
+
+func DumpRequest(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		dump, err := httputil.DumpRequest(c.Request(), false)
+		if err != nil {
+			log.Print(err)
+		}
+
+		log.Printf(string(dump))
+
+		return next(c)
+	}
 }

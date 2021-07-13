@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/FTChinese/ftacademy/internal/app/b2b"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/controller"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
@@ -88,7 +87,7 @@ func main() {
 
 	e.HTTPErrorHandler = errorHandler
 
-	e.Use(b2b.DumpRequest)
+	e.Use(controller.DumpRequest)
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
