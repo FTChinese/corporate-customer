@@ -2,8 +2,8 @@ package licence
 
 import (
 	"encoding/json"
-	"github.com/FTChinese/ftacademy/internal/pkg/model"
-	plan2 "github.com/FTChinese/ftacademy/pkg/plan"
+	"github.com/FTChinese/ftacademy/pkg/price"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
 )
@@ -19,30 +19,40 @@ import (
 // current membership status and delete that row, clear
 // the AssigneeID field.
 type BaseLicence struct {
-	ID               string      `json:"id" db:"licence_id"`
-	TeamID           string      `json:"teamId" db:"team_id"`
-	AssigneeID       null.String `json:"-" db:"assignee_id"` // Only exists after reader accepted an invitation.
-	ExpireDate       chrono.Date `json:"expireDate" db:"expire_date"`
-	TrialStart       chrono.Date `json:"trialStart" db:"trial_start_date"`
-	TrialEnd         chrono.Date `json:"trialEnd" db:"trial_end_date"`
-	Status           Status      `json:"status" db:"current_status"`
-	CreatedUTC       chrono.Time `json:"createdUtc" db:"created_utc"`
-	UpdatedUTC       chrono.Time `json:"updatedUtc" db:"updated_utc"`
-	LastInvitationID null.String `json:"lastInvitationId" db:"last_invitation_id"`
-	LastInviteeEmail null.String `json:"lastInviteeEmail" db:"last_invitee_email"`
+	ID     string `json:"id" db:"licence_id"`
+	TeamID string `json:"teamId" db:"team_id"`
+	price.Edition
+	CreatedUTC            chrono.Time `json:"createdUtc" db:"created_utc"`
+	Status                Status      `json:"status" db:"licence_status"`
+	CurrentPeriodStartUTC chrono.Time `json:"currentPeriodStartUtc" db:"current_period_start_utc"`
+	CurrentPeriodEndUTC   chrono.Time `json:"currentPeriodEndUtc" db:"current_period_end_utc"`
+	StartDateUTC          chrono.Time `json:"startDateUtc" db:"start_date_utc"`
+	TrialStartUTC         chrono.Date `json:"trialStartUtc" db:"trial_start_utc"`
+	TrialEndUTC           chrono.Date `json:"trialEndUtc" db:"trial_end_utc"`
+	LatestInvoiceID       null.String `json:"latestInvoiceId" db:"latest_invoice_id"`
+	UpdatedUTC            chrono.Time `json:"updatedUtc" db:"updated_utc"`
+}
+
+// Licence contains all data of a licence.
+type Licence struct {
+	BaseLicence
+	// Only exists after reader accepted an invitation.
+	// Join with userinfo table
+	Assignee         Assignee    `json:"assignee" db:"assignee"`
+	LatestPrice      price.Price `json:"latestPrice" db:"latest_price"`
+	LatestInvitation Invitation  `json:"latestInvitation" db:"latest_invitation_id"`
 }
 
 // IsAvailable checks whether the licence is
 // assigned to someone else.
-func (l BaseLicence) IsAvailable() bool {
-	return l.Status == LicStatusAvailable && l.AssigneeID.IsZero()
+func (l Licence) IsAvailable() bool {
+	return l.Status == LicStatusAvailable && l.Assignee.FtcID.IsZero()
 }
 
-// Invited updates invitation status to invited after an invitation is sent.
-func (l BaseLicence) Invited(inv Invitation) BaseLicence {
+// WithInvited updates invitation status to invited after an invitation is sent.
+func (l Licence) WithInvited(inv Invitation) Licence {
 	l.Status = LicStatusInvited
-	l.LastInvitationID = null.StringFrom(inv.ID)
-	l.LastInviteeEmail = null.StringFrom(inv.Email)
+	l.LatestInvitation = inv
 	l.UpdatedUTC = chrono.TimeNow()
 	return l
 }
@@ -51,90 +61,108 @@ func (l BaseLicence) Invited(inv Invitation) BaseLicence {
 // have its invitation revoked.
 // A licence could only have its invitation revoked when
 // an invitation is sent but not accepted.
-func (l BaseLicence) CanInvitationBeRevoked() bool {
-	return l.Status == LicStatusInvited && l.AssigneeID.IsZero()
+func (l Licence) CanInvitationBeRevoked() bool {
+	return l.Status == LicStatusInvited && l.Assignee.FtcID.IsZero()
 }
 
-// InvitationRevoked revokes an invitation of a licence
+// WithInvitationRevoked revokes an invitation of a licence
 // so that admin could invite another one to use this licence.
 // This is used after invitation is sent but before it is
 // accepted.
-func (l BaseLicence) InvitationRevoked() BaseLicence {
+func (l Licence) WithInvitationRevoked() Licence {
 	l.Status = LicStatusAvailable
-	l.LastInvitationID = null.String{}
-	l.LastInviteeEmail = null.String{}
+	l.LatestInvitation = Invitation{}
 	l.UpdatedUTC = chrono.TimeNow()
 
 	return l
 }
 
 // Revoke unlink a user from a licence.
-func (l BaseLicence) Revoke() BaseLicence {
-	l.AssigneeID = null.String{}
+func (l Licence) Revoke() Licence {
+	l.Assignee = Assignee{}
 	l.Status = LicStatusAvailable
-	l.LastInvitationID = null.String{}
-	l.LastInviteeEmail = null.String{}
+	l.LatestInvitation = Invitation{}
 	l.UpdatedUTC = chrono.TimeNow()
 
 	return l
 }
 
-func (l BaseLicence) CanBeGranted() bool {
-	return l.Status == LicStatusInvited && l.AssigneeID.IsZero()
+func (l Licence) CanBeGranted() bool {
+	return l.Status == LicStatusInvited && l.Assignee.FtcID.IsZero()
 }
 
-// GrantTo links a licence to a ftc reader.
-func (l BaseLicence) GrantTo(ftcID string) BaseLicence {
-	l.AssigneeID = null.StringFrom(ftcID)
+// WithGranted links a licence to a ftc reader.
+func (l Licence) WithGranted(a Assignee) Licence {
+	l.Assignee = a
 	l.Status = LicStatusGranted
 	l.UpdatedUTC = chrono.TimeNow()
 	return l
 }
 
-// Licence contains all data of a licence.
-type Licence struct {
+// LicSchema defines the DB schema for licence table.
+// Deprecated
+type LicSchema struct {
 	BaseLicence
-	Plan plan2.BasePlan
+	Assignee                     // Used to scan data from db.
+	LatestPrice      null.String `db:"latest_price"` // The raw JSON column is a string.
+	LatestInvitation null.String `db:"latest_invitation"`
 }
 
-// LicenceSchema defines the DB schema for licence table.
-type LicenceSchema struct {
-	BaseLicence
-	CurrentPlan string `json:"-" db:"current_plan"` // The raw JSON column is a string.
-}
+// ToLicence converts the data retrieved from db to Licence instance.
+// Deprecated
+func (ls LicSchema) ToLicence() (Licence, error) {
+	var p price.Price
+	var inv Invitation
 
-// Licence create the Licence instance from raw db data.
-func (ls LicenceSchema) Licence() (Licence, error) {
-	var p plan2.BasePlan
-
-	if err := json.Unmarshal([]byte(ls.CurrentPlan), &p); err != nil {
-		return Licence{}, err
+	if ls.LatestPrice.Valid {
+		err := json.Unmarshal([]byte(ls.LatestPrice.String), &p)
+		if err != nil {
+			return Licence{}, err
+		}
 	}
 
+	if ls.LatestInvitation.Valid {
+		err := json.Unmarshal([]byte(ls.LatestInvitation.String), &inv)
+		if err != nil {
+			return Licence{}, err
+		}
+	}
 	return Licence{
-		BaseLicence: ls.BaseLicence,
-		Plan:        p,
+		BaseLicence:      ls.BaseLicence,
+		Assignee:         ls.Assignee,
+		LatestPrice:      p,
+		LatestInvitation: inv,
 	}, nil
+}
+
+type LicList struct {
+	Total int64 `json:"total" db:"row_count"`
+	gorest.Pagination
+	Data []Licence `json:"data"`
+	Err  error     `json:"-"`
 }
 
 // ExpandedLicence includes the data of the licence,
 // its attached plan, a latest invitation if present
 // and the assignee if it is already granted.
+// Deprecated
 type ExpandedLicence struct {
 	Licence
-	Assignee model.Assignee `json:"assignee"` // If no use is granted to use this licence, its fields are empty.
+	Assignee Assignee `json:"assignee"` // If no use is granted to use this licence, its fields are empty.
 }
 
 // ExpLicenceSchema is used to save/retrieve licence.
+// Deprecated
 type ExpLicenceSchema struct {
-	LicenceSchema
-	model.Assignee
+	LicSchema
+	Assignee
 }
 
 // ExpandedLicence transforms a row retrieved from DB to output format.
+// Deprecated
 func (s ExpLicenceSchema) ExpandedLicence() (ExpandedLicence, error) {
 
-	lic, err := s.Licence()
+	lic, err := s.ToLicence()
 	if err != nil {
 		return ExpandedLicence{}, err
 	}
@@ -145,7 +173,8 @@ func (s ExpLicenceSchema) ExpandedLicence() (ExpandedLicence, error) {
 	}, nil
 }
 
-// ExpLicenceList is used to output a list of licence with pagination.
+// PagedExpLicences is used to output a list of licence with pagination.
+// Deprecated
 type PagedExpLicences struct {
 	Total int64             `json:"total"` // The total number of rows.
 	Data  []ExpandedLicence `json:"data"`
