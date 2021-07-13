@@ -190,9 +190,6 @@ func main() {
 		// so that the next step won't hit db.
 		readerGroup.GET("/verify/:token", readerRouter.VerifyInvitation)
 		// Pass back data acquired from previous step
-		// and get back licence data.
-		readerGroup.GET("/licence", readerRouter.VerifyLicence, dk.CheckInviteeClaims)
-		// Pass back data acquired from previous step
 		// and get reader account.
 		// If response is not found, go to signup.
 		readerGroup.GET("/account", readerRouter.FindAccount, dk.CheckInviteeClaims)
