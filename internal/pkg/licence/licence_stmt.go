@@ -1,21 +1,57 @@
-package stmt
+package licence
 
-const licenceCols = `l.id AS licence_id,
+const colLicence = `
+l.id AS licence_id,
 l.team_id AS team_id,
-l.assignee_id AS assignee_id,
-l.expire_date AS expire_date,
-l.trial_start_date AS trial_start_date,
-l.trial_end_date AS trial_end_date,
-l.current_status AS current_status,
 l.created_utc AS created_utc,
+l.current_status AS licence_status,
+l.current_period_start_utc AS current_period_start_utc,
+l.current_period_end_utc AS current_period_end_utc,
+l.start_date_utc AS start_date_utc,
+l.trial_start_utc AS trial_start_utc,
+l.trial_end_utc AS trial_end_utc,
+l.latest_invoice_id AS latest_invoice_id,
 l.updated_utc AS updated_utc,
-l.current_plan AS current_plan,
-l.last_invitation_id AS last_invitation_id,
-l.last_invitee_email AS last_invitee_email`
+l.latest_price AS latest_price,
+l.latest_invitation AS latest_invitation
+`
+
+// Retrieve Assignee as JSON object so that we don't need to
+// create extra types to convert string to JSON.
+const colAssignee = `
+JSON_OBJECT(
+	"ftcId", a.user_id,
+	"email", a.email,
+	"userName", a.user_name
+) AS assignee`
 
 const selectLicence = `
-SELECT ` + licenceCols + `
-FROM b2b.licence AS l`
+SELECT ` + colLicence + `,
+` + colAssignee + `
+FROM b2b.licence AS l
+	LEFT JOIN cmstmp01.userinfo AS a
+	ON l.assignee_id = a.user_id
+`
+
+const StmtLicence = selectLicence + `
+WHERE l.id = ? AND l.team_id = ?
+LIMIT 1`
+
+// StmtInvitedLicence retrieves a licence for an invitation.
+const StmtInvitedLicence = selectLicence + `
+WHERE l.latest_invitation_id = ?
+LIMIT 1`
+
+const StmtListLicences = selectLicence + `
+WHERE l.team_id = ?
+ORDER BY l.created_utc DESC
+LIMIT ? OFFSET ?`
+
+// StmtCountLicence is used to support pagination.
+const StmtCountLicence = `
+SELECT COUNT(*) AS total_licence
+FROM b2b.licence
+WHERE team_id = ?`
 
 // LicenceByID retrieves a single row.
 const LicenceByID = selectLicence + `
@@ -27,14 +63,9 @@ LIMIT 1`
 const LockLicenceByID = LicenceByID + `
 FOR UPDATE`
 
-// InvitedLicence retrieves a licence for an invitation.
-const InvitedLicence = selectLicence + `
-WHERE l.id = ? AND last_invitation_id = ?
-LIMIT 1`
-
 // InvitedLicence locks a licence row belong to an
 // invitation.
-const LockInvitedLicence = InvitedLicence + `
+const LockInvitedLicence = StmtInvitedLicence + `
 FOR UPDATE`
 
 // SetLicenceInvited updates the current_status
@@ -84,27 +115,3 @@ SET assignee_id = NULL,
 WHERE id = :licence_id
 	AND team_id = :team_id
 LIMIT 1`
-
-const selectExpandedLicence = `
-SELECT ` + licenceCols + `,
-` + readerAccountCols + `
-FROM b2b.licence AS l
-LEFT JOIN cmstmp01.userinfo AS u
-	ON l.assignee_id = u.user_id`
-
-// Select a single licence belonging to a team.
-const ExpandedLicence = selectExpandedLicence + `
-WHERE l.id = ? AND l.team_id = ?
-LIMIT 1`
-
-// Select a list of licence for a team.
-const ListExpandedLicences = selectExpandedLicence + `
-WHERE l.team_id = ?
-ORDER BY l.created_utc DESC
-LIMIT ? OFFSET ?`
-
-// CountLicence is used to support pagination.
-const CountLicence = `
-SELECT COUNT(*) AS total_licence
-FROM b2b.licence
-WHERE team_id = ?`

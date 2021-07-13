@@ -1,4 +1,4 @@
-package stmt
+package licence
 
 // DO not change the order the team_id in the WHERE clause
 // because the defined the PRIMARY KEY as (team_id, email)

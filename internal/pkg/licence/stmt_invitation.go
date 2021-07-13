@@ -1,4 +1,4 @@
-package stmt
+package licence
 
 // selectInvitation does not include the token column
 // as it is only visible to the user who received invitation
