@@ -33,6 +33,7 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/echo-contrib v0.8.0
 	github.com/labstack/echo/v4 v4.3.0
+	github.com/labstack/gommon v0.3.0
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mattn/goveralls v0.0.2 // indirect
 	github.com/prometheus/tsdb v0.7.1 // indirect
@@ -44,7 +45,7 @@ require (
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77 // indirect
 	go.etcd.io/bbolt v1.3.2 // indirect
-	go.uber.org/zap v1.18.1 // indirect
+	go.uber.org/zap v1.18.1
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
