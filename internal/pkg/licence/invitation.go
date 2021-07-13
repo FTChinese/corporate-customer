@@ -1,10 +1,13 @@
 package licence
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
-	"github.com/FTChinese/ftacademy/internal/pkg/model"
 	plan2 "github.com/FTChinese/ftacademy/pkg/plan"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/guregu/null"
@@ -51,6 +54,39 @@ func NewInvitation(i input.InvitationParams, claims admin.PassportClaims) (Invit
 	}, nil
 }
 
+func (i Invitation) Value() (driver.Value, error) {
+	if i.ID == "" {
+		return nil, nil
+	}
+
+	b, err := json.Marshal(i)
+	if err != nil {
+		return nil, err
+	}
+
+	return string(b), nil
+}
+
+func (i *Invitation) Scan(src interface{}) error {
+	if src == nil {
+		*i = Invitation{}
+	}
+
+	switch s := src.(type) {
+	case []byte:
+		var tmp Invitation
+		err := json.Unmarshal(s, &tmp)
+		if err != nil {
+			return err
+		}
+		*i = tmp
+		return nil
+
+	default:
+		return errors.New("incompatible type to scan")
+	}
+}
+
 // IsExpired tests whether the invitation is expired.
 func (i Invitation) IsExpired() bool {
 	now := time.Now().Unix()
@@ -92,18 +128,26 @@ func (i Invitation) Accept() Invitation {
 	return i
 }
 
+// InvitationVerified is returned after an invitation link
+// is clicked and the corresponding Licence is found.
+type InvitationVerified struct {
+	FtcID   null.String `json:"ftcId"` // Null if the invitee email is not signed up to ftc; otherwise a string.
+	Licence Licence     // The licence being invited.
+}
+
 // InvitedLicence wraps all related information after
 // an invitation is created.
 type InvitedLicence struct {
 	Invitation Invitation
 	Licence    BaseLicence    // The licence to grant
 	Plan       plan2.BasePlan // The plan of this licence
-	Assignee   model.Assignee // Who will be granted the licence.
+	Assignee   Assignee       // Who will be granted the licence.
 }
 
 // InvitationList is used for restful output.
 type InvitationList struct {
-	Total int64        `json:"total"`
-	Data  []Invitation `json:"data"`
-	Err   error        `json:"-"`
+	Total int64 `json:"total"`
+	gorest.Pagination
+	Data []Invitation `json:"data"`
+	Err  error        `json:"-"`
 }
