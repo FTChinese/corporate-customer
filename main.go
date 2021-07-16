@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/controller"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
@@ -56,8 +54,7 @@ func init() {
 
 func main() {
 	logger := config.MustGetLogger(isProduction)
-	// TODO: use read/write/delete dbs
-	myDB := db.MustNewMySQL(config.MustMySQLWriteConn(isProduction))
+
 	myDBs := db.MustNewMyDBs(isProduction)
 
 	pm := postman.New(config.MustGetHanqiConn())
@@ -66,16 +63,13 @@ func main() {
 
 	apiClient := api.NewSubsAPIClient(isProduction)
 	dk := controller.NewDoorkeeper(appKey.GetJWTKey())
-	// TODO: deprecate
-	subsRepo := subs.NewEnv(myDBs, logger)
-	productsRepo := products.NewEnv(myDB)
 
 	adminRouter := controller.NewAdminRouter(myDBs, pm, dk, logger)
 	subsRouter := controller.NewSubsRouter(myDBs, pm, logger)
-	productRouter := controller.NewProductRouter(productsRepo)
-	// TODO: deprecate
-	orderRouter := controller.NewOrderRouter(subsRepo, productsRepo, pm)
-	readerRouter := controller.NewReaderRouter(subsRepo, pm, dk, apiClient)
+	orderRouter := controller.NewOrderRouter(myDBs, logger)
+
+	productRouter := controller.NewProductRouter(apiClient, logger)
+	readerRouter := controller.NewReaderRouter(apiClient)
 
 	e := echo.New()
 	e.Renderer = MustNewRenderer(conf)
@@ -144,13 +138,11 @@ func main() {
 		b2bTeamGroup.PATCH("/", adminRouter.UpdateTeam)
 	}
 
-	// TODO: use subscription api.
-	productGroup := b2bAPIGroup.Group("/products", dk.RequireLoggedIn)
+	productGroup := b2bAPIGroup.Group("/paywall", dk.RequireLoggedIn)
 	{
-		productGroup.GET("/", productRouter.ListProducts)
+		productGroup.GET("/", productRouter.Paywall)
 	}
 
-	// TODO: delete
 	orderGroup := b2bAPIGroup.Group("/orders", dk.RequireLoggedIn)
 	{
 		// List orders
