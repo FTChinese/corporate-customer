@@ -1,101 +1,30 @@
 package controller
 
 import (
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
-	"github.com/FTChinese/ftacademy/internal/pkg/letter"
-	"github.com/FTChinese/ftacademy/internal/pkg/licence"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
+	"github.com/FTChinese/ftacademy/pkg/config"
+	"github.com/FTChinese/ftacademy/pkg/fetch"
 	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 type ReadersRouter struct {
-	dk   Doorkeeper
-	repo subs.Env
-	post postman.Postman
+	dk        Doorkeeper
+	repo      subs.Env
+	post      postman.Postman
+	apiClient api.Client
 }
 
-func NewReaderRouter(env subs.Env, post postman.Postman, dk Doorkeeper) ReadersRouter {
+func NewReaderRouter(env subs.Env, post postman.Postman, dk Doorkeeper, client api.Client) ReadersRouter {
 	return ReadersRouter{
-		dk:   dk,
-		repo: env,
-		post: post,
+		dk:        dk,
+		repo:      env,
+		post:      post,
+		apiClient: client,
 	}
-}
-
-// VerifyInvitation verifies an invitation by token.
-// Status code:
-// 404 if the invitation does not exist, expired, or already used.
-func (router ReadersRouter) VerifyInvitation(c echo.Context) error {
-	token := c.Param("token")
-
-	inv, err := router.repo.FindInvitationByToken(token)
-	// Not found error.
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	// If invitation is expires or already accepted or revoked.
-	if !inv.IsValid() {
-		return render.NewNotFound("the invitation is expired, revoked or already used")
-	}
-
-	bearer, err := licence.NewInviteeClaims(inv).Bearer(router.dk.signingKey)
-	if err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-
-	return c.JSON(http.StatusOK, bearer)
-}
-
-// VerifyLicence checks whether a licence being invited
-// is available to grant.
-// Status code:
-// 404 if the licence is not found for this invitation. or cannot be granted.
-func (router ReadersRouter) VerifyLicence(c echo.Context) error {
-	claims := getInviteeClaims(c)
-
-	lic, err := router.repo.FindInvitedLicence(claims)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	if !lic.CanBeGranted() {
-		return render.NewNotFound("the licence is already granted, or not tailed for this invitation")
-	}
-
-	return c.NoContent(http.StatusNoContent)
-}
-
-// FindAccount gets an invited reader's account.
-// Status code:
-// 404 if reader is not signed up yet.
-// 422 if this reader already has a valid membership.
-func (router ReadersRouter) FindAccount(c echo.Context) error {
-	claims := getInviteeClaims(c)
-
-	account, err := router.repo.FindReader(claims.Email)
-	if err != nil {
-		// For no found, ask user to signup.
-		return render.NewDBError(err)
-	}
-
-	if account.HasMembership() {
-		return render.NewUnprocessable(&render.ValidationError{
-			Message: "Cannot have multiple subscription since you already have a valid one",
-			Field:   "membership",
-			Code:    render.CodeAlreadyExists,
-		})
-	}
-
-	claims.FtcID = account.FtcID.String
-	bearer, err := claims.Bearer(router.dk.signingKey)
-	if err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-
-	return c.JSON(http.StatusOK, bearer)
 }
 
 // SignUp create a new account for an invited reader.
@@ -106,85 +35,33 @@ func (router ReadersRouter) FindAccount(c echo.Context) error {
 // Returns a new JWT token containing ftc id if everything
 // went well.
 func (router ReadersRouter) SignUp(c echo.Context) error {
-	claims := getInviteeClaims(c)
 
-	// TODO: forward raw data to api.
-	//var input model2.AccountInput
-	//if err := c.Bind(input); err != nil {
-	//	return render.NewBadRequest(err.Error())
-	//}
-
-	//if ve := input.ValidateLogin(); ve != nil {
-	//	return render.NewUnprocessable(ve)
-	//}
-
-	//signUp, err := model2.NewSignUp(input)
-	//if err != nil {
-	//	return render.NewBadRequest(err.Error())
-	//}
-
-	//if err := router.repo.CreateReader(signUp); err != nil {
-	//	return render.NewDBError(err)
-	//}
-
-	// Add the missing ftc id for a team member.
-	//go func() {
-	//	_ = router.repo.UpdateStaffer(signUp.TeamMember(claims.TeamID))
-	//}()
-
-	// Add the missing ftc id for new reader.
-	//claims.FtcID = signUp.ID
-	bearer, err := claims.Bearer(router.dk.signingKey)
-	if err != nil {
+	var params input.SignupParams
+	if err := c.Bind(&params); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
-	return c.JSON(http.StatusOK, bearer)
+
+	if ve := params.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
+	}
+
+	params.SourceURL = config.B2BReaderVerification
+
+	resp, err := router.apiClient.ReaderSignup(params)
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
-// GrantLicence links a licence to a reader invited to accept it.
-// Status code:
-// 400 if invitation is not found, or is invalid,
-// or licence is not found or cannot be granted,
-// or account is not found.
-// 403 Forbidden if reader already has valid membership.
-func (router SubsRouter) GrantLicence(c echo.Context) error {
-	claims := getInviteeClaims(c)
+func (router ReadersRouter) VerifyEmail(c echo.Context) error {
+	token := c.QueryParam("token")
 
-	if claims.FtcID == "" {
-		return render.NewNotFound("user not found")
-	}
-
-	il, err := router.repo.GrantLicence(claims)
+	resp, err := router.apiClient.VerifySignup(token)
 	if err != nil {
-		switch err {
-		case subs.ErrInvalidInvitation:
-			return render.NewNotFound(err.Error())
-
-		case subs.ErrLicenceTaken:
-			return render.NewNotFound(err.Error())
-
-		default:
-			return render.NewDBError(err)
-		}
+		return render.NewInternalError(err.Error())
 	}
 
-	// Send a notification letter to admin.
-	go func() {
-		// TODO: fix this.
-		profile, err := router.repo.AdminProfile("")
-		if err != nil {
-			return
-		}
-
-		parcel, err := letter.LicenceGrantedParcel(il, profile.BaseAccount)
-		if err != nil {
-			return
-		}
-
-		err = router.post.Deliver(parcel)
-		if err != nil {
-		}
-	}()
-
-	return c.NoContent(http.StatusNoContent)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
