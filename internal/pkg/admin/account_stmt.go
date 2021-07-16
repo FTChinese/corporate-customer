@@ -32,21 +32,6 @@ const StmtBaseAccountByEmail = selectBaseAccount + `
 WHERE a.email = ?
 LIMIT 1`
 
-// selectPassport retrieves admin's account
-// and the team linked to it.
-const selectPassport = colBaseAccount + `,
-	t.id AS team_id,
-	t.name AS team_name
-FROM b2b.admin AS a
-	LEFT JOIN b2b.team AS t
-	ON a.id = t.admin_id`
-
-// PassportByTeamID retrieve passport by team id.
-// Deprecated.
-const PassportByTeamID = selectPassport + `
-WHERE t.id = ?
-LIMIT 1`
-
 const StmtUpdateName = `
 UPDATE b2b.admin
 SET display_name = :display_name,
