@@ -1,142 +1,164 @@
 package subs
 
 import (
-	"database/sql"
 	"errors"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
+	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
-	"github.com/FTChinese/go-rest"
-	"github.com/guregu/null"
+	gorest "github.com/FTChinese/go-rest"
 )
 
-// CreateInvitation creates a new invitation for a licence.
-// To create an invitation letter, we need the following
-// information:
-// * Assignee
-// * Invitation.Token
-// * Plan
-func (env Env) CreateInvitation(inv licence.Invitation) (licence.InvitedLicence, error) {
-	tx, err := env.beginInvTx()
+// InvitationByToken tries to find an Invitation by token.
+func (env Env) InvitationByToken(token string) (licence.Invitation, error) {
+	var inv licence.Invitation
+	err := env.dbs.Read.Get(&inv, licence.StmtInvitationByToken, token)
 	if err != nil {
-		return licence.InvitedLicence{}, err
+		return inv, err
 	}
 
-	// Retrieve the licence.
-	licence, err := tx.RetrieveLicence(inv.LicenceID, inv.TeamID)
-	// There is an not found error here.
-	if err != nil {
-		_ = tx.Rollback()
-		return licence.InvitedLicence{}, err
-	}
-
-	// If this licence is not available to grant.
-	if !licence.IsAvailable() {
-		_ = tx.Rollback()
-		return licence.InvitedLicence{}, ErrLicenceUnavailable
-	}
-
-	// If another reader is already invited to accept this licence.
-	// Admin should first revoke the invitation before invite another reader.
-	if !licence.LastInviteeEmail.Valid && licence.LastInviteeEmail.String != inv.Email {
-		_ = tx.Rollback()
-		return licence.InvitedLicence{}, ErrInviteeMismatch
-	}
-
-	// Try to find the reader account by email.
-	// Not found should not be considered an error here.
-	invitee, err := env.FindReader(inv.Email)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		_ = tx.Rollback()
-		return licence.InvitedLicence{}, err
-	}
-
-	// If this reader has a valid membership, disallow
-	// granting a new licence.
-	if !invitee.Membership.IsExpired() {
-		_ = tx.Rollback()
-		return licence.InvitedLicence{}, ErrAlreadyMember
-	}
-
-	if invitee.FtcID.IsZero() {
-		invitee.Email = null.StringFrom(inv.Email)
-	}
-
-	// Update licence with by setting last_invitation column.
-	baseLicence := licence.Invited(inv)
-	err = tx.SetLicenceInvited(baseLicence)
-	if err != nil {
-		_ = tx.Rollback()
-		return licence.InvitedLicence{}, err
-	}
-
-	// Save the invitation
-	err = tx.SaveInvitation(inv)
-	if err != nil {
-		return licence.InvitedLicence{}, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return licence.InvitedLicence{}, err
-	}
-
-	return licence.InvitedLicence{
-		Invitation: inv,
-		Licence:    baseLicence,
-		Plan:       licence.Plan,
-		Assignee:   invitee.Assignee,
-	}, nil
+	return inv, nil
 }
 
-func (env Env) RevokeInvitation(invID, teamID string) error {
-	tx, err := env.beginInvTx()
+func (env Env) InvitationByID(id string) (licence.Invitation, error) {
+	var inv licence.Invitation
+	err := env.dbs.Read.Get(&inv, licence.StmtInvitationByID, id)
 	if err != nil {
-		return err
+		return licence.Invitation{}, err
 	}
 
-	// Retrieve the invitation
-	inv, err := tx.RetrieveInvitation(invID, teamID)
-	// The invitation might not found.
+	return inv, nil
+}
+
+// CreateInvitation creates an invitation for a licence
+// depending on the licence availability.
+// The returned licence contains the newly created invitation instance.
+func (env Env) CreateInvitation(params input.InvitationParams, adminID string) (licence.BaseLicence, error) {
+	defer env.logger.Sync()
+	sugar := env.logger.Sugar()
+
+	tx, err := env.beginTx()
 	if err != nil {
-		_ = tx.Rollback()
-		return err
+		sugar.Error(err)
+		return licence.BaseLicence{}, err
 	}
 
-	// Retrieve the licence
-	licence, err := tx.FindInvitedLicence(inv)
-	// Ignore the not found error
-	if err != nil && errors.Is(err, sql.ErrNoRows) {
-		_ = tx.Rollback()
-		return err
-	}
-
-	// Revoke the invitation
-	inv = inv.Revoke()
-	err = tx.RevokeInvitation(inv)
+	lic, err := tx.RetrieveBaseLicence(admin.AccessRight{
+		RowID:  params.LicenceID,
+		TeamID: params.TeamID,
+	})
 	if err != nil {
+		sugar.Error(err)
 		_ = tx.Rollback()
-		return err
+		return licence.BaseLicence{}, err
+	}
+	if !lic.IsAvailable() {
+		_ = tx.Rollback()
+		return licence.BaseLicence{}, err
 	}
 
-	if licence.CanInvitationBeRevoked() {
-		err := tx.UnlinkInvitedLicence(licence)
-		if err != nil {
-			_ = tx.Rollback()
-			return err
-		}
+	inv, err := licence.NewInvitation(params, adminID)
+	if err != nil {
+		sugar.Error(err)
+		_ = tx.Rollback()
+		return licence.BaseLicence{}, err
+	}
+
+	updateLic := lic.WithInvitation(inv)
+
+	err = tx.CreateInvitation(inv)
+	if err != nil {
+		sugar.Error(err)
+		_ = tx.Rollback()
+		return licence.BaseLicence{}, err
+	}
+
+	err = tx.UpdateLicenceStatus(updateLic)
+	if err != nil {
+		sugar.Error(err)
+		_ = tx.Rollback()
+		return licence.BaseLicence{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return err
+		sugar.Error(err)
+		return licence.BaseLicence{}, err
 	}
 
-	return nil
+	return updateLic, nil
+}
+
+func (env Env) RevokeInvitation(invID, teamID string) (licence.Invitation, error) {
+	defer env.logger.Sync()
+	sugar := env.logger.Sugar()
+
+	tx, err := env.beginTx()
+	if err != nil {
+		sugar.Error(err)
+		return licence.Invitation{}, err
+	}
+
+	inv, err := tx.RetrieveInvitation(admin.AccessRight{
+		RowID:  invID,
+		TeamID: teamID,
+	})
+	if err != nil {
+		sugar.Error(err)
+		_ = tx.Rollback()
+		return licence.Invitation{}, err
+	}
+	if !inv.IsRevocable() {
+		_ = tx.Rollback()
+		return licence.Invitation{}, errors.New("invitation is not revocable")
+	}
+
+	lic, err := tx.RetrieveBaseLicence(admin.AccessRight{
+		RowID:  inv.LicenceID,
+		TeamID: teamID,
+	})
+	if err != nil {
+		sugar.Error(err)
+		_ = tx.Rollback()
+		return licence.Invitation{}, err
+	}
+	if !lic.IsInvitationRevocable() {
+		_ = tx.Rollback()
+		return licence.Invitation{}, errors.New("invitation is not revocable")
+	}
+
+	revokedInv := inv.Revoked()
+	updatedLic := lic.WithInvitationRevoked()
+
+	err = tx.UpdateInvitationStatus(revokedInv)
+	if err != nil {
+		sugar.Error(err)
+		_ = tx.Rollback()
+		return licence.Invitation{}, err
+	}
+
+	err = tx.UpdateLicenceStatus(updatedLic)
+	if err != nil {
+		sugar.Error(err)
+		_ = tx.Rollback()
+		return licence.Invitation{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return licence.Invitation{}, err
+	}
+
+	return revokedInv, nil
 }
 
 // List invitations shows a list of invitations for a team.
-func (env Env) ListInvitations(teamID string, page gorest.Pagination) ([]licence.Invitation, error) {
+func (env Env) listInvitations(teamID string, page gorest.Pagination) ([]licence.Invitation, error) {
 	var invs = make([]licence.Invitation, 0)
 
-	err := env.dbs.Read.Select(&invs, stmt.ListInvitation, teamID, page.Limit, page.Offset())
+	err := env.dbs.Read.Select(
+		&invs,
+		licence.StmtListInvitation,
+		teamID,
+		page.Limit,
+		page.Offset())
 
 	if err != nil {
 		return nil, err
@@ -145,27 +167,13 @@ func (env Env) ListInvitations(teamID string, page gorest.Pagination) ([]licence
 	return invs, nil
 }
 
-func (env Env) AsyncListInvitations(teamID string, page gorest.Pagination) <-chan licence.InvitationList {
-	r := make(chan licence.InvitationList)
-
-	go func() {
-		defer close(r)
-
-		inv, err := env.ListInvitations(teamID, page)
-
-		r <- licence.InvitationList{
-			Data: inv,
-			Err:  err,
-		}
-	}()
-
-	return r
-}
-
-func (env Env) CountInvitation(teamID string) (int64, error) {
+func (env Env) countInvitation(teamID string) (int64, error) {
 	var total int64
 
-	err := env.dbs.Read.Select(&total, stmt.CountInvitation, teamID)
+	err := env.dbs.Read.Select(
+		&total,
+		licence.StmtCountInvitation,
+		teamID)
 
 	if err != nil {
 		return total, err
@@ -174,18 +182,46 @@ func (env Env) CountInvitation(teamID string) (int64, error) {
 	return total, nil
 }
 
-func (env Env) AsyncCountInvitation(teamID string) <-chan licence.InvitationList {
-	r := make(chan licence.InvitationList)
+func (env Env) ListInvitations(teamID string, page gorest.Pagination) (licence.InvitationList, error) {
+	defer env.logger.Sync()
+	sugar := env.logger.Sugar()
+
+	countCh := make(chan int64)
+	listCh := make(chan licence.InvitationList)
 
 	go func() {
-		defer close(r)
-		total, err := env.CountInvitation(teamID)
+		defer close(countCh)
+		n, err := env.countInvitation(teamID)
+		if err != nil {
+			sugar.Error(err)
+		}
 
-		r <- licence.InvitationList{
-			Total: total,
-			Err:   err,
+		countCh <- n
+	}()
+
+	go func() {
+		defer close(listCh)
+
+		invs, err := env.listInvitations(teamID, page)
+
+		listCh <- licence.InvitationList{
+			Total:      0,
+			Pagination: gorest.Pagination{},
+			Data:       invs,
+			Err:        err,
 		}
 	}()
 
-	return r
+	count, listResult := <-countCh, <-listCh
+
+	if listResult.Err != nil {
+		return licence.InvitationList{}, listResult.Err
+	}
+
+	return licence.InvitationList{
+		Total:      count,
+		Pagination: page,
+		Data:       listResult.Data,
+		Err:        nil,
+	}, nil
 }
