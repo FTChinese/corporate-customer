@@ -1,7 +1,7 @@
 package input
 
 import (
-	validator2 "github.com/FTChinese/ftacademy/pkg/validator"
+	"github.com/FTChinese/ftacademy/pkg/validator"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 	"strings"
@@ -13,6 +13,7 @@ type InvitationParams struct {
 	Email       string      `json:"email"` // To whom the invitation should be sent.
 	Description null.String `json:"description"`
 	LicenceID   string      `json:"licenceId"` // Which licence is being granted.
+	TeamID      string      `json:"teamId"`
 }
 
 func (i *InvitationParams) Validate() *render.ValidationError {
@@ -20,16 +21,22 @@ func (i *InvitationParams) Validate() *render.ValidationError {
 	desc := strings.TrimSpace(i.Description.String)
 	i.Description = null.NewString(desc, desc != "")
 	i.LicenceID = strings.TrimSpace(i.LicenceID)
+	i.TeamID = strings.TrimSpace(i.TeamID)
 
-	ve := validator2.New("email").Required().Email().Validate(i.Email)
+	ve := validator.New("email").Required().Email().Validate(i.Email)
 	if ve != nil {
 		return ve
 	}
 
-	ve = validator2.New("description").MaxLen(128).Validate(i.Description.String)
+	ve = validator.New("description").MaxLen(128).Validate(i.Description.String)
 	if ve != nil {
 		return ve
 	}
 
-	return validator2.New("licenceId").Required().Validate(i.LicenceID)
+	ve = validator.New("licenceId").Required().Validate(i.LicenceID)
+	if ve != nil {
+		return ve
+	}
+
+	return validator.New("teamId").Required().Validate(i.TeamID)
 }
