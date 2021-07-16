@@ -1,13 +1,12 @@
 package subs
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
-	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	gorest "github.com/FTChinese/go-rest"
 )
 
-func (env Env) SaveStaffer(m model2.Staffer) error {
-	_, err := env.dbs.Write.NamedExec(stmt.InsertStaffer, m)
+func (env Env) SaveStaffer(m licence.Staffer) error {
+	_, err := env.dbs.Write.NamedExec(licence.InsertStaffer, m)
 
 	if err != nil {
 		return err
@@ -18,8 +17,8 @@ func (env Env) SaveStaffer(m model2.Staffer) error {
 
 // UpdateStaffer add a member's ftc if missing.
 // This is used after a reader signup upon verifying invitation.
-func (env Env) UpdateStaffer(m model2.Staffer) error {
-	_, err := env.dbs.Write.NamedExec(stmt.SetStaffFtcID, m)
+func (env Env) UpdateStaffer(m licence.Staffer) error {
+	_, err := env.dbs.Write.NamedExec(licence.SetStaffFtcID, m)
 
 	if err != nil {
 		return err
@@ -28,10 +27,10 @@ func (env Env) UpdateStaffer(m model2.Staffer) error {
 	return nil
 }
 
-func (env Env) ListStaff(teamID string, page gorest.Pagination) ([]model2.Staffer, error) {
-	list := make([]model2.Staffer, 0)
+func (env Env) ListStaff(teamID string, page gorest.Pagination) ([]licence.Staffer, error) {
+	list := make([]licence.Staffer, 0)
 
-	err := env.dbs.Read.Select(&list, stmt.ListStaff, teamID, page.Limit, page.Offset())
+	err := env.dbs.Read.Select(&list, licence.ListStaff, teamID, page.Limit, page.Offset())
 	if err != nil {
 		return nil, err
 	}
@@ -39,15 +38,15 @@ func (env Env) ListStaff(teamID string, page gorest.Pagination) ([]model2.Staffe
 	return list, nil
 }
 
-func (env Env) AsyncListStaff(teamID string, page gorest.Pagination) <-chan model2.StaffList {
-	r := make(chan model2.StaffList)
+func (env Env) AsyncListStaff(teamID string, page gorest.Pagination) <-chan licence.StaffList {
+	r := make(chan licence.StaffList)
 
 	go func() {
 		defer close(r)
 
 		list, err := env.ListStaff(teamID, page)
 
-		r <- model2.StaffList{
+		r <- licence.StaffList{
 			Data: list,
 			Err:  err,
 		}
@@ -58,7 +57,7 @@ func (env Env) AsyncListStaff(teamID string, page gorest.Pagination) <-chan mode
 
 func (env Env) CountStaff(teamID string) (int64, error) {
 	var total int64
-	err := env.dbs.Read.Get(&total, stmt.CountStaff, teamID)
+	err := env.dbs.Read.Get(&total, licence.CountStaff, teamID)
 	if err != nil {
 		return 0, err
 	}
@@ -66,14 +65,14 @@ func (env Env) CountStaff(teamID string) (int64, error) {
 	return total, nil
 }
 
-func (env Env) AsyncCountStaff(teamID string) <-chan model2.StaffList {
-	r := make(chan model2.StaffList)
+func (env Env) AsyncCountStaff(teamID string) <-chan licence.StaffList {
+	r := make(chan licence.StaffList)
 
 	go func() {
 		defer close(r)
 		total, err := env.CountStaff(teamID)
 
-		r <- model2.StaffList{
+		r <- licence.StaffList{
 			Total: total,
 			Err:   err,
 		}
@@ -85,8 +84,8 @@ func (env Env) AsyncCountStaff(teamID string) <-chan model2.StaffList {
 // DeleteStaffer deletes a staffer that is not a member of a team.
 // TODO: A this staffer is still using a licence of this team,
 // delete should be ignored.
-func (env Env) DeleteStaffer(m model2.Staffer) error {
-	_, err := env.dbs.Write.NamedExec(stmt.DeleteStaffer, m)
+func (env Env) DeleteStaffer(m licence.Staffer) error {
+	_, err := env.dbs.Write.NamedExec(licence.DeleteStaffer, m)
 	if err != nil {
 		return err
 	}
