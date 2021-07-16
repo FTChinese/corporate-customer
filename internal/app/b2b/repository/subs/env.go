@@ -1,6 +1,7 @@
 package subs
 
 import (
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/txrepo"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"go.uber.org/zap"
 )
@@ -17,14 +18,12 @@ func NewEnv(DBs db.ReadWriteMyDBs, logger *zap.Logger) Env {
 	}
 }
 
-func (env Env) beginInvTx() (InvitationTx, error) {
+func (env Env) beginTx() (txrepo.TxRepo, error) {
 	tx, err := env.dbs.Write.Beginx()
 
 	if err != nil {
-		return InvitationTx{}, err
+		return txrepo.TxRepo{}, err
 	}
 
-	return InvitationTx{
-		tx,
-	}, nil
+	return txrepo.NewTxRepo(tx), nil
 }
