@@ -1,23 +1,23 @@
 package stmt
 
 import (
-	sq2 "github.com/FTChinese/ftacademy/pkg/sq"
+	"github.com/FTChinese/ftacademy/pkg/sq"
 )
 
-var OrderBuilder = sq2.NewInsert().
-	Into(sq2.NewTable("b2b.order")).
-	SetColumns([]sq2.Column{
-		sq2.NewColumn("id"),
-		sq2.NewColumn("plan_id"),
-		sq2.NewColumn("discount_id"),
-		sq2.NewColumn("licence_id"),
-		sq2.NewColumn("team_id"),
-		sq2.NewColumn("checkout_id"),
-		sq2.NewColumn("amount"),
-		sq2.NewColumn("cycle_count"),
-		sq2.NewColumn("trial_days"),
-		sq2.NewColumn("kind"),
-		sq2.NewColumn("created_utc"),
+var OrderBuilder = sq.NewInsert().
+	Into(sq.NewTable("b2b.order")).
+	SetColumns([]sq.Column{
+		sq.NewColumn("id"),
+		sq.NewColumn("plan_id"),
+		sq.NewColumn("discount_id"),
+		sq.NewColumn("licence_id"),
+		sq.NewColumn("team_id"),
+		sq.NewColumn("checkout_id"),
+		sq.NewColumn("amount"),
+		sq.NewColumn("cycle_count"),
+		sq.NewColumn("trial_days"),
+		sq.NewColumn("kind"),
+		sq.NewColumn("created_utc"),
 	})
 
 const selectOrder = `
