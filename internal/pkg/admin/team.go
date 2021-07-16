@@ -11,7 +11,7 @@ import (
 // A team can purchase licences.
 type Team struct {
 	ID      string `db:"team_id"`
-	AdminID string `db:"team_id"`
+	AdminID string `db:"admin_id"`
 	input.TeamParams
 	CreatedUTC chrono.Time `db:"created_utc"`
 	UpdatedUTC chrono.Time `db:"updated_utc"`
