@@ -2,27 +2,19 @@ package controller
 
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/fetch"
-	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 )
 
 type ReadersRouter struct {
-	dk        Doorkeeper
-	repo      subs.Env
-	post      postman.Postman
 	apiClient api.Client
 }
 
-func NewReaderRouter(env subs.Env, post postman.Postman, dk Doorkeeper, client api.Client) ReadersRouter {
+func NewReaderRouter(client api.Client) ReadersRouter {
 	return ReadersRouter{
-		dk:        dk,
-		repo:      env,
-		post:      post,
 		apiClient: client,
 	}
 }
