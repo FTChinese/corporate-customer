@@ -1,52 +1,54 @@
 package subs
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/stmt"
-	model2 "github.com/FTChinese/ftacademy/internal/pkg/model"
+	"database/sql"
+	"errors"
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
+	"github.com/FTChinese/ftacademy/internal/pkg/reader"
+	"github.com/guregu/null"
 )
 
-// FindReader by email.
-// Deprecated. Use API.
-func (env Env) FindReader(email string) (model2.Reader, error) {
-	var r model2.Reader
-	err := env.dbs.Read.Get(&r, stmt.SelectReader, email)
+func (env Env) RetrieveAssignee(id string) (licence.Assignee, error) {
+	var a licence.Assignee
+	err := env.dbs.Read.Get(&a, licence.StmtAssigneeByID, id)
 	if err != nil {
-		return r, err
+		return licence.Assignee{}, err
 	}
 
-	r.Normalize()
-
-	return r, nil
+	return a, nil
 }
 
-// CreateReader creates new FTC user.
-// Deprecated. Use API.
-func (env Env) CreateReader(s model2.SignUp) error {
-	tx, err := env.dbs.Write.Beginx()
+func (env Env) FindAssignee(email string) (licence.Assignee, error) {
+	var a licence.Assignee
+	err := env.dbs.Read.Get(&a, licence.StmtAssigneeByEmail, email)
 	if err != nil {
-		return err
-	}
-	_, err = tx.NamedExec(stmt.CreateReader, s)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
+		if errors.Is(err, sql.ErrNoRows) {
+			return licence.Assignee{
+				FtcID:    null.String{},
+				UnionID:  null.String{},
+				Email:    null.StringFrom(email),
+				UserName: null.String{},
+			}, nil
+		}
+		return licence.Assignee{}, err
 	}
 
-	_, err = tx.NamedExec(stmt.CreateReaderProfile, s)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
+	return a, nil
+}
+
+func (env Env) RetrieveMembership(compoundID string) (reader.Membership, error) {
+	var m reader.Membership
+
+	err := env.dbs.Read.Get(
+		&m,
+		reader.StmtLockMember,
+		compoundID,
+	)
+
+	if err != nil && err != sql.ErrNoRows {
+		return m, err
 	}
 
-	_, err = tx.NamedExec(stmt.SaveReaderVrf, s)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+	// Treat a non-existing member as a valid value.
+	return m.Sync(), nil
 }
