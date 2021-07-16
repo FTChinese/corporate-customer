@@ -142,6 +142,11 @@ func (f *Fetch) SendJSON(v interface{}) *Fetch {
 	return f
 }
 
+// End perform the actual HTTP call.
+// To get the response body for further processing
+// you can use `ioutil.ReadAll(resp.body)`
+// or directly forward raw io to client using
+// echo's Stream() method.
 func (f *Fetch) End() (*http.Response, []error) {
 	if f.Errors != nil {
 		return nil, f.Errors
