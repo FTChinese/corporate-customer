@@ -3,7 +3,9 @@ package letter
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
+	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/postman"
+	"github.com/FTChinese/go-rest/chrono"
 )
 
 const fromAddress = "no-reply@ftchinese.com"
@@ -46,13 +48,13 @@ func PasswordResetParcel(a admin.BaseAccount, session admin.PwResetSession) (pos
 	}, nil
 }
 
-func InvitationParcel(il licence.InvitedLicence, adminProfile admin.Profile) (postman.Parcel, error) {
+func InvitationParcel(assignee licence.Assignee, lic licence.BaseLicence, adminProfile admin.Profile) (postman.Parcel, error) {
 	body, err := CtxInvitation{
-		AssigneeName: il.Assignee.NormalizeName(),
-		TeamName:     adminProfile.OrgName,
-		Tier:         il.Plan.Tier,
-		URL:          baseUrl + "/accept-invitation/" + il.Invitation.Token,
-		AdminEmail:   adminProfile.Email,
+		ToName:     assignee.NormalizeName(),
+		Tier:       lic.Tier,
+		URL:        config.B2BVerifyInvitationURL(lic.LatestInvitation.Token),
+		AdminEmail: adminProfile.Email,
+		TeamName:   adminProfile.OrgName,
 	}.Render()
 
 	if err != nil {
@@ -62,8 +64,8 @@ func InvitationParcel(il licence.InvitedLicence, adminProfile admin.Profile) (po
 	return postman.Parcel{
 		FromAddress: "no-reply@ftchinese.com",
 		FromName:    "FT中文网",
-		ToAddress:   il.Assignee.Email.String,
-		ToName:      il.Assignee.NormalizeName(),
+		ToAddress:   assignee.Email.String,
+		ToName:      assignee.NormalizeName(),
 		Subject:     "[FT中文网企业订阅]会员邀请",
 		Body:        body,
 	}, nil
@@ -74,13 +76,13 @@ func InvitationParcel(il licence.InvitedLicence, adminProfile admin.Profile) (po
 // licence is granted.
 // We need to know the admin's account, reader's email
 // the the licence's plan.
-func LicenceGrantedParcel(il licence.InvitedLicence, adminAccount admin.BaseAccount) (postman.Parcel, error) {
+func LicenceGrantedParcel(lic licence.Licence, adminAccount admin.Profile) (postman.Parcel, error) {
 
 	var data = CtxLicenceGranted{
 		Name:           adminAccount.NormalizeName(),
-		AssigneeEmail:  il.Assignee.Email.String,
-		Tier:           il.Plan.Tier,
-		ExpirationDate: il.Licence.ExpireDate,
+		AssigneeEmail:  lic.Assignee.Email.String,
+		Tier:           lic.Tier.StringCN(),
+		ExpirationDate: chrono.DateFrom(lic.CurrentPeriodEndUTC.Time).String(),
 	}
 
 	body, err := data.Render()

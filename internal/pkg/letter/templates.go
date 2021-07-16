@@ -50,7 +50,7 @@ FT中文网`,
 `,
 	keyLicenceCreated: `
 `,
-	keyLicenceInvitation: `FT中文网读者 {{.AssigneeName}}，你好！
+	keyLicenceInvitation: `FT中文网读者 {{.ToName}}，你好！
 
 {{.TeamName}}为您订阅了FT中文网会员 {.Tier.StringCN}}，请点击以下链接接受邀请。
 

@@ -1,11 +1,10 @@
 package letter
 
 import (
-	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 )
 
-const baseUrl = "https://next.ftacademy.cn/b2b"
+const baseUrl = "https://next.ftacademy.cn/corporate"
 
 type CtxVerification struct {
 	Email    string
@@ -37,11 +36,11 @@ func (ctx CtxPwReset) Render() (string, error) {
 }
 
 type CtxInvitation struct {
-	AssigneeName string
-	AdminEmail   string
-	TeamName     string
-	Tier         enum.Tier
-	URL          string
+	ToName     string
+	AdminEmail string
+	TeamName   string
+	Tier       enum.Tier
+	URL        string
 }
 
 func (ctx CtxInvitation) Render() (string, error) {
@@ -51,8 +50,8 @@ func (ctx CtxInvitation) Render() (string, error) {
 type CtxLicenceGranted struct {
 	Name           string
 	AssigneeEmail  string
-	Tier           enum.Tier
-	ExpirationDate chrono.Date
+	Tier           string
+	ExpirationDate string
 }
 
 func (ctx CtxLicenceGranted) Render() (string, error) {
