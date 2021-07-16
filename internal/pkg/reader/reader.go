@@ -1,6 +1,7 @@
-package model
+package reader
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/guregu/null"
 )
 
@@ -22,7 +23,7 @@ import (
 // backup existing membership and update membership.
 // 6. Mark the invitation as accepted;
 type Reader struct {
-	Assignee
+	licence.Assignee
 	Membership
 }
 
@@ -36,8 +37,8 @@ type SignUp struct {
 }
 
 // Turn the SignUp into a new Reader type.
-func (s SignUp) TeamMember(teamID string) Staffer {
-	return Staffer{
+func (s SignUp) TeamMember(teamID string) licence.Staffer {
+	return licence.Staffer{
 		Email:  s.Email,
 		FtcID:  null.StringFrom(s.ID),
 		TeamID: teamID,
