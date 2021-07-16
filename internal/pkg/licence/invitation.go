@@ -4,9 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
-	plan2 "github.com/FTChinese/ftacademy/pkg/plan"
+	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
@@ -21,39 +21,84 @@ import (
 // it should not be used any longer;
 // Revoked: admin could revoke an invitation before it is accepted.
 // An accepted invitation could not be revoked since that is meaningless.
+// TODO: should we allow an invitation be re-sent if user failed to receive the email? Or just let admin to create a new invitation?
 type Invitation struct {
-	ID             string           `json:"id" db:"invitation_id"`
+	ID string `json:"id" db:"invite_id"`
+	Creator
+	Description    null.String      `json:"description" db:"invite_desc"`
+	ExpirationDays int64            `json:"expirationDays" db:"invite_expiration_days"`
+	Email          string           `json:"email" db:"invite_email"`
 	LicenceID      string           `json:"licenceId" db:"licence_id"`
-	TeamID         string           `json:"teamId" db:"team_id"`
-	Token          string           `json:"-" db:"token"` // This field is used only when inserting data. Retrieval does not include this field. However, it is included when saving to the JSON column in licence.
-	Email          string           `json:"email" db:"email"`
-	Description    null.String      `json:"description" db:"description"`
-	ExpirationDays int64            `json:"expiresInDays" db:"expiration_days"`
-	Status         InvitationStatus `json:"status" db:"current_status"`
-	CreatedUTC     chrono.Time      `json:"createdUtc" db:"created_utc"`
-	UpdatedUTC     chrono.Time      `json:"updatedUtc" db:"updated_utc"`
+	Status         InvitationStatus `json:"status" db:"invite_current_status"`
+	Token          string           `json:"-" db:"invite_token"` // This field is used only when inserting data. Retrieval does not include this field. However, it is included when saving to the JSON column in licence.
+	RowMeta
 }
 
-func NewInvitation(i input.InvitationParams, claims admin.PassportClaims) (Invitation, error) {
+func NewInvitation(params input.InvitationParams, adminID string) (Invitation, error) {
 	token, err := rand.Hex(32)
 	if err != nil {
 		return Invitation{}, err
 	}
 
 	return Invitation{
-		ID:             "inv_" + rand.String(12),
-		LicenceID:      i.LicenceID,
-		TeamID:         claims.TeamID.String, // TODO: ensure this is not empty
-		Token:          token,
-		Email:          i.Email,
-		Description:    i.Description,
+		ID: pkg.InvitationID(),
+		Creator: Creator{
+			CreatorID: adminID,
+			TeamID:    params.TeamID,
+		},
+		Description:    params.Description,
 		ExpirationDays: 7,
+		Email:          params.Email,
+		LicenceID:      params.LicenceID,
 		Status:         InvitationStatusCreated,
-		CreatedUTC:     chrono.TimeNow(),
-		UpdatedUTC:     chrono.TimeNow(),
+		Token:          token,
+		RowMeta: RowMeta{
+			CreatedUTC: chrono.TimeNow(),
+			UpdatedUTC: chrono.Time{},
+		},
 	}, nil
 }
 
+// IsExpired tests whether the invitation is expired.
+// An expired invitation is not allowed grant its related licence.
+func (i Invitation) IsExpired() bool {
+	now := time.Now().Unix()
+
+	created := i.CreatedUTC.Time.Unix()
+
+	// Default 7 days * 24 * 60 * 60
+	return (created + i.ExpirationDays*86400) < now
+}
+
+// IsAcceptable determines whether an invitation is valid.
+// A valid invitation must be not expires, not revoked by admin, not accepted by any one.
+// A valid invitation can be accepted or revoked.
+func (i Invitation) IsAcceptable() bool {
+	return i.Status == InvitationStatusCreated && !i.IsExpired()
+}
+
+// Accepted invalidates an invitation after reader accepted the licence associated with it.
+func (i Invitation) Accepted() Invitation {
+	i.Status = InvitationStatusAccepted
+	i.UpdatedUTC = chrono.TimeNow()
+
+	return i
+}
+
+func (i Invitation) IsRevocable() bool {
+	return i.Status == InvitationStatusCreated
+}
+
+// Revoked invalidates an invitation by admin.
+func (i Invitation) Revoked() Invitation {
+	i.Status = InvitationStatusRevoked
+	i.UpdatedUTC = chrono.TimeNow()
+
+	return i
+}
+
+// Value implements Valuer interface by serializing an Invitation into
+// JSON data.
 func (i Invitation) Value() (driver.Value, error) {
 	if i.ID == "" {
 		return nil, nil
@@ -67,6 +112,7 @@ func (i Invitation) Value() (driver.Value, error) {
 	return string(b), nil
 }
 
+// Scan implements Valuer interface by deserializing an invitation field.
 func (i *Invitation) Scan(src interface{}) error {
 	if src == nil {
 		*i = Invitation{}
@@ -87,61 +133,12 @@ func (i *Invitation) Scan(src interface{}) error {
 	}
 }
 
-// IsExpired tests whether the invitation is expired.
-func (i Invitation) IsExpired() bool {
-	now := time.Now().Unix()
-
-	created := i.CreatedUTC.Time.Unix()
-
-	// Default 7 days * 24 * 60 * 60
-	return (created + i.ExpirationDays*86400) < now
-}
-
-// IsValid determines whether an invitation is valid.
-// A valid invitation must be not expires, not revoked by admin, not accepted by any one.
-// A valid invitation can be accepted or revoked.
-func (i Invitation) IsValid() bool {
-	return i.Status == InvitationStatusCreated && !i.IsExpired()
-}
-
-func (i Invitation) CanBeRevoked() bool {
-	return i.Status == InvitationStatusCreated
-}
-
-// Revoke invalidates an invitation by admin.
-func (i Invitation) Revoke() Invitation {
-	i.Status = InvitationStatusRevoked
-	i.UpdatedUTC = chrono.TimeNow()
-
-	return i
-}
-
-func (i Invitation) CanBeAccepted() bool {
-	return i.Status == InvitationStatusCreated
-}
-
-// Accept invalidates an invitation after reader accepted the licence associated with it.
-func (i Invitation) Accept() Invitation {
-	i.Status = InvitationStatusAccepted
-	i.UpdatedUTC = chrono.TimeNow()
-
-	return i
-}
-
 // InvitationVerified is returned after an invitation link
 // is clicked and the corresponding Licence is found.
 type InvitationVerified struct {
-	FtcID   null.String `json:"ftcId"` // Null if the invitee email is not signed up to ftc; otherwise a string.
-	Licence Licence     // The licence being invited.
-}
-
-// InvitedLicence wraps all related information after
-// an invitation is created.
-type InvitedLicence struct {
-	Invitation Invitation
-	Licence    BaseLicence    // The licence to grant
-	Plan       plan2.BasePlan // The plan of this licence
-	Assignee   Assignee       // Who will be granted the licence.
+	Licence    Licence // The licence being invited.
+	Assignee   Assignee
+	Membership reader.Membership
 }
 
 // InvitationList is used for restful output.
