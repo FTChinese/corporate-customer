@@ -1,4 +1,4 @@
-package stmt
+package order
 
 import (
 	"github.com/FTChinese/ftacademy/pkg/sq"

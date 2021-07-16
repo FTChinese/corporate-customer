@@ -6,22 +6,8 @@ import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
-	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 )
-
-// GetCartPlansIDs collects the plan ids of items
-// in a cart and use it to retrieve the plans
-// using FIND_IN_SET
-func GetCartPlanIDs(items []CartItem) []string {
-	var ids = make([]string, 0)
-
-	for _, item := range items {
-		ids = append(ids, item.PlanID)
-	}
-
-	return ids
-}
 
 // CartItem is the plan user is subscribing
 // and the number of copies for this plan.
@@ -46,32 +32,6 @@ type CheckoutCounter struct {
 type Cart struct {
 	CheckoutID string
 	Items      []CartItem
-}
-
-func NewCart(items []CartItem, plans plan2.GroupedPlans) (Cart, *render.ValidationError) {
-	cart := Cart{
-		CheckoutID: "chk_" + rand.String(12),
-		Items:      nil,
-	}
-
-	for _, v := range items {
-		p, ok := plans[v.PlanID]
-		if !ok {
-			return Cart{}, &render.ValidationError{
-				Message: "Missing required field",
-				Field:   "planId",
-				Code:    render.CodeMissing,
-			}
-		}
-
-		dp := p.DiscountPlan(v.Quantity)
-
-		v.Plan = dp
-
-		cart.Items = append(cart.Items, v)
-	}
-
-	return cart, nil
 }
 
 func (c Cart) BuildOrders(teamID string) OrderList {
