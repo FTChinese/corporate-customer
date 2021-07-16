@@ -1,7 +1,6 @@
 package licence
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"github.com/guregu/null"
@@ -13,17 +12,22 @@ import (
 // a licence.
 type Assignee struct {
 	FtcID    null.String `json:"ftcId" db:"ftc_id"`
+	UnionID  null.String `json:"unionId" db:"wx_union_id"`
 	Email    null.String `json:"email" db:"user_email"`
 	UserName null.String `json:"userName" db:"user_name"`
 }
 
-func (a Assignee) Value() (driver.Value, error) {
-	if a.FtcID.IsZero() {
-		return nil, nil
-	}
-
-	return a.FtcID.String, nil
+func (a Assignee) IsZero() bool {
+	return a.FtcID.IsZero()
 }
+
+//func (a Assignee) Value() (driver.Value, error) {
+//	if a.FtcID.IsZero() {
+//		return nil, nil
+//	}
+//
+//	return a.FtcID.String, nil
+//}
 
 func (a *Assignee) Scan(src interface{}) error {
 	if src == nil {
