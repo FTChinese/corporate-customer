@@ -15,7 +15,6 @@ func (router AdminRouter) SignUp(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	//var input model.AccountInput
 	var params input.SignupParams
 	if err := c.Bind(&params); err != nil {
 		sugar.Error(err)
