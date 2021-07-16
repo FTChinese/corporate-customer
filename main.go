@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/controller"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/products"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
 	"github.com/FTChinese/ftacademy/pkg/config"
@@ -63,6 +64,7 @@ func main() {
 
 	appKey := config.MustGetAppKey("web_app.b2b")
 
+	apiClient := api.NewSubsAPIClient(isProduction)
 	dk := controller.NewDoorkeeper(appKey.GetJWTKey())
 	// TODO: deprecate
 	subsRepo := subs.NewEnv(myDBs, logger)
@@ -73,8 +75,7 @@ func main() {
 	productRouter := controller.NewProductRouter(productsRepo)
 	// TODO: deprecate
 	orderRouter := controller.NewOrderRouter(subsRepo, productsRepo, pm)
-	licenceRouter := controller.NewLicenceRouter(subsRepo)
-	readerRouter := controller.NewReaderRouter(subsRepo, pm, dk)
+	readerRouter := controller.NewReaderRouter(subsRepo, pm, dk, apiClient)
 
 	e := echo.New()
 	e.Renderer = MustNewRenderer(conf)
@@ -103,13 +104,15 @@ func main() {
 
 	api := e.Group("/api")
 
-	authGroup := api.Group("/auth")
-	{
-		authGroup.POST("/login/", adminRouter.Login)
-		authGroup.POST("/signup/", adminRouter.SignUp)
-		authGroup.GET("/verify/:token", adminRouter.VerifyEmail)
+	b2bAPIGroup := api.Group("/b2b")
 
-		pwResetGroup := authGroup.Group("/password-reset")
+	b2bAuthGroup := b2bAPIGroup.Group("/auth")
+	{
+		b2bAuthGroup.POST("/login/", adminRouter.Login)
+		b2bAuthGroup.POST("/signup/", adminRouter.SignUp)
+		b2bAuthGroup.GET("/verify/:token", adminRouter.VerifyEmail)
+
+		pwResetGroup := b2bAuthGroup.Group("/password-reset")
 		{
 			// Handle resetting password
 			pwResetGroup.POST("/", adminRouter.ResetPassword)
@@ -125,30 +128,30 @@ func main() {
 		}
 	}
 
-	accountGroup := api.Group("/account", dk.RequireLoggedIn)
+	b2bAccountGroup := b2bAPIGroup.Group("/account", dk.RequireLoggedIn)
 	{
-		//accountGroup.GET("/", accountRouter.Account)
-		accountGroup.GET("/jwt/", adminRouter.RefreshJWT)
-		accountGroup.POST("/request-verification", adminRouter.RequestVerification)
-		accountGroup.PATCH("/display-name", adminRouter.ChangeName)
-		accountGroup.PATCH("/password", adminRouter.ChangePassword)
+		//b2bAccountGroup.GET("/", accountRouter.Account)
+		b2bAccountGroup.GET("/jwt/", adminRouter.RefreshJWT)
+		b2bAccountGroup.POST("/request-verification", adminRouter.RequestVerification)
+		b2bAccountGroup.PATCH("/display-name", adminRouter.ChangeName)
+		b2bAccountGroup.PATCH("/password", adminRouter.ChangePassword)
 	}
 
-	teamGroup := api.Group("/team", dk.RequireLoggedIn)
+	b2bTeamGroup := b2bAPIGroup.Group("/team", dk.RequireLoggedIn)
 	{
-		teamGroup.GET("/", adminRouter.LoadTeam)
-		teamGroup.POST("/", adminRouter.CreateTeam)
-		teamGroup.PATCH("/", adminRouter.UpdateTeam)
+		b2bTeamGroup.GET("/", adminRouter.LoadTeam)
+		b2bTeamGroup.POST("/", adminRouter.CreateTeam)
+		b2bTeamGroup.PATCH("/", adminRouter.UpdateTeam)
 	}
 
 	// TODO: use subscription api.
-	productGroup := api.Group("/products", dk.RequireLoggedIn)
+	productGroup := b2bAPIGroup.Group("/products", dk.RequireLoggedIn)
 	{
 		productGroup.GET("/", productRouter.ListProducts)
 	}
 
 	// TODO: delete
-	orderGroup := api.Group("/orders", dk.RequireLoggedIn)
+	orderGroup := b2bAPIGroup.Group("/orders", dk.RequireLoggedIn)
 	{
 		// List orders
 		orderGroup.GET("/", orderRouter.ListOrders)
@@ -156,27 +159,26 @@ func main() {
 		orderGroup.POST("/", orderRouter.CreateOrders)
 	}
 
-	licenceGroup := api.Group("/licences", dk.RequireLoggedIn)
+	b2bLicenceGroup := b2bAPIGroup.Group("/licences", dk.RequireLoggedIn)
 	{
 		// List licences
-		licenceGroup.GET("/", licenceRouter.ListLicence)
-		// Renew/upgrade a licence
-		licenceGroup.PATCH("/:id", licenceRouter.UpdateLicence)
-		// Revoke a licence
-		licenceGroup.DELETE("/:id", licenceRouter.RevokeLicence)
+		b2bLicenceGroup.GET("/", subsRouter.ListLicence)
+		b2bLicenceGroup.GET("/:id", subsRouter.LoadLicence)
+		// Revoked a licence
+		b2bLicenceGroup.POST("/:id/revoke", subsRouter.RevokeLicence)
 	}
 
-	invitationGroup := api.Group("/invitations", dk.RequireLoggedIn)
+	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", dk.RequireLoggedIn)
 	{
 		// List invitations
-		invitationGroup.GET("/", subsRouter.ListInvitations)
+		b2bInvitationGroup.GET("/", subsRouter.ListInvitations)
 		// CreateTeam invitation.
 		// Also update the linked licence's status.
-		invitationGroup.POST("/", subsRouter.CreateInvitation)
-		// Revoke invitation before licence is accepted.
+		b2bInvitationGroup.POST("/", subsRouter.CreateInvitation)
+		// Revoked invitation before licence is accepted.
 		// Also revert the status of a licence from invitation sent
 		// back to available.
-		invitationGroup.DELETE("/:id", subsRouter.RevokeInvitation)
+		b2bInvitationGroup.POST("/:id/revoke", subsRouter.RevokeInvitation)
 	}
 
 	// Steps to accept an invitation:
@@ -184,16 +186,12 @@ func main() {
 	// 2. Use email to find user account (If account not found, go to signup);
 	// 3. Get account data and find out if membership already exists
 	// 4. Grant licence
-	readerGroup := api.Group("/accept-invitation")
+	b2bGrantGroup := b2bAPIGroup.Group("/grant-licence")
 	{
 		// Verify the invitation is valid. Cache the invitation for a short period
 		// so that the next step won't hit db.
-		readerGroup.GET("/verify/:token", readerRouter.VerifyInvitation)
-		// Pass back data acquired from previous step
-		// and get reader account.
-		// If response is not found, go to signup.
-		readerGroup.GET("/account", readerRouter.FindAccount, dk.CheckInviteeClaims)
-		readerGroup.POST("/signup", readerRouter.SignUp, dk.CheckInviteeClaims)
+		b2bGrantGroup.GET("/verify-invitation/:token", subsRouter.VerifyInvitation)
+		b2bGrantGroup.POST("/signup", readerRouter.SignUp)
 		// Grant licence to user:
 		// 1. Retrieve invitation again;
 		// 2. Use invitation email to get reader account and verify it again.
@@ -201,7 +199,7 @@ func main() {
 		// 4. Set invitation being used; link licence to reader id; backup existing
 		// membership if exists; upsert membership.
 		// 5. Sent email to reader and admin about the result.
-		readerGroup.POST("/grant", subsRouter.GrantLicence, dk.CheckInviteeClaims)
+		b2bGrantGroup.POST("/grant", subsRouter.GrantLicence)
 	}
 
 	e.Logger.Fatal(e.Start(":4000"))
