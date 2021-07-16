@@ -30,48 +30,17 @@ type PassportClaims struct {
 	jwt.StandardClaims
 }
 
-// Passport an admin's identity and the team it belongs to.
-// This is used to compose invitation letter, find out
-// admin for an invitation, cached by client, etc..
-// Deprecated
-type Passport struct {
-	BaseAccount
-	TeamName null.String `json:"-" db:"team_name"` // Deprecated
-}
-
-func (p Passport) Bearer(signingKey []byte) (PassportBearer, error) {
-	claims := PassportClaims{
-		AdminID:        p.ID,
-		TeamID:         p.TeamID,
-		StandardClaims: NewStandardClaims(time.Now().Unix() + 86400*7),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	ss, err := token.SignedString(signingKey)
-
-	if err != nil {
-		return PassportBearer{}, err
-	}
-
-	return PassportBearer{
-		BaseAccount: p.BaseAccount,
-		ExpiresAt:   claims.ExpiresAt,
-		Token:       ss,
-	}, nil
-}
-
-// PassportBearer carries the Json Web Token for a logged in
+// Passport carries the Json Web Token for a logged in
 // admin plus structured data of it so that client do not
 // need to decode the encoded data.
 // TODO: rename to Passport
-type PassportBearer struct {
+type Passport struct {
 	BaseAccount
 	ExpiresAt int64  `json:"expiresAt"`
 	Token     string `json:"token"`
 }
 
-func NewPassport(a BaseAccount, signingKey []byte) (PassportBearer, error) {
+func NewPassport(a BaseAccount, signingKey []byte) (Passport, error) {
 	claims := PassportClaims{
 		AdminID:        a.ID,
 		TeamID:         a.TeamID,
@@ -83,10 +52,10 @@ func NewPassport(a BaseAccount, signingKey []byte) (PassportBearer, error) {
 	ss, err := token.SignedString(signingKey)
 
 	if err != nil {
-		return PassportBearer{}, err
+		return Passport{}, err
 	}
 
-	return PassportBearer{
+	return Passport{
 		BaseAccount: a,
 		ExpiresAt:   claims.ExpiresAt,
 		Token:       ss,
