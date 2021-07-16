@@ -1,8 +1,7 @@
 package controller
 
 import (
-	admin2 "github.com/FTChinese/ftacademy/internal/pkg/admin"
-	"github.com/FTChinese/ftacademy/internal/pkg/licence"
+	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
@@ -30,7 +29,7 @@ func (keeper Doorkeeper) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc
 			return render.NewUnauthorized(err.Error())
 		}
 
-		claims, err := admin2.ParsePassportClaims(ss, keeper.signingKey)
+		claims, err := admin.ParsePassportClaims(ss, keeper.signingKey)
 		if err != nil {
 			log.Errorf("Error parsing JWT %v", err)
 			return render.NewUnauthorized(err.Error())
@@ -41,32 +40,8 @@ func (keeper Doorkeeper) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc
 	}
 }
 
-func (keeper Doorkeeper) CheckInviteeClaims(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		authHeader := c.Request().Header.Get("Authorization")
-		ss, err := ParseBearer(authHeader)
-		if err != nil {
-			log.Printf("Error parsing Authorization header: %v", err)
-			return render.NewUnauthorized(err.Error())
-		}
-
-		claims, err := licence.ParseInviteeClaims(ss, keeper.signingKey)
-		if err != nil {
-			log.Printf("Error parsing JWT %v", err)
-			return render.NewUnauthorized(err.Error())
-		}
-
-		c.Set(claimsCtxKey, claims)
-		return next(c)
-	}
-}
-
-func getPassportClaims(c echo.Context) admin2.PassportClaims {
-	return c.Get(claimsCtxKey).(admin2.PassportClaims)
-}
-
-func getInviteeClaims(c echo.Context) licence.InviteeClaims {
-	return c.Get(claimsCtxKey).(licence.InviteeClaims)
+func getPassportClaims(c echo.Context) admin.PassportClaims {
+	return c.Get(claimsCtxKey).(admin.PassportClaims)
 }
 
 func DumpRequest(next echo.HandlerFunc) echo.HandlerFunc {
