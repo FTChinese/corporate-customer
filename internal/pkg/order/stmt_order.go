@@ -1,25 +1,6 @@
 package order
 
-import (
-	"github.com/FTChinese/ftacademy/pkg/sq"
-)
-
-var OrderBuilder = sq.NewInsert().
-	Into(sq.NewTable("b2b.order")).
-	SetColumns([]sq.Column{
-		sq.NewColumn("id"),
-		sq.NewColumn("plan_id"),
-		sq.NewColumn("discount_id"),
-		sq.NewColumn("licence_id"),
-		sq.NewColumn("team_id"),
-		sq.NewColumn("checkout_id"),
-		sq.NewColumn("amount"),
-		sq.NewColumn("cycle_count"),
-		sq.NewColumn("trial_days"),
-		sq.NewColumn("kind"),
-		sq.NewColumn("created_utc"),
-	})
-
+// Deprecated
 const selectOrder = `
 SELECT id AS order_id,
 	plan_id,
@@ -34,6 +15,7 @@ SELECT id AS order_id,
 	confirmed_utc
 FROM b2b.order`
 
+// Deprecated
 const GetOrder = selectOrder + `
 WHERE id = ?
 	AND team_id = ?
