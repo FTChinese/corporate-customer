@@ -2,6 +2,13 @@ package pkg
 
 import "github.com/FTChinese/go-rest/rand"
 
+func OrderID() string {
+	return "ord_" + rand.String(12)
+}
+
+func OrderItemID() string {
+	return "ori_" + rand.String(12)
+}
 func LicenceID() string {
 	return "lic_" + rand.String(12)
 }
