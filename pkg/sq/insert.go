@@ -40,6 +40,7 @@ func (i Insert) Rows(n int) Insert {
 	return i
 }
 
+// rowHolder builds `(?, ..., ?)` part of an insert statement, based on the number of columns.
 func (i Insert) rowHolder() string {
 	str := make([]string, len(i.cols))
 
@@ -50,6 +51,7 @@ func (i Insert) rowHolder() string {
 	return "(" + strings.Join(str, ", ") + ")"
 }
 
+// placeholder builds the `(?, ..., ?), (?, ..., ?)` part of insert statement.
 func (i Insert) placeholder() string {
 	holder := i.rowHolder()
 
@@ -79,16 +81,22 @@ func (i Insert) Build() string {
 // InsertRow should be implemented by a type that can
 // product an array of values that will be used
 // as a row in SQL INSERT VALUES ().
+// The values of all columns are put into an array.
 type InsertRow interface {
 	RowValues() []interface{}
 }
 
+// Enumerable should be implemented by an array of element
+// to be used in a bulk insert.
 type Enumerable interface {
 	Each(handler func(row InsertRow))
 }
 
 // BuildInsertValues transform an array of InsertRow
 // to the arg in sql's Exec method.
+// Since each row forms an array, and each row's value
+// is also an array, this operation flattens a 2-D array.
+// It can then be used as a varidic.
 func BuildInsertValues(rows Enumerable) []interface{} {
 	var values = make([]interface{}, 0)
 
