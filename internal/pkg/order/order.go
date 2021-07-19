@@ -1,52 +1,71 @@
 package order
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
-	sq2 "github.com/FTChinese/ftacademy/pkg/sq"
+	"github.com/FTChinese/ftacademy/pkg/price"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
 )
 
-// CartItem is the plan user is subscribing
-// and the number of copies for this plan.
-//type CartItem struct {
-//	PlanID     string             `json:"planId"`
-//	Quantity   int64              `json:"quantity"`
-//	CycleCount int64              `json:"cycleCount"`
-//	Plan       plan2.DiscountPlan `json:"-"`
-//}
-
-type CheckoutItem struct {
-	CartItem
+// CheckoutProduct describes the quantity of a product put into an order.
+// This is used when save all items of an order as JSON
+// in an order's row.
+type CheckoutProduct struct {
+	Price         price.Price `json:"price"`
+	NewCopies     int64       `json:"newCopies"`     // How many new copies user purchased
+	RenewalCopies int64       `json:"renewalCopies"` // How many renewals user purchased.
 }
 
-type CheckoutCounter struct {
-	ID         string
-	Items      []CheckoutItem
-	Total      float64
-	CreatedUTC chrono.Time `db:"created_utc"`
+// CheckoutProducts is used the retrieve/save an array of
+// CheckoutProduct into db.
+type CheckoutProducts []CheckoutProduct
+
+// Value implements Valuer interface when saving
+func (b CheckoutProducts) Value() (driver.Value, error) {
+	j, err := json.Marshal(b)
+	if err != nil {
+		return nil, err
+	}
+
+	return string(j), nil
 }
 
-type Cart struct {
-	CheckoutID string
-	Items      []CartItem
+func (b *CheckoutProducts) Scan(src interface{}) error {
+	if src == nil {
+		*b = []CheckoutProduct{}
+		return nil
+	}
+	switch s := src.(type) {
+	case []byte:
+		var tmp []CheckoutProduct
+		err := json.Unmarshal(s, &tmp)
+		if err != nil {
+			return err
+		}
+		*b = tmp
+		return nil
+
+	default:
+		return errors.New("incompatible type to scan to []CheckoutProduct")
+	}
 }
 
-//func (c Cart) BuildOrders(teamID string) OrderList {
-//	var orders []Order
-//
-//	for _, v := range c.Items {
-//		for i := 0; i < int(v.Quantity); i++ {
-//			o := NewOrder(v, teamID, c.CheckoutID)
-//			orders = append(orders, o)
-//		}
-//	}
-//
-//	return orders
-//}
+type BaseOrder struct {
+	ID            string      `json:"id" db:"order_id"`
+	AmountPayable float64     `json:"amountPayable" db:"amount_payable"`
+	CreatedBy     string      `json:"createdBy" db:"created_by"`
+	CreatedUTC    chrono.Time `json:"createdUtc" db:"created_utc"`
+	ItemCount     int64       `json:"itemCount" db:"item_count"`
+	Status        Status      `json:"status" db:"current_status"`
+	TeamID        string      `json:"teamId" db:"team_id"`
+}
 
-// Order describes the details of each transaction
+// CheckoutOrder describes the details of each transaction
 // to purchase a licence.
 // If a transaction is used to purchase a new licence, the
 // licence should be created together with the order but marked
@@ -58,91 +77,49 @@ type Cart struct {
 // it is confirmed, which will result licence extended or
 // upgraded and the membership (if the licence is granted
 // to someone) will be backed up and updated corresponding.
+type CheckoutOrder struct {
+	BaseOrder
+	// An array of products, together with the quantities, use is trying to purchase.
+	Products CheckoutProducts `json:"products" db:"checkout_products"`
+}
+
+func NewBriefOrder(cart ShoppingCart, p admin.PassportClaims) CheckoutOrder {
+	return CheckoutOrder{
+		BaseOrder: BaseOrder{
+			ID:            pkg.OrderID(),
+			AmountPayable: cart.TotalAmount,
+			CreatedBy:     p.AdminID,
+			CreatedUTC:    chrono.TimeNow(),
+			ItemCount:     cart.ItemCount,
+			Status:        StatusPending,
+			TeamID:        p.TeamID.String,
+		},
+		Products: cart.ProductsBrief(),
+	}
+}
+
+// Payment describes the details the an order's payment.
+type Payment struct {
+	AmountPaid    null.Float    `json:"amountPaid" db:"amount_paid"`
+	ApprovedBy    null.String   `json:"approvedBy" db:"approved_by"`
+	ApprovedUTC   chrono.Time   `json:"approvedUtc" db:"approved_utc"`
+	Description   null.String   `json:"description" db:"description"`
+	PaymentMethod PaymentMethod `json:"paymentMethod" db:"payment_method"`
+	TransactionID null.String   `json:"transactionId" db:"transaction_id"`
+}
+
+// CheckoutOrderList contains a list of orders
+type CheckoutOrderList struct {
+	Total int64 `json:"total"`
+	gorest.Pagination
+	Data []CheckoutOrder `json:"data"`
+	Err  error           `json:"-"`
+}
+
+// Order contains all details of what user wanted to buy,
+// how payment is handled.
 type Order struct {
-	ID             string          `db:"order_id"`
-	AmountPayable  float64         `json:"amountPayable"`
-	CreatedBy      string          `json:"createdBy"`
-	CreatedUTC     chrono.Time     `json:"createdUtc"`
-	Status         Status          `json:"status"`
-	ItemCount      int64           `json:"itemCount"`
-	CartItemsBrief []CartItemBrief `json:"cart_items_brief"` // An array of products, together with the quantities, use is trying to purchase.
-	TeamID         string          `db:"team_id"`
-	// The following fields exists only after payment confirmed.
-	AmountPaid    null.Float    `json:"amountPaid"`
-	ApprovedBy    null.String   `json:"approvedBy"`
-	ApprovedUTC   chrono.Time   `json:"approvedUtc"`
-	SellerNote    null.String   `json:"sellerNote"`
-	PaymentMethod PaymentMethod `json:"paymentMethod"`
-	TransactionID null.String   `json:"transactionId"`
-}
-
-func NewOrder(cart ShoppingCart, p admin.PassportClaims) Order {
-
-	return Order{
-		ID:             pkg.OrderID(),
-		AmountPayable:  cart.TotalAmount,
-		CreatedBy:      p.AdminID,
-		CreatedUTC:     chrono.TimeNow(),
-		Status:         StatusPending,
-		ItemCount:      cart.ItemCount,
-		CartItemsBrief: cart.ItemsBrief(),
-		TeamID:         p.TeamID.String,
-		AmountPaid:     null.Float{},
-		ApprovedBy:     null.String{},
-		ApprovedUTC:    chrono.Time{},
-		SellerNote:     null.String{},
-		PaymentMethod:  "",
-		TransactionID:  null.String{},
-	}
-}
-
-//func NewOrder(item CartItem, teamID, checkoutID string) Order {
-//	return Order{
-//		ID:           "ord_" + rand.String(12),
-//		PlanID:       item.PlanID,
-//		DiscountID:   item.Plan.DiscountID,
-//		LicenceID:    "lic_" + rand.String(12),
-//		TeamID:       teamID,
-//		CheckoutID:   checkoutID,
-//		Amount:       item.Plan.PayableAmount(),
-//		CycleCount:   item.CycleCount,
-//		TrialDays:    7,
-//		Kind:         enum.OrderKindCreate,
-//		PeriodStart:  chrono.Date{},
-//		PeriodEnd:    chrono.Date{},
-//		CreatedUTC:   chrono.TimeNow(),
-//		ConfirmedUTC: chrono.Time{},
-//	}
-//}
-
-func (o Order) RowValues() []interface{} {
-	return []interface{}{
-		//o.ID,
-		//o.PlanID,
-		//o.DiscountID,
-		//o.LicenceID,
-		//o.TeamID,
-		//o.CheckoutID,
-		//o.Amount,
-		//o.CycleCount,
-		//o.TrialDays,
-		//o.Kind,
-		//"UTC_TIMESTAMP()",
-	}
-}
-
-type OrderList []Order
-
-func (ol OrderList) Each(handler func(row sq2.InsertRow)) {
-	for _, o := range ol {
-		handler(o)
-	}
-}
-
-// PagedOrders contains the count of total orders of a team,
-// and the current page of orders.
-type PagedOrders struct {
-	Total int64   `json:"total"`
-	Data  []Order `json:"data"`
-	Err   error   `json:"-"`
+	BaseOrder
+	CartItems []CartItemSchema `json:"cartItems"`
+	Payment
 }
