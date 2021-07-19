@@ -45,6 +45,7 @@ func (p Price) Value() (driver.Value, error) {
 func (p *Price) Scan(src interface{}) error {
 	if src == nil {
 		*p = Price{}
+		return nil
 	}
 
 	switch s := src.(type) {
@@ -58,6 +59,6 @@ func (p *Price) Scan(src interface{}) error {
 		return nil
 
 	default:
-		return errors.New("incompatible type to scan")
+		return errors.New("incompatible type to scan to Price")
 	}
 }
