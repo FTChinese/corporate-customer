@@ -116,6 +116,7 @@ func (i Invitation) Value() (driver.Value, error) {
 func (i *Invitation) Scan(src interface{}) error {
 	if src == nil {
 		*i = Invitation{}
+		return nil
 	}
 
 	switch s := src.(type) {
