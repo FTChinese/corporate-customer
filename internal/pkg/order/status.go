@@ -6,5 +6,5 @@ const (
 	StatusPending    Status = "pending"
 	StatusPaid       Status = "paid"
 	StatusProcessing Status = "processing"
-	StatusCancelled  Status = "Cancelled"
+	StatusCancelled  Status = "cancelled"
 )
