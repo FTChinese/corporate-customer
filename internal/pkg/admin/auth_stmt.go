@@ -2,7 +2,7 @@ package admin
 
 const colAuthResult = `
 SELECT id,
-	password = UNHEX(SHA2(?, 256)) AS password_matched
+	password_sha2 = UNHEX(SHA2(?, 256)) AS password_matched
 FROM b2b.admin
 `
 
