@@ -2,6 +2,10 @@ package pkg
 
 import "github.com/FTChinese/go-rest/rand"
 
+func TeamID() string {
+	return "team_" + rand.String(12)
+}
+
 func OrderID() string {
 	return "ord_" + rand.String(12)
 }
@@ -15,14 +19,6 @@ func LicenceID() string {
 
 func InvitationID() string {
 	return "invite_" + rand.String(12)
-}
-
-func ReceiptID() string {
-	return "rcpt_" + rand.String(12)
-}
-
-func ReceiptItemID() string {
-	return "rci_" + rand.String(12)
 }
 
 func SnapshotID() string {
