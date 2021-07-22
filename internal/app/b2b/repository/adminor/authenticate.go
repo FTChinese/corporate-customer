@@ -26,15 +26,16 @@ func (env Env) Authenticate(params input.Credentials) (admin.AuthResult, error) 
 
 // VerifyPassword when user is trying to change it.
 func (env Env) VerifyPassword(params input.PasswordUpdateParams) (admin.AuthResult, error) {
-	var matched bool
-	err := env.DBs.Read.Get(&matched, admin.StmtVerifyPasswordByID, params.Old, params.ID)
+	var r admin.AuthResult
+	err := env.DBs.Read.Get(
+		&r,
+		admin.StmtVerifyPasswordByID,
+		params.Old,
+		params.ID)
 
 	if err != nil {
 		return admin.AuthResult{}, err
 	}
 
-	return admin.AuthResult{
-		AdminID:         params.ID,
-		PasswordMatched: matched,
-	}, nil
+	return r, nil
 }
