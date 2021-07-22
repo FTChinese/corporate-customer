@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"fmt"
+	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"time"
@@ -16,7 +16,6 @@ import (
 type EmailVerifier struct {
 	Token        string      `db:"token"`
 	Email        string      `db:"email"`
-	SourceURL    string      `db:"source_url"` // The base url to determine verification link.
 	ExpireInDays int64       `db:"expire_in_days"`
 	CreatedUTC   chrono.Time `db:"created_utc"`
 }
@@ -30,15 +29,9 @@ func NewEmailVerifier(email string, sourceURL string) (EmailVerifier, error) {
 		return EmailVerifier{}, err
 	}
 
-	// Provide default url to the verification link
-	if sourceURL == "" {
-		sourceURL = "https://next.ftacademy.cn/corporate/verify"
-	}
-
 	return EmailVerifier{
 		Token:        token,
 		Email:        email,
-		SourceURL:    sourceURL,
 		ExpireInDays: 3,
 		CreatedUTC:   chrono.TimeNow(),
 	}, nil
@@ -61,5 +54,5 @@ func (v EmailVerifier) IsExpired() bool {
 
 // BuildURL creates a verification link.
 func (v EmailVerifier) BuildURL() string {
-	return fmt.Sprintf("%s/%s", v.SourceURL, v.Token)
+	return config.B2BVerifyAdminURL(v.Token)
 }
