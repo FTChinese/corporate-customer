@@ -1,9 +1,9 @@
 package admin
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/go-rest/rand"
 )
 
 // Team represents an existing b2b entity.
@@ -19,7 +19,7 @@ type Team struct {
 
 func NewTeam(adminID string, params input.TeamParams) Team {
 	return Team{
-		ID:         "team_" + rand.String(12),
+		ID:         pkg.TeamID(),
 		AdminID:    adminID,
 		TeamParams: params,
 		CreatedUTC: chrono.TimeNow(),
