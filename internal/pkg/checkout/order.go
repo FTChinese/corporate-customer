@@ -1,12 +1,7 @@
 package checkout
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
 	"github.com/FTChinese/ftacademy/internal/pkg"
-	"github.com/FTChinese/ftacademy/internal/pkg/input"
-	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/sq"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
@@ -46,10 +41,10 @@ type OrderItem struct {
 	ID              string     `json:"id" db:"order_item_id"`
 	OrderID         string     `json:"orderId" db:"order_id"`
 	PriceOffPerCopy null.Float `json:"priceOffPerCopy" db:"price_off_per_copy"`
-	input.CartItem
+	CartItem
 }
 
-func NewOrderItem(orderID string, i input.CartItem) OrderItem {
+func NewOrderItem(orderID string, i CartItem) OrderItem {
 	return OrderItem{
 		ID:              pkg.OrderItemID(),
 		OrderID:         orderID,
@@ -58,7 +53,7 @@ func NewOrderItem(orderID string, i input.CartItem) OrderItem {
 	}
 }
 
-func NewOrderItemRows(orderID string, items []input.CartItem) []OrderItem {
+func NewOrderItemRows(orderID string, items []CartItem) []OrderItem {
 	var oi = make([]OrderItem, 0)
 	for _, v := range items {
 		oi = append(oi, NewOrderItem(orderID, v))
@@ -76,44 +71,11 @@ func (s OrderItem) RowValues() []interface{} {
 	}
 }
 
-// RenewalLicences to ease retrieve/save an array of
-// licences into db.
-type RenewalLicences []licence.Licence
-
-func (rl RenewalLicences) Value() (driver.Value, error) {
-	j, err := json.Marshal(rl)
-	if err != nil {
-		return nil, err
-	}
-
-	return string(j), nil
-}
-
-func (rl *RenewalLicences) Scan(src interface{}) error {
-	if src == nil {
-		*rl = []licence.Licence{}
-		return nil
-	}
-	switch s := src.(type) {
-	case []byte:
-		var tmp []licence.Licence
-		err := json.Unmarshal(s, &tmp)
-		if err != nil {
-			return err
-		}
-		*rl = tmp
-		return nil
-
-	default:
-		return errors.New("incompatible type to scan to []Licence")
-	}
-}
-
-type CartItems []OrderItem
+type OrderItems []OrderItem
 
 // Each implements Enumerable interface.
-// Usage: `BuildInsertValues(CartItems)...`
-func (ci CartItems) Each(handler func(row sq.InsertRow)) {
+// Usage: `BuildInsertValues(OrderItems)...`
+func (ci OrderItems) Each(handler func(row sq.InsertRow)) {
 	for _, c := range ci {
 		handler(c)
 	}

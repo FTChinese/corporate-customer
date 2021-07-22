@@ -6,7 +6,6 @@ import (
 	"errors"
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
-	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/price"
 	"github.com/FTChinese/go-rest/chrono"
 )
@@ -20,7 +19,7 @@ type ProductQuantity struct {
 	RenewalCopies int64       `json:"renewalCopies"` // How many renewals user purchased.
 }
 
-func NewProductQuantity(i input.CartItem) ProductQuantity {
+func NewProductQuantity(i CartItem) ProductQuantity {
 	return ProductQuantity{
 		Price:         i.Price,
 		NewCopies:     i.NewCopies,
@@ -32,7 +31,7 @@ func NewProductQuantity(i input.CartItem) ProductQuantity {
 // CheckoutProduct into db.
 type OrderedProducts []ProductQuantity
 
-func NewOrderedProducts(items []input.CartItem) OrderedProducts {
+func NewOrderedProducts(items []CartItem) OrderedProducts {
 	var p = make([]ProductQuantity, 0)
 	for _, v := range items {
 		p = append(p, NewProductQuantity(v))
@@ -89,7 +88,7 @@ type BriefOrder struct {
 	Products OrderedProducts `json:"products" db:"checkout_products"`
 }
 
-func NewBriefOrder(cart input.ShoppingCart, p admin.PassportClaims) BriefOrder {
+func NewBriefOrder(cart ShoppingCart, p admin.PassportClaims) BriefOrder {
 	return BriefOrder{
 		BaseOrder: BaseOrder{
 			ID:            pkg.OrderID(),
