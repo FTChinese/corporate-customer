@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
-	"github.com/FTChinese/ftacademy/internal/pkg/input"
+	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
@@ -29,7 +29,7 @@ func NewOrderRouter(dbs db.ReadWriteMyDBs, logger *zap.Logger) OrderRouter {
 func (router OrderRouter) CreateOrders(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	var cart input.ShoppingCart
+	var cart checkout.ShoppingCart
 	if err := c.Bind(&cart); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
