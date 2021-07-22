@@ -10,8 +10,6 @@ import (
 	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"net/http"
 	"os"
 )
@@ -21,7 +19,6 @@ var (
 	version      string
 	build        string
 	conf         config.Config
-	logger       = logrus.WithField("project", "ftacademy").WithField("package", "main")
 )
 
 func init() {
@@ -35,15 +32,7 @@ func init() {
 		os.Exit(0)
 	}
 
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-	logrus.SetOutput(os.Stdout)
-
-	viper.SetConfigName("api")
-	viper.AddConfigPath("$HOME/config")
-	err := viper.ReadInConfig()
-	if err != nil {
-		os.Exit(1)
-	}
+	config.MustSetupViper()
 
 	conf = config.Config{
 		Debug:   !isProduction,
