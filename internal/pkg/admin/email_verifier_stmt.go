@@ -9,7 +9,6 @@ const StmtInsertEmailVerifier = `
 INSERT INTO b2b.email_verification
 SET token = UNHEX(:token),
 	email = :email,
-	source_url = :source_url,
 	expire_in_days = :expire_in_days,
 	created_utc = :created_utc`
 
