@@ -2,6 +2,8 @@ package controller
 
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
+	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
@@ -17,17 +19,27 @@ type OrderRouter struct {
 
 func NewOrderRouter(dbs db.ReadWriteMyDBs, logger *zap.Logger) OrderRouter {
 	return OrderRouter{
-		repo: subs.NewEnv(dbs, logger),
+		repo:   subs.NewEnv(dbs, logger),
+		logger: logger,
 	}
 }
 
 // CreateOrders creates orders an org purchased.
-// Client should specify which plans are being subscribed,
-// and how many copies.
+// input: input.ShoppingCart.
 func (router OrderRouter) CreateOrders(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	return c.JSON(http.StatusOK, claims)
+	var cart input.ShoppingCart
+	if err := c.Bind(&cart); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	bo, err := router.repo.CreateOrder(cart, claims)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, bo)
 }
 
 func (router OrderRouter) ListOrders(c echo.Context) error {
@@ -38,5 +50,27 @@ func (router OrderRouter) ListOrders(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	return c.JSON(http.StatusOK, claims)
+	list, err := router.repo.ListOrders(claims.TeamID.String, page)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, list)
+}
+
+func (router OrderRouter) LoadOrder(c echo.Context) error {
+	claims := getPassportClaims(c)
+
+	id := c.QueryParam("id")
+
+	o, err := router.repo.LoadOrderDetails(admin.AccessRight{
+		RowID:  id,
+		TeamID: claims.TeamID.String,
+	})
+
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, o)
 }
