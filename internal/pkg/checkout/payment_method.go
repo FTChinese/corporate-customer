@@ -1,4 +1,4 @@
-package order
+package checkout
 
 import (
 	"database/sql/driver"
