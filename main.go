@@ -149,6 +149,7 @@ func main() {
 		orderGroup.GET("/", orderRouter.ListOrders)
 		// CreateTeam orders, or renew/upgrade in bulk.
 		orderGroup.POST("/", orderRouter.CreateOrders)
+		orderGroup.GET("/:id", orderRouter.LoadOrder)
 	}
 
 	b2bLicenceGroup := b2bAPIGroup.Group("/licences", dk.RequireLoggedIn)
