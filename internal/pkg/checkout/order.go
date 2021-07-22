@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/sq"
 	"github.com/FTChinese/go-rest/chrono"
@@ -44,7 +46,25 @@ type OrderItem struct {
 	ID              string     `json:"id" db:"order_item_id"`
 	OrderID         string     `json:"orderId" db:"order_id"`
 	PriceOffPerCopy null.Float `json:"priceOffPerCopy" db:"price_off_per_copy"`
-	CartItem
+	input.CartItem
+}
+
+func NewOrderItem(orderID string, i input.CartItem) OrderItem {
+	return OrderItem{
+		ID:              pkg.OrderItemID(),
+		OrderID:         orderID,
+		CartItem:        i,
+		PriceOffPerCopy: null.Float{},
+	}
+}
+
+func NewOrderItemRows(orderID string, items []input.CartItem) []OrderItem {
+	var oi = make([]OrderItem, 0)
+	for _, v := range items {
+		oi = append(oi, NewOrderItem(orderID, v))
+	}
+
+	return oi
 }
 
 func (s OrderItem) RowValues() []interface{} {

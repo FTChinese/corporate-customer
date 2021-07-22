@@ -6,22 +6,40 @@ import (
 	"errors"
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/price"
 	"github.com/FTChinese/go-rest/chrono"
 )
 
-// OrderedProduct describes the quantity of a product put into an order.
+// ProductQuantity describes the quantity of a product put into an order.
 // This is used when save all items of an order as JSON
 // in an order's row.
-type OrderedProduct struct {
+type ProductQuantity struct {
 	Price         price.Price `json:"price"`
 	NewCopies     int64       `json:"newCopies"`     // How many new copies user purchased
 	RenewalCopies int64       `json:"renewalCopies"` // How many renewals user purchased.
 }
 
+func NewProductQuantity(i input.CartItem) ProductQuantity {
+	return ProductQuantity{
+		Price:         i.Price,
+		NewCopies:     i.NewCopies,
+		RenewalCopies: int64(len(i.Renewals)),
+	}
+}
+
 // OrderedProducts is used the retrieve/save an array of
 // CheckoutProduct into db.
-type OrderedProducts []OrderedProduct
+type OrderedProducts []ProductQuantity
+
+func NewOrderedProducts(items []input.CartItem) OrderedProducts {
+	var p = make([]ProductQuantity, 0)
+	for _, v := range items {
+		p = append(p, NewProductQuantity(v))
+	}
+
+	return p
+}
 
 // Value implements Valuer interface when saving
 func (b OrderedProducts) Value() (driver.Value, error) {
@@ -35,12 +53,12 @@ func (b OrderedProducts) Value() (driver.Value, error) {
 
 func (b *OrderedProducts) Scan(src interface{}) error {
 	if src == nil {
-		*b = []OrderedProduct{}
+		*b = []ProductQuantity{}
 		return nil
 	}
 	switch s := src.(type) {
 	case []byte:
-		var tmp []OrderedProduct
+		var tmp []ProductQuantity
 		err := json.Unmarshal(s, &tmp)
 		if err != nil {
 			return err
@@ -71,7 +89,7 @@ type BriefOrder struct {
 	Products OrderedProducts `json:"products" db:"checkout_products"`
 }
 
-func NewBriefOrder(cart ShoppingCart, p admin.PassportClaims) BriefOrder {
+func NewBriefOrder(cart input.ShoppingCart, p admin.PassportClaims) BriefOrder {
 	return BriefOrder{
 		BaseOrder: BaseOrder{
 			ID:            pkg.OrderID(),
@@ -82,7 +100,7 @@ func NewBriefOrder(cart ShoppingCart, p admin.PassportClaims) BriefOrder {
 			Status:        StatusPending,
 			TeamID:        p.TeamID.String,
 		},
-		Products: cart.ProductsBrief(),
+		Products: NewOrderedProducts(cart.Items),
 	}
 }
 

@@ -4,10 +4,11 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
-	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
+	"github.com/FTChinese/go-rest"
 )
 
-func (env Env) CreateOrder(cart checkout.ShoppingCart, p admin.PassportClaims) (checkout.BriefOrder, error) {
+func (env Env) CreateOrder(cart input.ShoppingCart, p admin.PassportClaims) (checkout.BriefOrder, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
@@ -18,7 +19,7 @@ func (env Env) CreateOrder(cart checkout.ShoppingCart, p admin.PassportClaims) (
 	}
 
 	co := checkout.NewBriefOrder(cart, p)
-	items := cart.ItemRows(co.ID)
+	items := checkout.NewOrderItemRows(co.ID, cart.Items)
 
 	err = tx.CreateOrder(co.BaseOrder)
 	if err != nil {
