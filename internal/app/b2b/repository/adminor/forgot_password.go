@@ -21,7 +21,10 @@ func (env Env) SavePwResetSession(s admin.PwResetSession) error {
 // PwResetSession retrieves PwResetSession by token.
 func (env Env) PwResetSession(token string) (admin.PwResetSession, error) {
 	var session admin.PwResetSession
-	err := env.DBs.Read.Get(&session, admin.StmtPwResetSessionByToken, token)
+	err := env.DBs.Read.Get(
+		&session,
+		admin.StmtPwResetSessionByToken,
+		token)
 	if err != nil {
 		return admin.PwResetSession{}, err
 	}
@@ -30,9 +33,9 @@ func (env Env) PwResetSession(token string) (admin.PwResetSession, error) {
 }
 
 // DisablePasswordReset disables a token used.
-func (env Env) DisablePasswordReset(t string) error {
+func (env Env) DisablePasswordReset(s admin.PwResetSession) error {
 
-	_, err := env.DBs.Write.Exec(admin.StmtDisablePwResetToken, t)
+	_, err := env.DBs.Write.NamedExec(admin.StmtDisablePwResetToken, s)
 
 	if err != nil {
 		return err
