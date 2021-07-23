@@ -4,22 +4,14 @@ const StmtInsertPwResetSession = `
 INSERT INTO b2b.password_reset
 SET token = UNHEX(:token),
 	email = :email,
-	source_url = :source_url,
 	expires_in = :expires_in,
 	created_utc = :created_utc`
-
-// Do not removed the time comparison condition.
-// It could reduce the chance of collision for app_code.
-const selectPwResetSession = `
-
-`
 
 // StmtPwResetSessionByToken retrieves a password reset session
 // by token for web app.
 const StmtPwResetSessionByToken = `
 SELECT LOWER(HEX(token)) AS token,
-	email, 
-	source_url,
+	email,
 	is_used,
 	expires_in,
 	created_utc
@@ -32,6 +24,7 @@ LIMIT 1`
 // StmtDisablePwResetToken flags a password reset token as invalid.
 const StmtDisablePwResetToken = `
 UPDATE b2b.password_reset
-	SET is_used = 1
-WHERE token = UNHEX(?)
+SET is_used = :is_used,
+	updated_utc = :updated_utc
+WHERE token = UNHEX(:token)
 LIMIT 1`
