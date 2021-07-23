@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"github.com/FTChinese/ftacademy/pkg/config"
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"time"
@@ -43,5 +43,5 @@ func (v EmailVerifier) IsExpired() bool {
 
 // BuildURL creates a verification link.
 func (v EmailVerifier) BuildURL() string {
-	return config.B2BVerifyAdminURL(v.Token)
+	return pkg.B2BVerifyAdminURL(v.Token)
 }
