@@ -1,6 +1,9 @@
 package licence
 
-import "github.com/guregu/null"
+import (
+	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/guregu/null"
+)
 
 // Staffer is a member belong to a team under admin's
 // management.
@@ -13,7 +16,6 @@ type Staffer struct {
 
 // StaffList contains a list of assignee rows and the total number of rows for current team.
 type StaffList struct {
-	Total int64     `json:"total"`
-	Data  []Staffer `json:"data"`
-	Err   error     `json:"-"` // Contains possible error when used to pass data from a goroutine.
+	pkg.PagedList
+	Data []Staffer `json:"data"`
 }
