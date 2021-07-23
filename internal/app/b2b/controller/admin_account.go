@@ -62,6 +62,7 @@ func (router AdminRouter) RequestVerification(c echo.Context) error {
 // Input: {displayName: string}.
 // StatusCodes:
 // 400 - If request body cannot be parsed.
+// Client should refresh JWT after success.
 func (router AdminRouter) ChangeName(c echo.Context) error {
 	claims := getPassportClaims(c)
 
@@ -89,10 +90,7 @@ func (router AdminRouter) ChangeName(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	bearer, err := admin.NewPassport(updated, router.keeper.signingKey)
-
-	// Return the updated passport
-	return c.JSON(http.StatusOK, bearer)
+	return c.JSON(http.StatusOK, updated)
 }
 
 // ChangePassword updates password.

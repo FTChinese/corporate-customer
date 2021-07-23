@@ -57,6 +57,7 @@ func (router AdminRouter) LoadTeam(c echo.Context) error {
 
 // UpdateTeam updates a team's name and invoice title.
 // Input: {orgName: string, invoiceTitle?: string}
+// Client should refresh JWT after success.
 func (router AdminRouter) UpdateTeam(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
