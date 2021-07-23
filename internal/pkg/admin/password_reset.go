@@ -2,10 +2,10 @@ package admin
 
 import (
 	"fmt"
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/guregu/null"
 	"time"
 )
 
@@ -28,10 +28,10 @@ type PwResetSession struct {
 	// using URLToken, just like in a web page.
 	Token      string      `json:"token" db:"token"`
 	Email      string      `json:"email" db:"email"`
-	SourceURL  null.String `json:"-" db:"source_url"` // Null for mobile apps
 	IsUsed     bool        `json:"-" db:"is_used"`
 	ExpiresIn  int64       `json:"-" db:"expires_in"`
 	CreatedUTC chrono.Time `json:"-" db:"created_utc"`
+	UpdatedUTC chrono.Time `json:"-" db:"updated_utc"`
 }
 
 // NewPwResetSession creates a new PwResetSession instance
@@ -43,13 +43,8 @@ func NewPwResetSession(params input.ForgotPasswordParams) (PwResetSession, error
 		return PwResetSession{}, err
 	}
 
-	if params.SourceURL.IsZero() {
-		params.SourceURL = null.StringFrom("https://users.ftchinese.com/password-reset")
-	}
-
 	return PwResetSession{
 		Email:      params.Email,
-		SourceURL:  params.SourceURL,
 		Token:      token, // URLToken always exists.
 		IsUsed:     false,
 		ExpiresIn:  3 * 60 * 60, // Valid for 3 hours
@@ -57,12 +52,9 @@ func NewPwResetSession(params input.ForgotPasswordParams) (PwResetSession, error
 	}, nil
 }
 
-// MustNewPwResetSession panic on error.
-func MustNewPwResetSession(params input.ForgotPasswordParams) PwResetSession {
-	s, err := NewPwResetSession(params)
-	if err != nil {
-		panic(err)
-	}
+func (s PwResetSession) WithUsed() PwResetSession {
+	s.IsUsed = true
+	s.UpdatedUTC = chrono.TimeNow()
 
 	return s
 }
@@ -71,7 +63,7 @@ func MustNewPwResetSession(params input.ForgotPasswordParams) PwResetSession {
 // Returns an empty string if AppCode field exists so that
 // the template will not render the URL section.
 func (s PwResetSession) BuildURL() string {
-	return fmt.Sprintf("%s/%s", s.SourceURL.String, s.Token)
+	return pkg.B2BPasswordResetURL(s.Token)
 }
 
 // IsExpired tests whether an existing PwResetSession is expired.
