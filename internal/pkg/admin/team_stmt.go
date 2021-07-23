@@ -12,7 +12,7 @@ const colTeam = `
 SELECT id AS team_id,
 	admin_id,
 	org_name,
-	invoice_tile,
+	invoice_title,
 	created_utc
 FROM b2b.team`
 
