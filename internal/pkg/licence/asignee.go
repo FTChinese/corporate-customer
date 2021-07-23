@@ -32,6 +32,7 @@ func (a Assignee) IsZero() bool {
 func (a *Assignee) Scan(src interface{}) error {
 	if src == nil {
 		*a = Assignee{}
+		return nil
 	}
 
 	switch s := src.(type) {
