@@ -89,7 +89,7 @@ func (router AdminRouter) ChangeName(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, updated)
 }
 
 // ChangePassword updates password.
