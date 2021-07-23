@@ -45,3 +45,16 @@ func MockPwResetSession(params input.ForgotPasswordParams) PwResetSession {
 
 	return s
 }
+
+func MockTeamParams() input.TeamParams {
+	faker.SeedGoFake()
+
+	return input.TeamParams{
+		OrgName:      gofakeit.Company(),
+		InvoiceTitle: null.StringFrom(gofakeit.Company()),
+	}
+}
+
+func MockTeam() Team {
+	return NewTeam(uuid.New().String(), MockTeamParams())
+}
