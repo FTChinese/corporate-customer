@@ -4,7 +4,6 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/guregu/null"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -84,8 +83,9 @@ func (router AdminRouter) ChangeName(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}
 
-	account.DisplayName = null.StringFrom(params.DisplayName)
-	if err := router.repo.UpdateName(account); err != nil {
+	updated := account.UpdateName(params.DisplayName)
+
+	if err := router.repo.UpdateName(updated); err != nil {
 		return render.NewDBError(err)
 	}
 
