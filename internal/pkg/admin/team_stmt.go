@@ -18,6 +18,7 @@ FROM b2b.team`
 
 const StmtTeamByID = colTeam + `
 WHERE id = ?
+	AND admin_id = ?
 LIMIT 1`
 
 const StmtUpdateTeam = `
