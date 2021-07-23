@@ -3,7 +3,6 @@
 package admin
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/FTChinese/go-rest/chrono"
@@ -16,10 +15,10 @@ func MockAccount() Account {
 	return Account{
 		BaseAccount: BaseAccount{
 			ID:          uuid.New().String(),
-			TeamID:      null.StringFrom(pkg.TeamID()),
+			TeamID:      null.String{},
 			Email:       faker.GenEmail(),
-			DisplayName: null.StringFrom(gofakeit.Username()),
-			Active:      false,
+			DisplayName: null.String{},
+			Active:      true,
 			Verified:    false,
 		},
 		Password:   faker.SimplePassword(),
