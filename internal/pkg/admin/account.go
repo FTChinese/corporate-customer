@@ -52,6 +52,6 @@ func NewAccount(p input.SignupParams) Account {
 		},
 		Password:   p.Password,
 		CreatedUTC: chrono.TimeNow(),
-		UpdatedUTC: chrono.TimeNow(),
+		UpdatedUTC: chrono.Time{},
 	}
 }
