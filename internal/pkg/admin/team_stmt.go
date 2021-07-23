@@ -23,7 +23,9 @@ LIMIT 1`
 
 const StmtUpdateTeam = `
 UPDATE b2b.team
-SET name = :name,
-	invoice_title = :invoice_title
-WHERE id = ?
+SET org_name = :org_name,
+	invoice_title = :invoice_title,
+	updated_utc = :updated_utc
+WHERE id = :team_id
+	AND admin_id = :admin_id
 LIMIT 1`
