@@ -46,7 +46,7 @@ func (router AdminRouter) LoadTeam(c echo.Context) error {
 
 	claims := getPassportClaims(c)
 
-	t, err := router.repo.LoadTeam(claims.AdminID)
+	t, err := router.repo.LoadTeam(claims.TeamID.String, claims.AdminID)
 	if err != nil {
 		sugar.Error(err)
 		return render.NewDBError(err)
@@ -72,7 +72,7 @@ func (router AdminRouter) UpdateTeam(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	currentTeam, err := router.repo.LoadTeam(claims.AdminID)
+	currentTeam, err := router.repo.LoadTeam(claims.TeamID.String, claims.AdminID)
 	if err != nil {
 		sugar.Error(err)
 		return render.NewDBError(err)
