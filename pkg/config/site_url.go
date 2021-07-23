@@ -1,9 +1,10 @@
 package config
 
 const (
-	SiteBaseURL           = "https://next.ftacademy.cn"
-	B2BBaseURL            = SiteBaseURL + "/corporate"
-	B2BReaderVerification = B2BBaseURL + "/user/verification"
+	SiteBaseURL        = "https://next.ftacademy.cn"
+	B2BBaseURL         = SiteBaseURL + "/corporate"
+	UserBaseURL        = SiteBaseURL + "/user"
+	ReaderVerification = UserBaseURL + "/verification"
 )
 
 func B2BVerifyInvitationURL(token string) string {
