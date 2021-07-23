@@ -13,9 +13,8 @@ SET token = UNHEX(:token),
 	created_utc = :created_utc`
 
 const StmtRetrieveEmailVerifier = `
-SELECT HEX(token) AS token,
+SELECT LOWER(HEX(token)) AS token,
 	email,
-	source_url,
 	expire_in_days,
 	created_utc
 FROM b2b.email_verification
