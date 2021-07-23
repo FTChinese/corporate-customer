@@ -280,7 +280,7 @@ func (router AdminRouter) ResetPassword(c echo.Context) error {
 	}
 
 	go func() {
-		_ = router.repo.DisablePasswordReset(params.Token)
+		_ = router.repo.DisablePasswordReset(session.WithUsed())
 	}()
 
 	return c.NoContent(http.StatusNoContent)
