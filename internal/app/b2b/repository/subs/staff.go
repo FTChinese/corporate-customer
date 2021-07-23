@@ -1,6 +1,7 @@
 package subs
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	gorest "github.com/FTChinese/go-rest"
 )
@@ -27,7 +28,7 @@ func (env Env) UpdateStaffer(m licence.Staffer) error {
 	return nil
 }
 
-func (env Env) ListStaff(teamID string, page gorest.Pagination) ([]licence.Staffer, error) {
+func (env Env) listStaff(teamID string, page gorest.Pagination) ([]licence.Staffer, error) {
 	list := make([]licence.Staffer, 0)
 
 	err := env.dbs.Read.Select(&list, licence.ListStaff, teamID, page.Limit, page.Offset())
@@ -38,24 +39,7 @@ func (env Env) ListStaff(teamID string, page gorest.Pagination) ([]licence.Staff
 	return list, nil
 }
 
-func (env Env) AsyncListStaff(teamID string, page gorest.Pagination) <-chan licence.StaffList {
-	r := make(chan licence.StaffList)
-
-	go func() {
-		defer close(r)
-
-		list, err := env.ListStaff(teamID, page)
-
-		r <- licence.StaffList{
-			Data: list,
-			Err:  err,
-		}
-	}()
-
-	return r
-}
-
-func (env Env) CountStaff(teamID string) (int64, error) {
+func (env Env) countStaff(teamID string) (int64, error) {
 	var total int64
 	err := env.dbs.Read.Get(&total, licence.CountStaff, teamID)
 	if err != nil {
@@ -65,25 +49,54 @@ func (env Env) CountStaff(teamID string) (int64, error) {
 	return total, nil
 }
 
-func (env Env) AsyncCountStaff(teamID string) <-chan licence.StaffList {
-	r := make(chan licence.StaffList)
+func (env Env) ListStaff(teamID string, page gorest.Pagination) (licence.StaffList, error) {
+	defer env.logger.Sync()
+	sugar := env.logger.Sugar()
+
+	countCh := make(chan int64)
+	listCh := make(chan licence.StaffList)
 
 	go func() {
-		defer close(r)
-		total, err := env.CountStaff(teamID)
+		defer close(countCh)
 
-		r <- licence.StaffList{
-			Total: total,
-			Err:   err,
+		n, err := env.countStaff(teamID)
+		if err != nil {
+			sugar.Error(err)
+		}
+		countCh <- n
+	}()
+
+	go func() {
+		defer close(listCh)
+
+		list, err := env.listStaff(teamID, page)
+
+		listCh <- licence.StaffList{
+			PagedList: pkg.PagedList{
+				Total:      0,
+				Pagination: gorest.Pagination{},
+				Err:        err,
+			},
+			Data: list,
 		}
 	}()
 
-	return r
+	count, listResult := <-countCh, <-listCh
+	if listResult.Err != nil {
+		return licence.StaffList{}, listResult.Err
+	}
+
+	return licence.StaffList{
+		PagedList: pkg.PagedList{
+			Total:      count,
+			Pagination: page,
+			Err:        nil,
+		},
+		Data: listResult.Data,
+	}, nil
 }
 
 // DeleteStaffer deletes a staffer that is not a member of a team.
-// TODO: A this staffer is still using a licence of this team,
-// delete should be ignored.
 func (env Env) DeleteStaffer(m licence.Staffer) error {
 	_, err := env.dbs.Write.NamedExec(licence.DeleteStaffer, m)
 	if err != nil {
