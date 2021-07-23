@@ -70,8 +70,8 @@ func (b *OrderedProducts) Scan(src interface{}) error {
 	}
 }
 
-// BriefOrder describes the details of each transaction
-// to purchase a licence.
+// OrderRow describes the details of a transaction for a
+// session of shopping.
 // If a transaction is used to purchase a new licence, the
 // licence should be created together with the order but marked
 // as inactive. Once the transaction is confirmed,
@@ -82,14 +82,14 @@ func (b *OrderedProducts) Scan(src interface{}) error {
 // it is confirmed, which will result licence extended or
 // upgraded and the membership (if the licence is granted
 // to someone) will be backed up and updated corresponding.
-type BriefOrder struct {
+type OrderRow struct {
 	BaseOrder
 	// An array of products, together with the quantities, use is trying to purchase.
 	Products OrderedProducts `json:"products" db:"checkout_products"`
 }
 
-func NewBriefOrder(cart ShoppingCart, p admin.PassportClaims) BriefOrder {
-	return BriefOrder{
+func NewOrderRow(cart ShoppingCart, p admin.PassportClaims) OrderRow {
+	return OrderRow{
 		BaseOrder: BaseOrder{
 			ID:            pkg.OrderID(),
 			AmountPayable: cart.TotalAmount,
@@ -103,8 +103,8 @@ func NewBriefOrder(cart ShoppingCart, p admin.PassportClaims) BriefOrder {
 	}
 }
 
-// BriefOrderList contains a list of orders
-type BriefOrderList struct {
+// OrderRowList contains a list of orders
+type OrderRowList struct {
 	pkg.PagedList
-	Data []BriefOrder `json:"data"`
+	Data []OrderRow `json:"data"`
 }
