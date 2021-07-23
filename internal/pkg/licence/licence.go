@@ -31,7 +31,7 @@ type BaseLicence struct {
 	StartDateUTC          chrono.Time `json:"startDateUtc" db:"start_date_utc"`
 	TrialStartUTC         chrono.Date `json:"trialStartUtc" db:"trial_start_utc"`
 	TrialEndUTC           chrono.Date `json:"trialEndUtc" db:"trial_end_utc"`
-	LatestReceiptID       null.String `json:"latestReceiptId" db:"latest_receipt_id"`
+	LatestOrderID         null.String `json:"latestOrderId" db:"latest_order_id"`
 	LatestPrice           price.Price `json:"latestPrice" db:"latest_price"`
 
 	// The following fields are subject to change.
@@ -41,7 +41,7 @@ type BaseLicence struct {
 	RowMeta
 }
 
-func NewBaseLicence(p price.Price, receiptID string, creator admin.PassportClaims) BaseLicence {
+func NewBaseLicence(p price.Price, orderID string, creator admin.PassportClaims) BaseLicence {
 
 	now := time.Now()
 
@@ -60,7 +60,7 @@ func NewBaseLicence(p price.Price, receiptID string, creator admin.PassportClaim
 		StartDateUTC:          chrono.TimeFrom(now),
 		TrialStartUTC:         chrono.Date{},
 		TrialEndUTC:           chrono.Date{},
-		LatestReceiptID:       null.StringFrom(receiptID),
+		LatestOrderID:         null.StringFrom(orderID),
 		LatestPrice:           p,
 		Status:                LicStatusAvailable,
 		LatestInvitation:      Invitation{},
