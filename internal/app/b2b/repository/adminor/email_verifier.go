@@ -22,8 +22,8 @@ func (env Env) RetrieveEmailVerifier(token string) (admin.EmailVerifier, error) 
 	return v, nil
 }
 
-func (env Env) EmailVerified(ID string) error {
-	_, err := env.DBs.Write.Exec(admin.StmtEmailVerified, ID)
+func (env Env) EmailVerified(id string) error {
+	_, err := env.DBs.Write.Exec(admin.StmtEmailVerified, id)
 
 	if err != nil {
 		return err
