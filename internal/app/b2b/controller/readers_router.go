@@ -37,7 +37,7 @@ func (router ReadersRouter) SignUp(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	params.SourceURL = config.B2BReaderVerification
+	params.SourceURL = config.ReaderVerification
 
 	resp, err := router.apiClient.ReaderSignup(params)
 	if err != nil {
