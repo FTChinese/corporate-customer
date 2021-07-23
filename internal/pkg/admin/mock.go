@@ -4,6 +4,7 @@ package admin
 
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/brianvoe/gofakeit/v5"
@@ -34,4 +35,13 @@ func MockEmailVerifier(email string) EmailVerifier {
 	}
 
 	return v
+}
+
+func MockPwResetSession(params input.ForgotPasswordParams) PwResetSession {
+	s, err := NewPwResetSession(params)
+	if err != nil {
+		panic(err)
+	}
+
+	return s
 }
