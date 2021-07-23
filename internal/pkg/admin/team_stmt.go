@@ -6,8 +6,7 @@ SET id = :team_id,
 	admin_id = :admin_id,
 	org_name = :org_name,
 	invoice_title = :invoice_title,
-	created_utc = UTC_TIMESTAMP(),
-	updated_utc = UTC_TIMESTAMP()`
+	created_utc = :created_utc`
 
 const colTeam = `
 SELECT id AS team_id
