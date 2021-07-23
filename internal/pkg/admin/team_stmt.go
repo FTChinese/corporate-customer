@@ -9,8 +9,8 @@ SET id = :team_id,
 	created_utc = :created_utc`
 
 const colTeam = `
-SELECT id AS team_id
-	admin_id
+SELECT id AS team_id,
+	admin_id,
 	org_name,
 	invoice_tile,
 	created_utc
