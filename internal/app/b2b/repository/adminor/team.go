@@ -17,9 +17,9 @@ func (env Env) CreateTeam(t admin.Team) error {
 	return nil
 }
 
-func (env Env) LoadTeam(id string) (admin.Team, error) {
+func (env Env) LoadTeam(teamID, adminID string) (admin.Team, error) {
 	var t admin.Team
-	err := env.DBs.Read.Get(&t, admin.StmtTeamByID, id)
+	err := env.DBs.Read.Get(&t, admin.StmtTeamByID, teamID, adminID)
 	if err != nil {
 		return admin.Team{}, err
 	}
