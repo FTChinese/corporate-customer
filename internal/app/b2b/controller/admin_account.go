@@ -50,10 +50,7 @@ func (router AdminRouter) RequestVerification(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	re := router.sendEmailVerification(
-		account,
-		params.SourceURL.String,
-		false)
+	re := router.sendEmailVerification(account, false)
 
 	if re != nil {
 		return re
