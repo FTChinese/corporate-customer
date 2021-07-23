@@ -89,7 +89,10 @@ func (router AdminRouter) ChangeName(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	return c.JSON(http.StatusOK, updated)
+	bearer, err := admin.NewPassport(updated, router.keeper.signingKey)
+
+	// Return the updated passport
+	return c.JSON(http.StatusOK, bearer)
 }
 
 // ChangePassword updates password.
