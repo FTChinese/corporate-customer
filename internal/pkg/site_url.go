@@ -1,4 +1,4 @@
-package config
+package pkg
 
 const (
 	SiteBaseURL        = "https://next.ftacademy.cn"
@@ -7,10 +7,14 @@ const (
 	ReaderVerification = UserBaseURL + "/verification"
 )
 
-func B2BVerifyInvitationURL(token string) string {
-	return B2BBaseURL + "/verify-invitation/" + token
+func B2BPasswordResetURL(token string) string {
+	return B2BBaseURL + "/password-reset/" + token
 }
 
 func B2BVerifyAdminURL(token string) string {
 	return B2BBaseURL + "/verify/" + token
+}
+
+func B2BVerifyInvitationURL(token string) string {
+	return B2BBaseURL + "/verify-invitation/" + token
 }

@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
-	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/fetch"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -37,7 +37,7 @@ func (router ReadersRouter) SignUp(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	params.SourceURL = config.ReaderVerification
+	params.SourceURL = pkg.ReaderVerification
 
 	resp, err := router.apiClient.ReaderSignup(params)
 	if err != nil {

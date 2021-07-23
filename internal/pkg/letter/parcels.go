@@ -1,9 +1,9 @@
 package letter
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
-	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/chrono"
 )
@@ -52,7 +52,7 @@ func InvitationParcel(assignee licence.Assignee, lic licence.BaseLicence, adminP
 	body, err := CtxInvitation{
 		ToName:     assignee.NormalizeName(),
 		Tier:       lic.Tier,
-		URL:        config.B2BVerifyInvitationURL(lic.LatestInvitation.Token),
+		URL:        pkg.B2BVerifyInvitationURL(lic.LatestInvitation.Token),
 		AdminEmail: adminProfile.Email,
 		TeamName:   adminProfile.OrgName,
 	}.Render()
