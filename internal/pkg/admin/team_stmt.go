@@ -16,10 +16,6 @@ SELECT id AS team_id,
 	created_utc
 FROM b2b.team`
 
-const StmtTeamByAdminID = colTeam + `
-WHERE admin_id = ?
-LIMIT 1`
-
 const StmtTeamByID = colTeam + `
 WHERE id = ?
 LIMIT 1`
