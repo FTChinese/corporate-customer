@@ -40,7 +40,7 @@ LIMIT 1`
 
 const StmtUpdatePassword = `
 UPDATE b2b.admin
-SET password_sha2 = UNHEX(SHA2(:password, 256))
+SET password_sha2 = UNHEX(SHA2(:password, 256)),
 	updated_utc = UTC_TIMESTAMP()
-WHERE id = :amin_id
+WHERE id = :admin_id
 LIMIT 1`
