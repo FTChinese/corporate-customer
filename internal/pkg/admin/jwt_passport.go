@@ -33,7 +33,6 @@ type PassportClaims struct {
 // Passport carries the Json Web Token for a logged in
 // admin plus structured data of it so that client do not
 // need to decode the encoded data.
-// TODO: rename to Passport
 type Passport struct {
 	BaseAccount
 	ExpiresAt int64  `json:"expiresAt"`
