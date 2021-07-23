@@ -24,6 +24,7 @@ LIMIT 1`
 // StmtEmailVerified set the email_verified to true.
 const StmtEmailVerified = `
 UPDATE b2b.admin
-	SET verified = TRUE
+SET verified = TRUE,
+	updated_utc = UTC_TIMESTAMP()
 WHERE id = ?
 LIMIT 1`
