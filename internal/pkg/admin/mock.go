@@ -23,7 +23,7 @@ func MockAccount() Account {
 		},
 		Password:   faker.SimplePassword(),
 		CreatedUTC: chrono.TimeNow(),
-		UpdatedUTC: chrono.TimeNow(),
+		UpdatedUTC: chrono.Time{},
 	}
 }
 
