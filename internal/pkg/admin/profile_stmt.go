@@ -7,8 +7,8 @@ SELECT a.id AS admin_id,
 	a.is_active AS active,
 	a.verified AS verified,
 	t.id AS team_id,
-	t.org_name,
-	t.invoice_tile,
+	IFNULL(t.org_name, '') AS org_name,
+	t.invoice_title
 FROM b2b.admin AS a
 	LEFT JOIN b2b.team AS t
 	ON a.id = t.admin_id
