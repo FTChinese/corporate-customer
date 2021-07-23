@@ -39,7 +39,7 @@ func (p *NameUpdateParams) Validate() *render.ValidationError {
 }
 
 type PasswordUpdateParams struct {
-	ID  string `json:"-" db:"id"`
+	ID  string `json:"-" db:"admin_id"`
 	Old string `json:"oldPassword"`
 	New string `json:"password" db:"password"` // required. max 128 chars
 }
