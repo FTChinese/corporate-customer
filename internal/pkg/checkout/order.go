@@ -2,7 +2,6 @@ package checkout
 
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
-	"github.com/FTChinese/ftacademy/pkg/sq"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
 )
@@ -29,9 +28,10 @@ type Payment struct {
 
 // Order contains all details of what user wanted to buy,
 // how payment is handled.
+// Used for JSON output only.
 type Order struct {
 	BaseOrder
-	CartItems []OrderItem `json:"cartItems"`
+	Items []OrderItem `json:"items"`
 	Payment
 }
 
@@ -44,39 +44,12 @@ type OrderItem struct {
 	CartItem
 }
 
+// NewOrderItem turns a CartItem into an OrderItem.
 func NewOrderItem(orderID string, i CartItem) OrderItem {
 	return OrderItem{
 		ID:              pkg.OrderItemID(),
 		OrderID:         orderID,
 		CartItem:        i,
 		PriceOffPerCopy: null.Float{},
-	}
-}
-
-func NewOrderItemRows(orderID string, items []CartItem) []OrderItem {
-	var oi = make([]OrderItem, 0)
-	for _, v := range items {
-		oi = append(oi, NewOrderItem(orderID, v))
-	}
-
-	return oi
-}
-
-func (s OrderItem) RowValues() []interface{} {
-	return []interface{}{
-		s.ID,
-		s.OrderID,
-		s.CartItem,
-		s.PriceOffPerCopy,
-	}
-}
-
-type OrderItems []OrderItem
-
-// Each implements Enumerable interface.
-// Usage: `BuildInsertValues(OrderItems)...`
-func (ci OrderItems) Each(handler func(row sq.InsertRow)) {
-	for _, c := range ci {
-		handler(c)
 	}
 }
