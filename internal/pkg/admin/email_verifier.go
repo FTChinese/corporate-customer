@@ -22,7 +22,7 @@ type EmailVerifier struct {
 
 // NewEmailVerifier creates a verification token for an email.
 // It sets a default url to build the verification link.
-func NewEmailVerifier(email string, sourceURL string) (EmailVerifier, error) {
+func NewEmailVerifier(email string) (EmailVerifier, error) {
 	token, err := gorest.RandomHex(32)
 
 	if err != nil {
@@ -35,17 +35,6 @@ func NewEmailVerifier(email string, sourceURL string) (EmailVerifier, error) {
 		ExpireInDays: 3,
 		CreatedUTC:   chrono.TimeNow(),
 	}, nil
-}
-
-// MustNewEmailVerifier creates an EmailVerification instance,
-// or panics if error occurred when generating the token.
-func MustNewEmailVerifier(email string, sourceURL string) EmailVerifier {
-	v, err := NewEmailVerifier(email, sourceURL)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
 }
 
 func (v EmailVerifier) IsExpired() bool {

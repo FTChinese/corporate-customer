@@ -26,3 +26,12 @@ func MockAccount() Account {
 		UpdatedUTC: chrono.TimeNow(),
 	}
 }
+
+func MockEmailVerifier(email string) EmailVerifier {
+	v, err := NewEmailVerifier(email)
+	if err != nil {
+		panic(err)
+	}
+
+	return v
+}
