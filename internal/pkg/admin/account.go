@@ -26,6 +26,11 @@ func (a BaseAccount) NormalizeName() string {
 	return strings.Split(a.Email, "@")[0]
 }
 
+func (a BaseAccount) UpdateName(name string) BaseAccount {
+	a.DisplayName = null.StringFrom(name)
+	return a
+}
+
 // Account is used to created an admin.
 type Account struct {
 	BaseAccount
