@@ -54,7 +54,7 @@ WHERE id = ?
 LIMIT 1`
 
 const StmtItemsOfOrder = `
-SELECT order_item_id,
+SELECT id AS order_item_id,
 	order_id,
 	price_off_per_copy,
 	price_snapshot,
