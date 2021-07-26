@@ -24,14 +24,9 @@ func MockCartItem(tier enum.Tier) CartItem {
 	newCopies := rand.IntRange(1, 5)
 	renewCopies := rand.IntRange(1, 5)
 
-	pp := admin.PassportClaims{
-		AdminID: uuid.New().String(),
-		TeamID:  null.StringFrom(pkg.TeamID()),
-	}
-
 	var renewals = make([]licence.Licence, 0)
 	for i := 0; i < renewCopies; i++ {
-		renewals = append(renewals, licence.MockLicence(p, pp))
+		renewals = append(renewals, licence.MockLicence(p))
 	}
 
 	return CartItem{
