@@ -2,8 +2,8 @@ package txrepo
 
 import "github.com/FTChinese/ftacademy/internal/pkg/checkout"
 
-func (tx TxRepo) CreateOrder(bo checkout.BaseOrder) error {
-	_, err := tx.NamedExec(checkout.StmtCreateBaseOrder, bo)
+func (tx TxRepo) CreateOrder(orderRow checkout.OrderRow) error {
+	_, err := tx.NamedExec(checkout.StmtCreateBaseOrder, orderRow)
 	if err != nil {
 		return err
 	}
