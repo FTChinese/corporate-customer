@@ -7,43 +7,40 @@ import (
 	"github.com/FTChinese/go-rest"
 )
 
-func (env Env) CreateOrder(cart checkout.ShoppingCart, p admin.PassportClaims) (checkout.BriefOrder, error) {
+func (env Env) CreateOrder(schema checkout.OrderInputSchema) error {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
 	tx, err := env.beginTx()
 	if err != nil {
 		sugar.Error(err)
-		return checkout.BriefOrder{}, err
+		return err
 	}
 
-	co := checkout.NewBriefOrder(cart, p)
-	items := checkout.NewOrderItemRows(co.ID, cart.Items)
-
-	err = tx.CreateOrder(co.BaseOrder)
+	err = tx.CreateOrder(schema.OrderRow)
 	if err != nil {
 		_ = tx.Rollback()
-		return checkout.BriefOrder{}, err
+		return err
 	}
 
-	for _, v := range items {
+	for _, v := range schema.ItemRows {
 		err := tx.CreateOrderItem(v)
 		if err != nil {
 			_ = tx.Rollback()
-			return checkout.BriefOrder{}, err
+			return err
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
 		sugar.Error(err)
-		return checkout.BriefOrder{}, err
+		return err
 	}
 
-	return co, nil
+	return nil
 }
 
-func (env Env) listOrders(teamID string, page gorest.Pagination) ([]checkout.BriefOrder, error) {
-	var orders = make([]checkout.BriefOrder, 0)
+func (env Env) listOrders(teamID string, page gorest.Pagination) ([]checkout.OrderRow, error) {
+	var orders = make([]checkout.OrderRow, 0)
 
 	err := env.dbs.Read.Select(
 		&orders,
@@ -69,12 +66,12 @@ func (env Env) countOrder(teamID string) (int64, error) {
 	return total, nil
 }
 
-func (env Env) ListOrders(teamID string, page gorest.Pagination) (checkout.BriefOrderList, error) {
+func (env Env) ListOrders(teamID string, page gorest.Pagination) (checkout.OrderRowList, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
 	countCh := make(chan int64)
-	listCh := make(chan checkout.BriefOrderList)
+	listCh := make(chan checkout.OrderRowList)
 
 	go func() {
 		defer close(countCh)
@@ -91,7 +88,7 @@ func (env Env) ListOrders(teamID string, page gorest.Pagination) (checkout.Brief
 
 		orders, err := env.listOrders(teamID, page)
 
-		listCh <- checkout.BriefOrderList{
+		listCh <- checkout.OrderRowList{
 			PagedList: pkg.PagedList{
 				Total:      0,
 				Pagination: gorest.Pagination{},
@@ -103,10 +100,10 @@ func (env Env) ListOrders(teamID string, page gorest.Pagination) (checkout.Brief
 
 	count, listResult := <-countCh, <-listCh
 	if listResult.Err != nil {
-		return checkout.BriefOrderList{}, listResult.Err
+		return checkout.OrderRowList{}, listResult.Err
 	}
 
-	return checkout.BriefOrderList{
+	return checkout.OrderRowList{
 		PagedList: pkg.PagedList{
 			Total:      count,
 			Pagination: page,
@@ -193,7 +190,7 @@ func (env Env) LoadOrderDetails(r admin.AccessRight) (checkout.Order, error) {
 
 	return checkout.Order{
 		BaseOrder: ordRes.value.BaseOrder,
-		CartItems: itemsRes.value,
+		Items:     itemsRes.value,
 		Payment:   ordRes.value.Payment,
 	}, nil
 }
