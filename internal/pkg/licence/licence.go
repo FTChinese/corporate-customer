@@ -6,7 +6,6 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/ftacademy/pkg/dt"
 	"github.com/FTChinese/ftacademy/pkg/price"
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
 	"time"
@@ -159,8 +158,6 @@ type Licence struct {
 }
 
 type LicList struct {
-	Total int64 `json:"total" db:"row_count"`
-	gorest.Pagination
+	pkg.PagedList
 	Data []Licence `json:"data"`
-	Err  error     `json:"-"`
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/guregu/null"
@@ -144,8 +143,6 @@ type InvitationVerified struct {
 
 // InvitationList is used for restful output.
 type InvitationList struct {
-	Total int64 `json:"total"`
-	gorest.Pagination
+	pkg.PagedList
 	Data []Invitation `json:"data"`
-	Err  error        `json:"-"`
 }

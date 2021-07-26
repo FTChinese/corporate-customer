@@ -2,6 +2,7 @@ package subs
 
 import (
 	"errors"
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
@@ -205,10 +206,12 @@ func (env Env) ListInvitations(teamID string, page gorest.Pagination) (licence.I
 		invs, err := env.listInvitations(teamID, page)
 
 		listCh <- licence.InvitationList{
-			Total:      0,
-			Pagination: gorest.Pagination{},
-			Data:       invs,
-			Err:        err,
+			PagedList: pkg.PagedList{
+				Total:      0,
+				Pagination: gorest.Pagination{},
+				Err:        err,
+			},
+			Data: invs,
 		}
 	}()
 
@@ -219,9 +222,11 @@ func (env Env) ListInvitations(teamID string, page gorest.Pagination) (licence.I
 	}
 
 	return licence.InvitationList{
-		Total:      count,
-		Pagination: page,
-		Data:       listResult.Data,
-		Err:        nil,
+		PagedList: pkg.PagedList{
+			Total:      count,
+			Pagination: page,
+			Err:        nil,
+		},
+		Data: listResult.Data,
 	}, nil
 }
