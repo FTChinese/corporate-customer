@@ -67,24 +67,3 @@ func MockOrderInputSchema() OrderInputSchema {
 
 	return NewOrderInputSchema(cart, pp)
 }
-
-func MockOrderItem(tier enum.Tier) OrderItem {
-	var p price.Price
-	switch tier {
-	case enum.TierStandard:
-		p = price.MockPriceStdYear
-	case enum.TierPremium:
-		p = price.MockPricePrm
-	}
-
-	return OrderItem{
-		ID:              pkg.OrderItemID(),
-		OrderID:         pkg.OrderID(),
-		PriceOffPerCopy: null.Float{},
-		CartItem: CartItem{
-			Price:     p,
-			NewCopies: 10,
-			Renewals:  nil,
-		},
-	}
-}
