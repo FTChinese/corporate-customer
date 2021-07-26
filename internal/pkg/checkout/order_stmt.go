@@ -5,6 +5,7 @@ INSERT INTO b2b.order
 SET id = :order_id,
 	amount_payable = :amount_payable,
 	created_by = :created_by,
+	created_utc = :created_utc,
 	checkout_products = :checkout_products,
 	current_status = :current_status,
 	item_count = :item_count,
