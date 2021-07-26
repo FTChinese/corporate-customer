@@ -34,12 +34,13 @@ func (router OrderRouter) CreateOrders(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	bo, err := router.repo.CreateOrder(cart, claims)
+	schema := checkout.NewOrderInputSchema(cart, claims)
+	err := router.repo.CreateOrder(schema)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	return c.JSON(http.StatusOK, bo)
+	return c.JSON(http.StatusOK, schema.OrderRow)
 }
 
 func (router OrderRouter) ListOrders(c echo.Context) error {
