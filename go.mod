@@ -3,7 +3,7 @@ module github.com/FTChinese/ftacademy
 go 1.13
 
 require (
-	github.com/FTChinese/go-rest v0.9.0
+	github.com/FTChinese/go-rest v0.9.1
 	github.com/GeertJohan/go.rice v1.0.2
 	github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
