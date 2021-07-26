@@ -113,6 +113,8 @@ func (env Env) ListOrders(teamID string, page gorest.Pagination) (checkout.Order
 	}, nil
 }
 
+// orderDetails retrieve a row from order table, excluding
+// checkout_products column.
 func (env Env) orderDetails(r admin.AccessRight) (checkout.Order, error) {
 	var ord checkout.Order
 	err := env.dbs.Read.Get(&ord, checkout.StmtOrderDetails, r.RowID, r.TeamID)
