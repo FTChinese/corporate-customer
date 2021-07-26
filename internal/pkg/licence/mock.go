@@ -5,6 +5,7 @@ package licence
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/FTChinese/ftacademy/pkg/price"
 	"github.com/brianvoe/gofakeit/v5"
@@ -23,9 +24,32 @@ func MockAssignee() Assignee {
 	}
 }
 
-func MockLicence(p price.Price, creator admin.PassportClaims) Licence {
+func MockLicence(p price.Price) Licence {
 	return Licence{
-		BaseLicence: NewBaseLicence(p, pkg.OrderID(), creator),
-		Assignee:    MockAssignee(),
+		BaseLicence: NewBaseLicence(
+			p,
+			pkg.OrderID(),
+			admin.PassportClaims{
+				AdminID: uuid.New().String(),
+				TeamID:  null.StringFrom(pkg.TeamID()),
+			}),
+		Assignee: MockAssignee(),
 	}
+}
+
+func MockInvitation(lic Licence) Invitation {
+	faker.SeedGoFake()
+
+	inv, err := NewInvitation(input.InvitationParams{
+		Email:       gofakeit.Email(),
+		Description: null.String{},
+		LicenceID:   lic.ID,
+		TeamID:      lic.TeamID,
+	}, lic.CreatorID)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return inv
 }
