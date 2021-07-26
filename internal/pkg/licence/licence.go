@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// BaseLicence is the licence a team purchased.
+// BaseLicence represents a row in the licence table.
 // A team can purchase multiple licences, as they usually do.
 // After purchasing licences, the team can send
 // invitations to team member for a specific licence.
@@ -19,12 +19,14 @@ import (
 // is assigned to this member and cannot be reassigned
 // unless it is revoked.
 // When a licence is revoked, backup reader's current
-// current membership status and delete that row, clear
+// membership status and delete that row, clear
 // the AssigneeID field.
 type BaseLicence struct {
 	ID string `json:"id" db:"licence_id"`
 	price.Edition
 	Creator
+	// The following fields are subject to change.
+	Status                Status      `json:"status" db:"lic_status"`
 	CurrentPeriodStartUTC chrono.Time `json:"currentPeriodStartUtc" db:"current_period_start_utc"`
 	CurrentPeriodEndUTC   chrono.Time `json:"currentPeriodEndUtc" db:"current_period_end_utc"`
 	StartDateUTC          chrono.Time `json:"startDateUtc" db:"start_date_utc"`
@@ -32,11 +34,8 @@ type BaseLicence struct {
 	TrialEndUTC           chrono.Date `json:"trialEndUtc" db:"trial_end_utc"`
 	LatestOrderID         null.String `json:"latestOrderId" db:"latest_order_id"`
 	LatestPrice           price.Price `json:"latestPrice" db:"latest_price"`
-
-	// The following fields are subject to change.
-	Status           Status      `json:"status" db:"lic_status"`
-	LatestInvitation Invitation  `json:"latestInvitation" db:"latest_invitation"` // A redundant field that should be synced with the invitation row. I created this field since I don't know how to retrieve both licence and invitation row in SQL's flat structure, specially used when retrieve a list of such rows.
-	AssigneeID       null.String `json:"-" db:"assignee_id"`
+	LatestInvitation      Invitation  `json:"latestInvitation" db:"latest_invitation"` // A redundant field that should be synced with the invitation row. I created this field since I don't know how to retrieve both licence and invitation row in SQL's flat structure, specially used when retrieve a list of such rows.
+	AssigneeID            null.String `json:"-" db:"assignee_id"`
 	RowMeta
 }
 
@@ -54,9 +53,9 @@ func NewBaseLicence(p price.Price, orderID string, creator admin.PassportClaims)
 			CreatorID: creator.AdminID,
 			TeamID:    creator.TeamID.String,
 		},
-		CurrentPeriodStartUTC: chrono.TimeFrom(period.Start),
-		CurrentPeriodEndUTC:   chrono.TimeFrom(period.End),
-		StartDateUTC:          chrono.TimeFrom(now),
+		CurrentPeriodStartUTC: chrono.TimeUTCFrom(period.Start),
+		CurrentPeriodEndUTC:   chrono.TimeUTCFrom(period.End),
+		StartDateUTC:          chrono.TimeUTCFrom(now),
 		TrialStartUTC:         chrono.Date{},
 		TrialEndUTC:           chrono.Date{},
 		LatestOrderID:         null.StringFrom(orderID),
@@ -64,10 +63,7 @@ func NewBaseLicence(p price.Price, orderID string, creator admin.PassportClaims)
 		Status:                LicStatusAvailable,
 		LatestInvitation:      Invitation{},
 		AssigneeID:            null.String{},
-		RowMeta: RowMeta{
-			CreatedUTC: chrono.TimeFrom(now),
-			UpdatedUTC: chrono.TimeFrom(now),
-		},
+		RowMeta:               NewRowMeta(),
 	}
 }
 
@@ -109,7 +105,7 @@ func (l BaseLicence) WithInvitationRevoked() BaseLicence {
 	l.Status = LicStatusAvailable
 	l.LatestInvitation = Invitation{}
 	l.AssigneeID = null.String{}
-	l.UpdatedUTC = chrono.TimeNow()
+	l.UpdatedUTC = chrono.TimeUTCNow()
 
 	return l
 }
@@ -119,7 +115,7 @@ func (l BaseLicence) Granted(a Assignee, inv Invitation) BaseLicence {
 	l.Status = LicStatusGranted
 	l.LatestInvitation = inv
 	l.AssigneeID = a.FtcID
-	l.UpdatedUTC = chrono.TimeNow()
+	l.UpdatedUTC = chrono.TimeUTCNow()
 
 	return l
 }
@@ -143,7 +139,7 @@ func (l BaseLicence) Revoked() BaseLicence {
 	l.Status = LicStatusAvailable
 	l.LatestInvitation = Invitation{}
 	l.AssigneeID = null.String{}
-	l.UpdatedUTC = chrono.TimeNow()
+	l.UpdatedUTC = chrono.TimeUTCNow()
 
 	return l
 }
