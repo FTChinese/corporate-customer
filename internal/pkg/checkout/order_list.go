@@ -94,7 +94,7 @@ func NewOrderRow(cart ShoppingCart, p admin.PassportClaims) OrderRow {
 			ID:            pkg.OrderID(),
 			AmountPayable: cart.TotalAmount,
 			CreatedBy:     p.AdminID,
-			CreatedUTC:    chrono.TimeNow(),
+			CreatedUTC:    chrono.TimeUTCNow(),
 			ItemCount:     cart.ItemCount,
 			Status:        StatusPending,
 			TeamID:        p.TeamID.String,
