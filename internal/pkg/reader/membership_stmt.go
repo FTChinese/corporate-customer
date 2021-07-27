@@ -1,36 +1,5 @@
 package reader
 
-// The common columns when inserting or updating membership.
-// Not the b2b_licence_id column is ignored since it is not
-// generated here. Treat it as read-only across the whole app.
-const mUpsertSharedCols = `
-expire_date = :expire_date,
-payment_method = :payment_method,
-ftc_plan_id = :ftc_plan_id,
-stripe_subscription_id = :stripe_subs_id,
-stripe_plan_id = :stripe_plan_id,
-auto_renewal = :auto_renewal,
-sub_status = :subs_status,
-apple_subscription_id = :apple_subs_id,
-b2b_licence_id = :b2b_licence_id,
-standard_addon = :standard_addon,
-premium_addon = :premium_addon
-`
-
-const mRetrievalSharedCols = `
-expire_date,
-payment_method,
-ftc_plan_id,
-stripe_subscription_id AS stripe_subs_id,
-stripe_plan_id,
-IFNULL(auto_renewal, FALSE) AS auto_renewal,
-sub_status AS subs_status,
-apple_subscription_id AS apple_subs_id,
-b2b_licence_id,
-standard_addon,
-premium_addon
-`
-
 const colMembership = `
 SELECT vip_id AS compound_id,
 	NULLIF(vip_id, vip_id_alias) AS ftc_id,
@@ -39,7 +8,17 @@ SELECT vip_id AS compound_id,
 	expire_time,
 	member_tier AS tier,
 	billing_cycle AS cycle,
-` + mRetrievalSharedCols + `	
+	expire_date,
+	payment_method,
+	ftc_plan_id,
+	stripe_subscription_id AS stripe_subs_id,
+	stripe_plan_id,
+	IFNULL(auto_renewal, FALSE) AS auto_renewal,
+	sub_status AS subs_status,
+	apple_subscription_id AS apple_subs_id,
+	b2b_licence_id,
+	standard_addon,
+	premium_addon
 FROM premium.ftc_vip`
 
 const StmtSelectMember = colMembership + `
@@ -65,7 +44,18 @@ vip_type = :vip_type,
 expire_time = :expire_time,
 member_tier = :tier,
 billing_cycle = :cycle,
-` + mUpsertSharedCols
+expire_date = :expire_date,
+payment_method = :payment_method,
+ftc_plan_id = :ftc_plan_id,
+stripe_subscription_id = :stripe_subs_id,
+stripe_plan_id = :stripe_plan_id,
+auto_renewal = :auto_renewal,
+sub_status = :subs_status,
+apple_subscription_id = :apple_subs_id,
+b2b_licence_id = :b2b_licence_id,
+standard_addon = :standard_addon,
+premium_addon = :premium_addon
+`
 
 const StmtCreateMember = `
 INSERT INTO premium.ftc_vip
@@ -78,11 +68,5 @@ SET vip_id = :compound_id,
 const StmtUpdateMember = `
 UPDATE premium.ftc_vip
 SET ` + mUpsertCols + `
-WHERE vip_id = :compound_id
-LIMIT 1`
-
-// StmtDeleteMember old membership when linking to IAP.
-const StmtDeleteMember = `
-DELETE FROM premium.ftc_vip
 WHERE vip_id = :compound_id
 LIMIT 1`
