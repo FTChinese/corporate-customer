@@ -12,7 +12,7 @@ import "github.com/guregu/null"
 // A user's compound id is taken from either ftc uuid or
 // wechat id, with ftc id taking precedence.
 type UserIDs struct {
-	CompoundID string      `json:"-" db:"compound_id"`
+	CompoundID string      `json:"compoundId" db:"compound_id"`
 	FtcID      null.String `json:"ftcId" db:"ftc_id"`
 	UnionID    null.String `json:"unionId" db:"union_id"`
 }
