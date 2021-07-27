@@ -7,7 +7,12 @@ import (
 
 func (tx TxRepo) RetrieveBaseLicence(r admin.AccessRight) (licence.BaseLicence, error) {
 	var bl licence.BaseLicence
-	err := tx.Get(&bl, licence.StmtLockLicence, r.RowID, r.TeamID)
+	err := tx.Get(
+		&bl,
+		licence.StmtLockLicence,
+		r.RowID,
+		r.TeamID)
+
 	if err != nil {
 		return licence.BaseLicence{}, err
 	}
@@ -39,7 +44,11 @@ func (tx TxRepo) CreateInvitation(inv licence.Invitation) error {
 
 func (tx TxRepo) RetrieveInvitation(r admin.AccessRight) (licence.Invitation, error) {
 	var inv licence.Invitation
-	err := tx.Get(licence.StmtLockInvitation, r.RowID, r.TeamID)
+	err := tx.Get(
+		&inv,
+		licence.StmtLockInvitation,
+		r.RowID,
+		r.TeamID)
 	if err != nil {
 		return licence.Invitation{}, err
 	}
