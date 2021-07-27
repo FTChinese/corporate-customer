@@ -37,12 +37,17 @@ func MockNewRepo() MockRepo {
 	}
 }
 
-func (r MockRepo) MockCreateLicence(l licence.Licence) error {
+func (r MockRepo) CreateLicence(l licence.Licence) {
 
 	_, err := r.dbs.Write.NamedExec(mockStmtCreateLicence, l)
 	if err != nil {
-		return err
+		panic(err)
 	}
+}
 
-	return nil
+func (r MockRepo) CreateInvitation(inv licence.Invitation) {
+	_, err := r.dbs.Write.NamedExec(licence.StmtCreateInvitation, inv)
+	if err != nil {
+		panic(err)
+	}
 }
