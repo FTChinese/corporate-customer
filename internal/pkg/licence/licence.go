@@ -26,17 +26,17 @@ type BaseLicence struct {
 	price.Edition
 	Creator
 	// The following fields are subject to change.
-	Status                Status      `json:"status" db:"lic_status"`
-	CurrentPeriodStartUTC chrono.Time `json:"currentPeriodStartUtc" db:"current_period_start_utc"`
-	CurrentPeriodEndUTC   chrono.Time `json:"currentPeriodEndUtc" db:"current_period_end_utc"`
-	StartDateUTC          chrono.Time `json:"startDateUtc" db:"start_date_utc"`
-	TrialStartUTC         chrono.Date `json:"trialStartUtc" db:"trial_start_utc"`
-	TrialEndUTC           chrono.Date `json:"trialEndUtc" db:"trial_end_utc"`
-	LatestOrderID         null.String `json:"latestOrderId" db:"latest_order_id"`
-	LatestPrice           price.Price `json:"latestPrice" db:"latest_price"`
-	LatestInvitation      Invitation  `json:"latestInvitation" db:"latest_invitation"` // A redundant field that should be synced with the invitation row. I created this field since I don't know how to retrieve both licence and invitation row in SQL's flat structure, specially used when retrieve a list of such rows.
-	AssigneeID            null.String `json:"-" db:"assignee_id"`
-	RowMeta
+	Status                Status         `json:"status" db:"lic_status"`
+	CurrentPeriodStartUTC chrono.Time    `json:"currentPeriodStartUtc" db:"current_period_start_utc"`
+	CurrentPeriodEndUTC   chrono.Time    `json:"currentPeriodEndUtc" db:"current_period_end_utc"`
+	StartDateUTC          chrono.Time    `json:"startDateUtc" db:"start_date_utc"`
+	TrialStartUTC         chrono.Date    `json:"trialStartUtc" db:"trial_start_utc"`
+	TrialEndUTC           chrono.Date    `json:"trialEndUtc" db:"trial_end_utc"`
+	LatestOrderID         null.String    `json:"latestOrderId" db:"latest_order_id"`
+	LatestPrice           price.Price    `json:"latestPrice" db:"latest_price"`
+	LatestInvitation      InvitationJSON `json:"latestInvitation" db:"latest_invitation"` // A redundant field that should be synced with the invitation row. I created this field since I don't know how to retrieve both licence and invitation row in SQL's flat structure, specially used when retrieve a list of such rows.
+	AssigneeID            null.String    `json:"-" db:"assignee_id"`
+	RowTime
 }
 
 func NewBaseLicence(p price.Price, orderID string, creator admin.PassportClaims) BaseLicence {
@@ -61,9 +61,9 @@ func NewBaseLicence(p price.Price, orderID string, creator admin.PassportClaims)
 		LatestOrderID:         null.StringFrom(orderID),
 		LatestPrice:           p,
 		Status:                LicStatusAvailable,
-		LatestInvitation:      Invitation{},
+		LatestInvitation:      InvitationJSON{},
 		AssigneeID:            null.String{},
-		RowMeta:               NewRowMeta(),
+		RowTime:               NewRowTime(),
 	}
 }
 
@@ -82,7 +82,7 @@ func (l BaseLicence) IsAvailable() bool {
 // WithInvitation syncs a licence's latest_invitation when a new invitation is create for it.
 func (l BaseLicence) WithInvitation(inv Invitation) BaseLicence {
 	l.Status = LicStatusInvited
-	l.LatestInvitation = inv
+	l.LatestInvitation = InvitationJSON{inv}
 	l.AssigneeID = null.String{}
 	l.UpdatedUTC = chrono.TimeNow()
 	return l
@@ -103,7 +103,7 @@ func (l BaseLicence) IsInvitationRevocable() bool {
 // accepted.
 func (l BaseLicence) WithInvitationRevoked() BaseLicence {
 	l.Status = LicStatusAvailable
-	l.LatestInvitation = Invitation{}
+	l.LatestInvitation = InvitationJSON{}
 	l.AssigneeID = null.String{}
 	l.UpdatedUTC = chrono.TimeUTCNow()
 
@@ -113,7 +113,7 @@ func (l BaseLicence) WithInvitationRevoked() BaseLicence {
 // Granted links a licence to a ftc reader.
 func (l BaseLicence) Granted(a Assignee, inv Invitation) BaseLicence {
 	l.Status = LicStatusGranted
-	l.LatestInvitation = inv
+	l.LatestInvitation = InvitationJSON{inv}
 	l.AssigneeID = a.FtcID
 	l.UpdatedUTC = chrono.TimeUTCNow()
 
@@ -137,7 +137,7 @@ func (l BaseLicence) IsRevocable() bool {
 // Revoked unlink a user from a licence.
 func (l BaseLicence) Revoked() BaseLicence {
 	l.Status = LicStatusAvailable
-	l.LatestInvitation = Invitation{}
+	l.LatestInvitation = InvitationJSON{}
 	l.AssigneeID = null.String{}
 	l.UpdatedUTC = chrono.TimeUTCNow()
 
