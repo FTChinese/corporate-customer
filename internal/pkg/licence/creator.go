@@ -10,15 +10,15 @@ type Creator struct {
 	TeamID    string `json:"teamId" db:"team_id"`
 }
 
-type RowMeta struct {
+type RowTime struct {
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }
 
-func NewRowMeta() RowMeta {
-	now := time.Now().Truncate(time.Second).In(time.UTC)
+func NewRowTime() RowTime {
+	now := time.Now()
 
-	return RowMeta{
+	return RowTime{
 		CreatedUTC: chrono.TimeUTCFrom(now),
 		UpdatedUTC: chrono.TimeUTCFrom(now),
 	}
