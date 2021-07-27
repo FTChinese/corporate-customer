@@ -24,13 +24,13 @@ import (
 type Invitation struct {
 	ID string `json:"id" db:"invite_id"`
 	Creator
+	Status         InvitationStatus `json:"status" db:"invite_status"`
 	Description    null.String      `json:"description" db:"invite_desc"`
 	ExpirationDays int64            `json:"expirationDays" db:"invite_expiration_days"`
 	Email          string           `json:"email" db:"invite_email"`
 	LicenceID      string           `json:"licenceId" db:"licence_id"`
-	Status         InvitationStatus `json:"status" db:"invite_current_status"`
 	Token          string           `json:"-" db:"invite_token"` // This field is used only when inserting data. Retrieval does not include this field. However, it is included when saving to the JSON column in licence.
-	RowMeta
+	RowTime
 }
 
 func NewInvitation(params input.InvitationParams, adminID string) (Invitation, error) {
@@ -51,10 +51,7 @@ func NewInvitation(params input.InvitationParams, adminID string) (Invitation, e
 		LicenceID:      params.LicenceID,
 		Status:         InvitationStatusCreated,
 		Token:          token,
-		RowMeta: RowMeta{
-			CreatedUTC: chrono.TimeNow(),
-			UpdatedUTC: chrono.Time{},
-		},
+		RowTime:        NewRowTime(),
 	}, nil
 }
 
@@ -96,9 +93,19 @@ func (i Invitation) Revoked() Invitation {
 	return i
 }
 
+// InvitationJSON is used to implement sql Valuer interface.
+// Problems if you implement it on Invitation: when used
+// as a field, the sql driver could save/retrieve a column
+// as JSON; however, when you want to use Invitation as a
+// plain SQL row, it continues to you custom `scan`, expecting
+// JSON value instead of plain SQL columns.
+type InvitationJSON struct {
+	Invitation
+}
+
 // Value implements Valuer interface by serializing an Invitation into
 // JSON data.
-func (i Invitation) Value() (driver.Value, error) {
+func (i InvitationJSON) Value() (driver.Value, error) {
 	if i.ID == "" {
 		return nil, nil
 	}
@@ -112,15 +119,15 @@ func (i Invitation) Value() (driver.Value, error) {
 }
 
 // Scan implements Valuer interface by deserializing an invitation field.
-func (i *Invitation) Scan(src interface{}) error {
+func (i *InvitationJSON) Scan(src interface{}) error {
 	if src == nil {
-		*i = Invitation{}
+		*i = InvitationJSON{}
 		return nil
 	}
 
 	switch s := src.(type) {
 	case []byte:
-		var tmp Invitation
+		var tmp InvitationJSON
 		err := json.Unmarshal(s, &tmp)
 		if err != nil {
 			return err
@@ -133,16 +140,16 @@ func (i *Invitation) Scan(src interface{}) error {
 	}
 }
 
+// InvitationList is used for restful output.
+type InvitationList struct {
+	pkg.PagedList
+	Data []Invitation `json:"data"`
+}
+
 // InvitationVerified is returned after an invitation link
 // is clicked and the corresponding Licence is found.
 type InvitationVerified struct {
 	Licence    Licence // The licence being invited.
 	Assignee   Assignee
 	Membership reader.Membership
-}
-
-// InvitationList is used for restful output.
-type InvitationList struct {
-	pkg.PagedList
-	Data []Invitation `json:"data"`
 }
