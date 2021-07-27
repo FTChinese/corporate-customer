@@ -9,7 +9,7 @@ SET id = :invite_id,
 	expiration_days = :invite_expiration_days,
 	invitee_email = :invite_email,
 	licence_id = :licence_id,
-	current_status = :invite_current_status,
+	current_status = :invite_status,
 	token = UNHEX(:invite_token),
 	created_utc = :created_utc,
 	updated_utc = :updated_utc`
@@ -19,21 +19,23 @@ SET id = :invite_id,
 // email.
 const colInvitation = `
 SELECT i.id AS invite_id,
-	i.creator_id AS creator_id
+	i.creator_id AS creator_id,
 	i.team_id AS team_id,
+	i.current_status AS invite_status,
 	i.description AS invite_desc,
 	i.expiration_days AS invite_expiration_days,
 	i.invitee_email AS invite_email,
 	i.licence_id AS licence_id,
-	i.current_status AS invite_current_status,
-	HEX(i.token) AS invite_token,
+	LOWER(HEX(i.token)) AS invite_token,
 	i.created_utc AS created_utc,
 	i.updated_utc AS updated_utc
-FROM b2b.invitation AS i`
+FROM b2b.invitation AS i
+`
 
 const StmtInvitationByID = colInvitation + `
-WHERE i.id = ? AND team_id = ?
-LIMIT 1`
+WHERE i.id = ? AND i.team_id = ?
+LIMIT 1
+`
 
 // StmtLockInvitation locks and retrieves a row of invitation
 // upon revoking.
@@ -62,29 +64,8 @@ WHERE team_id = ?`
 
 const StmtUpdateInvitationStatus = `
 UPDATE b2b.invitation
-SET current_status = :current_status
+SET current_status = :invite_status,
 	updated_utc = :updated_utc
 WHERE id = :invite_id
 	AND team_id = :team_id
-LIMIT 1`
-
-// StmtRevokeInvitation mark an invitation as invalid.
-// If an invitation is already accepted, this operation
-// does nothing.
-// Deprecated.
-const StmtRevokeInvitation = `
-UPDATE b2b.invitation
-SET current_status = :current_status,
-	updated_utc = UTC_TIMESTAMP()
-WHERE id = :invitation_id
-	AND team_id = :team_id
-LIMIT 1`
-
-// StmtAcceptInvitation for a reader who received invitation email.
-// Deprecated.
-const StmtAcceptInvitation = `
-UPDATE b2b.invitation
-SET current_status = :current_status,
-	updated_utc = UTC_TIMESTAMP()
-WHERE id = :invitation_id
 LIMIT 1`
