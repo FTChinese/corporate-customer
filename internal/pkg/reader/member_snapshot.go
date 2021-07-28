@@ -90,8 +90,8 @@ type MemberSnapshot struct {
 	Membership MembershipJSON `json:"membership" db:"membership"`
 }
 
-// Snapshot takes a snapshot of membership, usually before modifying it.
-func (m Membership) Snapshot(by Archiver) MemberSnapshot {
+// Archive takes a snapshot of membership, usually before modifying it.
+func (m Membership) Archive(by Archiver) MemberSnapshot {
 	if m.IsZero() {
 		return MemberSnapshot{}
 	}
