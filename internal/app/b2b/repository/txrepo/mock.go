@@ -4,6 +4,7 @@ package txrepo
 
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
+	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/ftacademy/pkg/db"
 )
 
@@ -47,6 +48,13 @@ func (r MockRepo) CreateLicence(l licence.Licence) {
 
 func (r MockRepo) CreateInvitation(inv licence.Invitation) {
 	_, err := r.dbs.Write.NamedExec(licence.StmtCreateInvitation, inv)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (r MockRepo) CreateMember(m reader.Membership) {
+	_, err := r.dbs.Write.NamedExec(reader.StmtCreateMember, m)
 	if err != nil {
 		panic(err)
 	}
