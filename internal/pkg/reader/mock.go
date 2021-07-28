@@ -12,12 +12,15 @@ import (
 	"time"
 )
 
-func MockMembership() Membership {
-	id := uuid.New().String()
+func MockMembership(ftcID string) Membership {
+	if ftcID == "" {
+		ftcID = uuid.New().String()
+	}
+
 	return Membership{
 		UserIDs: UserIDs{
-			CompoundID: id,
-			FtcID:      null.StringFrom(id),
+			CompoundID: ftcID,
+			FtcID:      null.StringFrom(ftcID),
 		},
 		Edition: price.Edition{
 			Tier:  enum.TierStandard,
