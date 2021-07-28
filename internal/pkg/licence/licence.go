@@ -150,7 +150,7 @@ type Licence struct {
 	BaseLicence
 	// Only exists after reader accepted an invitation.
 	// Join with userinfo table
-	Assignee Assignee `json:"assignee" db:"assignee"`
+	Assignee AssigneeJSON `json:"assignee" db:"assignee"`
 }
 
 type LicList struct {
