@@ -172,7 +172,7 @@ func (env Env) GrantLicence(r admin.AccessRight, to licence.Assignee) (licence.G
 	}
 
 	// Insert a new row if the current membership is empty.
-	if !mmb.IsZero() {
+	if mmb.IsZero() {
 		err := tx.CreateMember(result.Membership)
 		if err != nil {
 			sugar.Error(err)
@@ -219,7 +219,8 @@ func (env Env) RevokeLicence(r admin.AccessRight) (licence.RevokeResult, error) 
 		_ = tx.Rollback()
 		return licence.RevokeResult{}, err
 	}
-	if lic.IsRevocable() {
+	sugar.Infof("Licence to revoke: %v", lic)
+	if !lic.IsRevocable() {
 		sugar.Error(err)
 		_ = tx.Rollback()
 		return licence.RevokeResult{}, errors.New("nothing to revoke")
@@ -231,6 +232,7 @@ func (env Env) RevokeLicence(r admin.AccessRight) (licence.RevokeResult, error) 
 		_ = tx.Rollback()
 		return licence.RevokeResult{}, err
 	}
+	sugar.Infof("Membership to revoke: %v", mmb)
 	if !lic.IsGrantedTo(mmb) {
 		_ = tx.Rollback()
 		return licence.RevokeResult{}, errors.New("reader's membership is not generated from b2b licence")
@@ -264,6 +266,6 @@ func (env Env) RevokeLicence(r admin.AccessRight) (licence.RevokeResult, error) 
 			Assignee:    licence.AssigneeJSON{},
 		},
 		Membership: updatedMmb,
-		Snapshot:   mmb.Snapshot(reader.B2BArchiver(reader.ArchiveActionRevoke)),
+		Snapshot:   mmb.Archive(reader.B2BArchiver(reader.ArchiveActionRevoke)),
 	}, nil
 }
