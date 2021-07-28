@@ -152,7 +152,7 @@ func (env Env) GrantLicence(r admin.AccessRight, to licence.Assignee) (licence.G
 	// Create/update membership based on licence.
 	result := licence.NewGrantResult(licence.Licence{
 		BaseLicence: grantedLic,
-		Assignee:    to,
+		Assignee:    licence.AssigneeJSON{Assignee: to},
 	}, mmb)
 
 	// Update invitation
@@ -261,7 +261,7 @@ func (env Env) RevokeLicence(r admin.AccessRight) (licence.RevokeResult, error) 
 	return licence.RevokeResult{
 		Licence: licence.Licence{
 			BaseLicence: updatedLic,
-			Assignee:    licence.Assignee{},
+			Assignee:    licence.AssigneeJSON{},
 		},
 		Membership: updatedMmb,
 		Snapshot:   mmb.Snapshot(reader.B2BArchiver(reader.ArchiveActionRevoke)),
