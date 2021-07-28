@@ -52,3 +52,12 @@ func (env Env) RetrieveMembership(compoundID string) (reader.Membership, error) 
 	// Treat a non-existing member as a valid value.
 	return m.Sync(), nil
 }
+
+func (env Env) ArchiveMembership(m reader.MemberSnapshot) error {
+	_, err := env.dbs.Write.NamedExec(reader.StmtArchiveMembership, m)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
