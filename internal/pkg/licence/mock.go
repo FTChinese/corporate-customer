@@ -33,7 +33,7 @@ func MockLicence(p price.Price) Licence {
 				AdminID: uuid.New().String(),
 				TeamID:  null.StringFrom(pkg.TeamID()),
 			}),
-		Assignee: AssigneeJSON{MockAssignee()},
+		Assignee: AssigneeJSON{},
 	}
 }
 
