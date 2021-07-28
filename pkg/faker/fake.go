@@ -3,7 +3,6 @@
 package faker
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
@@ -59,14 +58,4 @@ func GenCardSerial() string {
 	suffix := rand.IntRange(0, 9999)
 
 	return fmt.Sprintf("%d%02d%04d", anni, now.Month(), suffix)
-}
-
-func MustMarshalIndent(v interface{}) []byte {
-	b, err := json.MarshalIndent(v, "", "\t")
-
-	if err != nil {
-		panic(err)
-	}
-
-	return b
 }
