@@ -12,7 +12,7 @@ import (
 type GrantResult struct {
 	Licence    Licence               `json:"licence"` // The licence after grated.
 	Membership reader.Membership     `json:"membership"`
-	Snapshot   reader.MemberSnapshot `json:"snapshot"`
+	Snapshot   reader.MemberSnapshot `json:"-"`
 	Invoice    reader.Invoice        `json:"invoice"`
 }
 
@@ -22,7 +22,9 @@ type GrantResult struct {
 // If the assignee already has a valid membership, it could
 // only be allowed to come from alipay or wechat.
 // IAP and stripe should not be allowed to use a licence.
-func NewGrantResult(gratedLic Licence, m reader.Membership) GrantResult {
+// @param grantedLic - the licence to grant
+// @param m - current membership
+func NewGrantResult(grantedLic Licence, m reader.Membership) GrantResult {
 	var inv reader.Invoice
 	// If membership is still valid, turn remaining days to
 	// carried-over addon.
@@ -32,20 +34,21 @@ func NewGrantResult(gratedLic Licence, m reader.Membership) GrantResult {
 
 	newM := NewMembership(
 		reader.UserIDs{
-			CompoundID: gratedLic.Assignee.FtcID.String,
-			FtcID:      gratedLic.Assignee.FtcID,
-			UnionID:    gratedLic.Assignee.UnionID,
+			CompoundID: grantedLic.Assignee.FtcID.String,
+			FtcID:      grantedLic.Assignee.FtcID,
+			UnionID:    grantedLic.Assignee.UnionID,
 		},
-		gratedLic.BaseLicence,
-		m.AddOn.Plus(addon.New(inv.Tier, inv.TotalDays())))
+		grantedLic.BaseLicence,
+		m.AddOn.Plus(addon.New(inv.Tier, inv.TotalDays())),
+	)
 
 	var snapshot reader.MemberSnapshot
 	if !m.IsZero() {
-		snapshot = m.Snapshot(reader.B2BArchiver(reader.ArchiveActionRevoke))
+		snapshot = m.Archive(reader.B2BArchiver(reader.ArchiveActionGrant))
 	}
 
 	return GrantResult{
-		Licence:    gratedLic,
+		Licence:    grantedLic,
 		Membership: newM,
 		Snapshot:   snapshot,
 		Invoice:    inv,
