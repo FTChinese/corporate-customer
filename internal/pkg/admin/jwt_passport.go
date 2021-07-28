@@ -2,7 +2,7 @@ package admin
 
 import (
 	"errors"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/guregu/null"
 	"log"
 	"time"
