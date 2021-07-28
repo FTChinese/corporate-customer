@@ -25,5 +25,5 @@ func NewMembership(userIDs reader.UserIDs, l BaseLicence, addOn addon.AddOn) rea
 		B2BLicenceID:  null.StringFrom(l.ID),
 		AddOn:         addOn,
 		VIP:           false,
-	}
+	}.Sync()
 }
