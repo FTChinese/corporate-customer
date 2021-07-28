@@ -3,12 +3,10 @@ package subs
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/txrepo"
-	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
-	"github.com/brianvoe/gofakeit/v5"
 	"go.uber.org/zap/zaptest"
 	"reflect"
 	"testing"
@@ -17,12 +15,7 @@ import (
 func TestEnv_RetrieveAssignee(t *testing.T) {
 	faker.SeedGoFake()
 
-	a := api.MockNewClient().MustCreateAssignee(input.SignupParams{
-		Credentials: input.Credentials{
-			Email:    gofakeit.Email(),
-			Password: faker.SimplePassword(),
-		},
-	})
+	a := api.MockNewClient().MustCreateAssignee()
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
@@ -61,12 +54,7 @@ func TestEnv_RetrieveAssignee(t *testing.T) {
 func TestEnv_FindAssignee(t *testing.T) {
 	faker.SeedGoFake()
 
-	a := api.MockNewClient().MustCreateAssignee(input.SignupParams{
-		Credentials: input.Credentials{
-			Email:    gofakeit.Email(),
-			Password: faker.SimplePassword(),
-		},
-	})
+	a := api.MockNewClient().MustCreateAssignee()
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
@@ -106,9 +94,9 @@ func TestEnv_FindAssignee(t *testing.T) {
 func TestEnv_RetrieveMembership(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
-	m := reader.MockMembership()
+	m := reader.MockMembership("")
 
-	txrepo.MockNewRepo().CreateMember(m)
+	txrepo.MockNewRepo().MustCreateMember(m)
 
 	type args struct {
 		compoundID string
@@ -144,7 +132,7 @@ func TestEnv_RetrieveMembership(t *testing.T) {
 }
 
 func TestEnv_ArchiveMembership(t *testing.T) {
-	m := reader.MockMembership()
+	m := reader.MockMembership("")
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
 	type args struct {
@@ -158,7 +146,7 @@ func TestEnv_ArchiveMembership(t *testing.T) {
 		{
 			name: "Archive membership",
 			args: args{
-				m: m.Snapshot(reader.B2BArchiver(reader.ArchiveActionGrant)),
+				m: m.Archive(reader.B2BArchiver(reader.ArchiveActionGrant)),
 			},
 			wantErr: false,
 		},
