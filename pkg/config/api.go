@@ -16,7 +16,7 @@ type API struct {
 
 func (a API) Validate() error {
 	if a.Dev == "" || a.Prod == "" {
-		return errors.New("dev or prod key found")
+		return errors.New("dev or prod key not found")
 	}
 
 	return nil
@@ -58,7 +58,7 @@ func MustLoadAPIConfig(name string) API {
 }
 
 func MustSubsAPIKey() API {
-	return MustLoadAPIConfig("api_keys.facademy")
+	return MustLoadAPIConfig("api_keys.ftacademy")
 }
 
 func MustSubsAPIv2BaseURL() API {
