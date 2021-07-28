@@ -20,9 +20,9 @@ func (env Env) InvitationByToken(token string) (licence.Invitation, error) {
 	return inv, nil
 }
 
-func (env Env) InvitationByID(id string) (licence.Invitation, error) {
+func (env Env) InvitationByID(r admin.AccessRight) (licence.Invitation, error) {
 	var inv licence.Invitation
-	err := env.dbs.Read.Get(&inv, licence.StmtInvitationByID, id)
+	err := env.dbs.Read.Get(&inv, licence.StmtInvitationByID, r.RowID, r.TeamID)
 	if err != nil {
 		return licence.Invitation{}, err
 	}
@@ -171,7 +171,7 @@ func (env Env) listInvitations(teamID string, page gorest.Pagination) ([]licence
 func (env Env) countInvitation(teamID string) (int64, error) {
 	var total int64
 
-	err := env.dbs.Read.Select(
+	err := env.dbs.Read.Get(
 		&total,
 		licence.StmtCountInvitation,
 		teamID)
