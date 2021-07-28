@@ -149,7 +149,7 @@ type orderItemsResult struct {
 	err   error
 }
 
-func (env Env) LoadOrderDetails(r admin.AccessRight) (checkout.Order, error) {
+func (env Env) LoadDetailedOrder(r admin.AccessRight) (checkout.Order, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 

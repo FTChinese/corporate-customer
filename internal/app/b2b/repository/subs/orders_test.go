@@ -296,13 +296,13 @@ func TestEnv_LoadOrderDetails(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := env.LoadOrderDetails(tt.args.r)
+			got, err := env.LoadDetailedOrder(tt.args.r)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("LoadOrderDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("LoadDetailedOrder() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			//if !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("LoadOrderDetails() got = %v, want %v", got, tt.want)
+			//	t.Errorf("LoadDetailedOrder() got = %v, want %v", got, tt.want)
 			//}
 
 			t.Logf("%s", faker.MustMarshalIndent(got))

@@ -64,7 +64,7 @@ func (router OrderRouter) LoadOrder(c echo.Context) error {
 
 	id := c.QueryParam("id")
 
-	o, err := router.repo.LoadOrderDetails(admin.AccessRight{
+	o, err := router.repo.LoadDetailedOrder(admin.AccessRight{
 		RowID:  id,
 		TeamID: claims.TeamID.String,
 	})
