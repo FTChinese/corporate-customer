@@ -40,8 +40,8 @@ func B2BArchiver(a ArchiveAction) Archiver {
 	}
 }
 
-const StmtSaveSnapshot = `
-INSERT INTO premium.member_snapshot
+const StmtArchiveMembership = `
+INSERT INTO premium.member_archive
 SET id = :snapshot_id,
 	created_by = :created_by,
 	created_utc = UTC_TIMESTAMP(),
