@@ -20,6 +20,6 @@ func NewRowTime() RowTime {
 
 	return RowTime{
 		CreatedUTC: chrono.TimeUTCFrom(now),
-		UpdatedUTC: chrono.TimeUTCFrom(now),
+		UpdatedUTC: chrono.Time{},
 	}
 }
