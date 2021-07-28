@@ -6,6 +6,7 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/ftacademy/pkg/db"
+	"github.com/FTChinese/ftacademy/pkg/price"
 )
 
 const mockStmtCreateLicence = `
@@ -38,7 +39,7 @@ func MockNewRepo() MockRepo {
 	}
 }
 
-func (r MockRepo) CreateLicence(l licence.Licence) {
+func (r MockRepo) MustCreateLicence(l licence.BaseLicence) {
 
 	_, err := r.dbs.Write.NamedExec(mockStmtCreateLicence, l)
 	if err != nil {
@@ -46,16 +47,53 @@ func (r MockRepo) CreateLicence(l licence.Licence) {
 	}
 }
 
-func (r MockRepo) CreateInvitation(inv licence.Invitation) {
+func (r MockRepo) MustCreateInvitation(inv licence.Invitation) {
 	_, err := r.dbs.Write.NamedExec(licence.StmtCreateInvitation, inv)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (r MockRepo) CreateMember(m reader.Membership) {
+func (r MockRepo) MustCreateMember(m reader.Membership) {
 	_, err := r.dbs.Write.NamedExec(reader.StmtCreateMember, m)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func (r MockRepo) MustCreateInvitedLicence(a licence.Assignee) licence.Licence {
+	lic := licence.MockLicence(price.MockPriceStdYear)
+	inv := licence.MockInvitation(lic)
+	baseLic := lic.WithInvitation(inv)
+
+	r.MustCreateLicence(baseLic)
+	r.MustCreateInvitation(inv)
+
+	return licence.Licence{
+		BaseLicence: baseLic,
+		Assignee:    licence.AssigneeJSON{Assignee: a},
+	}
+}
+
+func (r MockRepo) MustCreateGrantedLicence(a licence.Assignee) licence.Licence {
+	lic := licence.MockLicence(price.MockPriceStdYear)
+	inv := licence.MockInvitation(lic).Accepted()
+	baseLic := lic.Granted(a, inv)
+
+	result := licence.NewGrantResult(
+		licence.Licence{
+			BaseLicence: baseLic,
+			Assignee:    licence.AssigneeJSON{Assignee: a},
+		},
+		reader.Membership{},
+	)
+
+	r.MustCreateLicence(result.Licence.BaseLicence)
+	r.MustCreateInvitation(result.Licence.LatestInvitation.Invitation)
+	r.MustCreateMember(result.Membership)
+
+	return licence.Licence{
+		BaseLicence: baseLic,
+		Assignee:    licence.AssigneeJSON{Assignee: a},
 	}
 }
