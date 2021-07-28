@@ -13,7 +13,7 @@ import (
 func TestTxRepo_RetrieveBaseLicence(t *testing.T) {
 	lic := licence.MockLicence(price.MockPriceStdYear)
 
-	MockNewRepo().CreateLicence(lic)
+	MockNewRepo().MustCreateLicence(lic.BaseLicence)
 
 	type fields struct {
 		Tx *sqlx.Tx
@@ -66,7 +66,7 @@ func TestTxRepo_RetrieveBaseLicence(t *testing.T) {
 func TestTxRepo_UpdateLicenceStatus(t *testing.T) {
 	lic := licence.MockLicence(price.MockPriceStdYear)
 
-	MockNewRepo().CreateLicence(lic)
+	MockNewRepo().MustCreateLicence(lic.BaseLicence)
 
 	type fields struct {
 		Tx *sqlx.Tx
@@ -167,7 +167,7 @@ func TestTxRepo_CreateInvitation(t *testing.T) {
 				Tx: tt.fields.Tx,
 			}
 			if err := tx.CreateInvitation(tt.args.inv); (err != nil) != tt.wantErr {
-				t.Errorf("CreateInvitation() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MustCreateInvitation() error = %v, wantErr %v", err, tt.wantErr)
 				_ = tx.Rollback()
 			}
 
@@ -179,7 +179,7 @@ func TestTxRepo_CreateInvitation(t *testing.T) {
 func TestTxRepo_RetrieveInvitation(t *testing.T) {
 	inv := licence.MockInvitation(licence.MockLicence(price.MockPriceStdYear))
 
-	MockNewRepo().CreateInvitation(inv)
+	MockNewRepo().MustCreateInvitation(inv)
 
 	type fields struct {
 		Tx *sqlx.Tx
@@ -231,7 +231,7 @@ func TestTxRepo_RetrieveInvitation(t *testing.T) {
 func TestTxRepo_UpdateInvitationStatus(t *testing.T) {
 	inv := licence.MockInvitation(licence.MockLicence(price.MockPriceStdYear))
 
-	MockNewRepo().CreateInvitation(inv)
+	MockNewRepo().MustCreateInvitation(inv)
 
 	type fields struct {
 		Tx *sqlx.Tx

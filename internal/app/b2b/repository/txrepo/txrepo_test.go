@@ -29,7 +29,7 @@ func TestTxRepo_CreateMember(t *testing.T) {
 				Tx: db.MockMySQL().Write.MustBegin(),
 			},
 			args: args{
-				m: reader.MockMembership(),
+				m: reader.MockMembership(""),
 			},
 			wantErr: false,
 		},
@@ -40,7 +40,7 @@ func TestTxRepo_CreateMember(t *testing.T) {
 				Tx: tt.fields.Tx,
 			}
 			if err := tx.CreateMember(tt.args.m); (err != nil) != tt.wantErr {
-				t.Errorf("CreateMember() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MustCreateMember() error = %v, wantErr %v", err, tt.wantErr)
 				_ = tx.Rollback()
 			}
 
@@ -50,9 +50,9 @@ func TestTxRepo_CreateMember(t *testing.T) {
 }
 
 func TestTxRepo_RetrieveMember(t *testing.T) {
-	m := reader.MockMembership()
+	m := reader.MockMembership("")
 
-	MockNewRepo().CreateMember(m)
+	MockNewRepo().MustCreateMember(m)
 
 	type fields struct {
 		Tx *sqlx.Tx
@@ -100,8 +100,8 @@ func TestTxRepo_RetrieveMember(t *testing.T) {
 }
 
 func TestTxRepo_UpdateMember(t *testing.T) {
-	m := reader.MockMembership()
-	MockNewRepo().CreateMember(m)
+	m := reader.MockMembership("")
+	MockNewRepo().MustCreateMember(m)
 
 	m.ExpireDate = chrono.DateUTCFrom(time.Now().AddDate(0, 0, -1))
 	type fields struct {
@@ -158,7 +158,7 @@ func TestTxRepo_SaveInvoice(t *testing.T) {
 				Tx: db.MockMySQL().Write.MustBegin(),
 			},
 			args: args{
-				inv: reader.MockMembership().CarryOverInvoice(),
+				inv: reader.MockMembership("").CarryOverInvoice(),
 			},
 			wantErr: false,
 		},
