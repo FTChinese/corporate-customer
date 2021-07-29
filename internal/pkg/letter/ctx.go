@@ -1,9 +1,5 @@
 package letter
 
-import (
-	"github.com/FTChinese/go-rest/enum"
-)
-
 // CtxVerification holds data to render a letter upon signup.
 type CtxVerification struct {
 	Email    string
@@ -42,7 +38,7 @@ type CtxInvitation struct {
 	ToName     string
 	AdminEmail string
 	TeamName   string
-	Tier       enum.Tier
+	Tier       string
 	URL        string
 }
 
