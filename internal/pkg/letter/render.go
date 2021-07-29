@@ -2,12 +2,18 @@ package letter
 
 import (
 	"fmt"
+	"github.com/FTChinese/go-rest/enum"
 	"strconv"
 	"strings"
 	"text/template"
 )
 
 var tmplCache = map[string]*template.Template{}
+
+var tierCN = map[enum.Tier]string{
+	enum.TierStandard: "标准版",
+	enum.TierPremium:  "高端版",
+}
 
 var funcMap = template.FuncMap{
 	"formatFloat": func(f float64) string {
@@ -16,6 +22,9 @@ var funcMap = template.FuncMap{
 	"currency": func(f float64) string {
 		return fmt.Sprintf("¥ %.2f",
 			f)
+	},
+	"tierSC": func(t enum.Tier) string {
+		return tierCN[t]
 	},
 }
 
