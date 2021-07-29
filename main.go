@@ -93,7 +93,7 @@ func main() {
 	{
 		b2bAuthGroup.POST("/login/", adminRouter.Login)
 		b2bAuthGroup.POST("/signup/", adminRouter.SignUp)
-		b2bAuthGroup.GET("/verify/:token", adminRouter.VerifyEmail)
+		b2bAuthGroup.GET("/verify/:token/", adminRouter.VerifyEmail)
 
 		pwResetGroup := b2bAuthGroup.Group("/password-reset")
 		{
@@ -115,12 +115,12 @@ func main() {
 	{
 		//b2bAccountGroup.GET("/", accountRouter.Account)
 		b2bAccountGroup.GET("/jwt/", adminRouter.RefreshJWT)
-		b2bAccountGroup.POST("/request-verification", adminRouter.RequestVerification)
-		b2bAccountGroup.PATCH("/display-name", adminRouter.ChangeName)
-		b2bAccountGroup.PATCH("/password", adminRouter.ChangePassword)
+		b2bAccountGroup.POST("/request-verification/", adminRouter.RequestVerification)
+		b2bAccountGroup.PATCH("/display-name/", adminRouter.ChangeName)
+		b2bAccountGroup.PATCH("/password/", adminRouter.ChangePassword)
 	}
 
-	b2bTeamGroup := b2bAPIGroup.Group("/team", dk.RequireLoggedIn)
+	b2bTeamGroup := b2bAPIGroup.Group("/team/", dk.RequireLoggedIn)
 	{
 		b2bTeamGroup.GET("/", adminRouter.LoadTeam)
 		b2bTeamGroup.POST("/", adminRouter.CreateTeam)
@@ -138,16 +138,16 @@ func main() {
 		orderGroup.GET("/", orderRouter.ListOrders)
 		// CreateTeam orders, or renew/upgrade in bulk.
 		orderGroup.POST("/", orderRouter.CreateOrders)
-		orderGroup.GET("/:id", orderRouter.LoadOrder)
+		orderGroup.GET("/:id/", orderRouter.LoadOrder)
 	}
 
 	b2bLicenceGroup := b2bAPIGroup.Group("/licences", dk.RequireLoggedIn)
 	{
 		// List licences
 		b2bLicenceGroup.GET("/", subsRouter.ListLicence)
-		b2bLicenceGroup.GET("/:id", subsRouter.LoadLicence)
+		b2bLicenceGroup.GET("/:id/", subsRouter.LoadLicence)
 		// Revoked a licence
-		b2bLicenceGroup.POST("/:id/revoke", subsRouter.RevokeLicence)
+		b2bLicenceGroup.POST("/:id/revoke/", subsRouter.RevokeLicence)
 	}
 
 	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", dk.RequireLoggedIn)
@@ -160,7 +160,7 @@ func main() {
 		// Revoked invitation before licence is accepted.
 		// Also revert the status of a licence from invitation sent
 		// back to available.
-		b2bInvitationGroup.POST("/:id/revoke", subsRouter.RevokeInvitation)
+		b2bInvitationGroup.POST("/:id/revoke/", subsRouter.RevokeInvitation)
 	}
 
 	// Steps to accept an invitation:
@@ -172,8 +172,8 @@ func main() {
 	{
 		// Verify the invitation is valid. Cache the invitation for a short period
 		// so that the next step won't hit db.
-		b2bGrantGroup.GET("/verify-invitation/:token", subsRouter.VerifyInvitation)
-		b2bGrantGroup.POST("/signup", readerRouter.SignUp)
+		b2bGrantGroup.GET("/verify-invitation/:token/", subsRouter.VerifyInvitation)
+		b2bGrantGroup.POST("/signup/", readerRouter.SignUp)
 		// Grant licence to user:
 		// 1. Retrieve invitation again;
 		// 2. Use invitation email to get reader account and verify it again.
@@ -181,7 +181,7 @@ func main() {
 		// 4. Set invitation being used; link licence to reader id; backup existing
 		// membership if exists; upsert membership.
 		// 5. Sent email to reader and admin about the result.
-		b2bGrantGroup.POST("/grant", subsRouter.GrantLicence)
+		b2bGrantGroup.POST("/grant/", subsRouter.GrantLicence)
 	}
 
 	e.Logger.Fatal(e.Start(":4000"))
