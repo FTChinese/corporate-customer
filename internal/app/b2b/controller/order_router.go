@@ -1,32 +1,21 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
-	"github.com/FTChinese/ftacademy/pkg/db"
+	"github.com/FTChinese/ftacademy/internal/pkg/letter"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
 	"net/http"
 )
 
-type OrderRouter struct {
-	repo   subs.Env
-	logger *zap.Logger
-}
-
-func NewOrderRouter(dbs db.ReadWriteMyDBs, logger *zap.Logger) OrderRouter {
-	return OrderRouter{
-		repo:   subs.NewEnv(dbs, logger),
-		logger: logger,
-	}
-}
-
 // CreateOrders creates orders an org purchased.
 // input: input.ShoppingCart.
-func (router OrderRouter) CreateOrders(c echo.Context) error {
+func (router SubsRouter) CreateOrders(c echo.Context) error {
+	defer router.logger.Sync()
+	sugar := router.logger.Sugar()
+
 	claims := getPassportClaims(c)
 
 	var cart checkout.ShoppingCart
@@ -40,10 +29,29 @@ func (router OrderRouter) CreateOrders(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
+	go func() {
+		profile, err := router.repo.AdminProfile(claims.AdminID)
+		if err != nil {
+			sugar.Error(err)
+			return
+		}
+
+		parcel, err := letter.OrderCreatedParcel(profile, schema.OrderRow)
+		if err != nil {
+			sugar.Error(err)
+			return
+		}
+
+		err = router.post.Deliver(parcel)
+		if err != nil {
+			sugar.Error(err)
+		}
+	}()
+
 	return c.JSON(http.StatusOK, schema.OrderRow)
 }
 
-func (router OrderRouter) ListOrders(c echo.Context) error {
+func (router SubsRouter) ListOrders(c echo.Context) error {
 	claims := getPassportClaims(c)
 
 	var page gorest.Pagination
@@ -59,7 +67,7 @@ func (router OrderRouter) ListOrders(c echo.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
-func (router OrderRouter) LoadOrder(c echo.Context) error {
+func (router SubsRouter) LoadOrder(c echo.Context) error {
 	claims := getPassportClaims(c)
 
 	id := c.QueryParam("id")
