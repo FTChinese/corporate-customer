@@ -1,6 +1,7 @@
 package letter
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
 	"github.com/brianvoe/gofakeit/v5"
 	"testing"
 )
@@ -31,9 +32,9 @@ func TestCtxVerification_Render(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := CtxVerification{
-				Email:    tt.fields.Email,
-				UserName: tt.fields.UserName,
-				Link:     tt.fields.Link,
+				Email:     tt.fields.Email,
+				AdminName: tt.fields.UserName,
+				Link:      tt.fields.Link,
 			}
 			got, err := ctx.Render()
 			if (err != nil) != tt.wantErr {
@@ -75,9 +76,9 @@ func TestCtxPwReset_Render(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := CtxPwReset{
-				UserName: tt.fields.UserName,
-				Link:     tt.fields.Link,
-				Duration: tt.fields.Duration,
+				AdminName: tt.fields.UserName,
+				Link:      tt.fields.Link,
+				Duration:  tt.fields.Duration,
 			}
 			got, err := ctx.Render()
 			if (err != nil) != tt.wantErr {
@@ -123,7 +124,7 @@ func TestCtxInvitation_Render(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := CtxInvitation{
-				ToName:     tt.fields.ToName,
+				ReaderName: tt.fields.ToName,
 				AdminEmail: tt.fields.AdminEmail,
 				TeamName:   tt.fields.TeamName,
 				Tier:       tt.fields.Tier,
@@ -170,10 +171,51 @@ func TestCtxLicenceGranted_Render(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := CtxLicenceGranted{
-				Name:           tt.fields.Name,
+				AdminName:      tt.fields.Name,
 				AssigneeEmail:  tt.fields.AssigneeEmail,
 				Tier:           tt.fields.Tier,
 				ExpirationDate: tt.fields.ExpirationDate,
+			}
+			got, err := ctx.Render()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Render() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			//if got != tt.want {
+			//	t.Errorf("Render() got = %v, want %v", got, tt.want)
+			//}
+
+			t.Logf("%s", got)
+		})
+	}
+}
+
+func TestCtxOrderCreated_Render(t *testing.T) {
+	type fields struct {
+		AdminName string
+		OrderRow  checkout.OrderRow
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Order created",
+			fields: fields{
+				AdminName: gofakeit.Username(),
+				OrderRow:  checkout.MockOrderInputSchema().OrderRow,
+			},
+			want:    "",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := CtxOrderCreated{
+				AdminName: tt.fields.AdminName,
+				OrderRow:  tt.fields.OrderRow,
 			}
 			got, err := ctx.Render()
 			if (err != nil) != tt.wantErr {
