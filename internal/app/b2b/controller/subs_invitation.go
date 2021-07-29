@@ -95,7 +95,7 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, licence.Licence{
 		BaseLicence: lic,
-		Assignee:    licence.Assignee{},
+		Assignee:    licence.AssigneeJSON{},
 	})
 }
 
