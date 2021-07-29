@@ -5,22 +5,17 @@ const (
 	keyVerified          = "email_verified"
 	keyPwReset           = "password_reset"
 	keyOrderCreated      = "order_created"
-	keyOrderPaid         = "order_paid"
-	keyLicenceCreated    = "licence_created"
 	keyLicenceInvitation = "licence_invitation"
 	keyLicenceGranted    = "licence_granted"
 )
 
 const customerService = `
--------------------------------
-业务咨询请联系：
-
 subscriber.service@ftchinese.com
 `
 
 var templates = map[string]string{
 	keyVrf: `
-FT中文网企业订阅管理员 {{.UserName}}，你好！
+FT中文网企业订阅管理员 {{.AdminName}}，你好！
 
 感谢您注册FT中文网企业订阅服务。您可以为所属机构的批量订阅FT付费服务。
 
@@ -35,10 +30,13 @@ FT中文网企业订阅管理员 {{.UserName}}，你好！
 本邮件由系统自动生成，请勿回复。
 
 FT中文网
+
+-------------------------------
+订阅咨询请联系：
 ` + customerService,
 
 	keyPwReset: `
-FT中文网企业订阅管理员 {{.UserName}}，你好！
+FT中文网企业订阅管理员 {{.AdminName}}，你好！
 
 获悉您遗失了企业订阅网站的登录密码，点击以下链接可以重置密码：
 
@@ -52,12 +50,24 @@ FT中文网企业订阅管理员 {{.UserName}}，你好！
 
 FT中文网`,
 	keyOrderCreated: `
-`,
-	keyOrderPaid: `
-`,
-	keyLicenceCreated: `
-`,
-	keyLicenceInvitation: `FT中文网读者 {{.ToName}}，你好！
+FT中文网企业订阅管理员 {{.AdminName}},
+
+您的订单已创建：
+
+{{.ID}}
+
+{{range .Products}}
+{{.Price.Tier | tierSC}}  {{.Price.UnitAmount | currency}}/{{.Price.Cycle.StringCN}}
+	新增 {{.NewCopies}}份
+	续订 {{.RenewalCopies}}份
+{{end}}
+
+共{{.ItemCount}}份，应付{{.AmountPayable | currency}}。
+
+请联系我方客服洽谈付款事宜：
+` + customerService,
+
+	keyLicenceInvitation: `FT中文网读者 {{.ReaderName}}，你好！
 
 {{.TeamName}}为您订阅了FT中文网会员 {.Tier}}，请点击以下链接接受邀请。
 
@@ -70,8 +80,9 @@ FT中文网`,
 本邮件由系统自动生成，请勿回复。
 
 FT中文网`,
+
 	keyLicenceGranted: `
-FT中文网B2B管理员 {{.Name}}，你好！
+FT中文网B2B管理员 {{.AdminName}}，你好！
 
 您通过FT中文网B2B业务邀请团队成员{{.AssigneeEmail}}成为FT中文网订阅用户，该成员已经接受了邀请，订阅方案的许可已经授予该用户：
 

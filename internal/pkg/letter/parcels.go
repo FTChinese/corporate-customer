@@ -3,18 +3,23 @@ package letter
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/chrono"
 )
 
-const fromAddress = "no-reply@ftchinese.com"
+const (
+	fromAddress = "no-reply@ftchinese.com"
+	fromName    = "FT中文网"
+	subjectName = "[FT中文网企业订阅]"
+)
 
 func VerificationParcel(a admin.BaseAccount, v admin.EmailVerifier) (postman.Parcel, error) {
 	ctx := CtxVerification{
-		Email:    a.Email,
-		UserName: a.NormalizeName(),
-		Link:     v.BuildURL(),
+		Email:     a.Email,
+		AdminName: a.NormalizeName(),
+		Link:      v.BuildURL(),
 	}
 
 	body, err := ctx.Render()
@@ -25,19 +30,19 @@ func VerificationParcel(a admin.BaseAccount, v admin.EmailVerifier) (postman.Par
 
 	return postman.Parcel{
 		FromAddress: fromAddress,
-		FromName:    "FT中文网",
+		FromName:    fromName,
 		ToAddress:   ctx.Email,
-		ToName:      ctx.UserName,
-		Subject:     "[FT中文网企业订阅]验证账号",
+		ToName:      ctx.AdminName,
+		Subject:     subjectName + "验证账号",
 		Body:        body,
 	}, nil
 }
 
 func PasswordResetParcel(a admin.BaseAccount, session admin.PwResetSession) (postman.Parcel, error) {
 	body, err := CtxPwReset{
-		UserName: a.NormalizeName(),
-		Link:     session.BuildURL(),
-		Duration: session.FormatDuration(),
+		AdminName: a.NormalizeName(),
+		Link:      session.BuildURL(),
+		Duration:  session.FormatDuration(),
 	}.Render()
 
 	if err != nil {
@@ -46,17 +51,39 @@ func PasswordResetParcel(a admin.BaseAccount, session admin.PwResetSession) (pos
 
 	return postman.Parcel{
 		FromAddress: fromAddress,
-		FromName:    "FT中文网",
+		FromName:    fromName,
 		ToAddress:   a.Email,
 		ToName:      a.NormalizeName(),
-		Subject:     "[FT中文网企业订阅]重置密码",
+		Subject:     subjectName + "重置密码",
+		Body:        body,
+	}, nil
+}
+
+func OrderCreatedParcel(a admin.Profile, order checkout.OrderRow) (postman.Parcel, error) {
+	name := a.NormalizeName()
+
+	body, err := CtxOrderCreated{
+		AdminName: name,
+		OrderRow:  order,
+	}.Render()
+
+	if err != nil {
+		return postman.Parcel{}, err
+	}
+
+	return postman.Parcel{
+		FromAddress: fromAddress,
+		FromName:    fromName,
+		ToAddress:   a.Email,
+		ToName:      name,
+		Subject:     subjectName + "订单",
 		Body:        body,
 	}, nil
 }
 
 func InvitationParcel(assignee licence.Assignee, lic licence.BaseLicence, adminProfile admin.Profile) (postman.Parcel, error) {
 	body, err := CtxInvitation{
-		ToName:     assignee.NormalizeName(),
+		ReaderName: assignee.NormalizeName(),
 		Tier:       lic.Tier.StringCN(),
 		URL:        pkg.B2BVerifyInvitationURL(lic.LatestInvitation.Token),
 		AdminEmail: adminProfile.Email,
@@ -85,7 +112,7 @@ func InvitationParcel(assignee licence.Assignee, lic licence.BaseLicence, adminP
 func LicenceGrantedParcel(lic licence.Licence, adminAccount admin.Profile) (postman.Parcel, error) {
 
 	var data = CtxLicenceGranted{
-		Name:           adminAccount.NormalizeName(),
+		AdminName:      adminAccount.NormalizeName(),
 		AssigneeEmail:  lic.Assignee.Email.String,
 		Tier:           lic.Tier.StringCN(),
 		ExpirationDate: chrono.DateFrom(lic.CurrentPeriodEndUTC.Time).String(),
@@ -101,7 +128,7 @@ func LicenceGrantedParcel(lic licence.Licence, adminAccount admin.Profile) (post
 		FromAddress: "no-reply@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   adminAccount.Email,
-		ToName:      data.Name,
+		ToName:      data.AdminName,
 		Subject:     "[FT中文网企业订阅]团队成员获得会员许可",
 		Body:        body,
 	}, nil
