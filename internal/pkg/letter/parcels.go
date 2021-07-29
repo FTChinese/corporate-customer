@@ -10,7 +10,13 @@ import (
 
 const fromAddress = "no-reply@ftchinese.com"
 
-func VerificationParcel(ctx CtxVerification) (postman.Parcel, error) {
+func VerificationParcel(a admin.BaseAccount, v admin.EmailVerifier) (postman.Parcel, error) {
+	ctx := CtxVerification{
+		Email:    a.Email,
+		UserName: a.NormalizeName(),
+		Link:     v.BuildURL(),
+	}
+
 	body, err := ctx.Render()
 
 	if err != nil {

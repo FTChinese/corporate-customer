@@ -49,7 +49,7 @@ func (router AdminRouter) RequestVerification(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	re := router.sendEmailVerification(account, false)
+	re := router.sendEmailVerification(account)
 
 	if re != nil {
 		return re

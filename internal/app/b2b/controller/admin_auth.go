@@ -35,7 +35,7 @@ func (router AdminRouter) SignUp(c echo.Context) error {
 	}
 
 	go func() {
-		_ = router.sendEmailVerification(adminAccount.BaseAccount, true)
+		_ = router.sendEmailVerification(adminAccount.BaseAccount)
 	}()
 
 	jwtBearer, err := admin.NewPassport(adminAccount.BaseAccount, router.keeper.signingKey)
@@ -48,7 +48,7 @@ func (router AdminRouter) SignUp(c echo.Context) error {
 	return c.JSON(http.StatusOK, jwtBearer)
 }
 
-func (router AdminRouter) sendEmailVerification(baseAccount admin.BaseAccount, isSignup bool) *render.ResponseError {
+func (router AdminRouter) sendEmailVerification(baseAccount admin.BaseAccount) *render.ResponseError {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
@@ -66,12 +66,7 @@ func (router AdminRouter) sendEmailVerification(baseAccount admin.BaseAccount, i
 	}
 
 	// Generate letter content
-	parcel, err := letter.VerificationParcel(letter.CtxVerification{
-		Email:    baseAccount.Email,
-		UserName: baseAccount.NormalizeName(),
-		Link:     verifier.BuildURL(),
-		IsSignUp: isSignup,
-	})
+	parcel, err := letter.VerificationParcel(baseAccount, verifier)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
