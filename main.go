@@ -55,7 +55,6 @@ func main() {
 
 	adminRouter := controller.NewAdminRouter(myDBs, pm, dk, logger)
 	subsRouter := controller.NewSubsRouter(myDBs, pm, logger)
-	orderRouter := controller.NewOrderRouter(myDBs, logger)
 
 	productRouter := controller.NewProductRouter(apiClient, logger)
 	readerRouter := controller.NewReaderRouter(apiClient)
@@ -135,10 +134,10 @@ func main() {
 	orderGroup := b2bAPIGroup.Group("/orders", dk.RequireLoggedIn)
 	{
 		// List orders
-		orderGroup.GET("/", orderRouter.ListOrders)
+		orderGroup.GET("/", subsRouter.ListOrders)
 		// CreateTeam orders, or renew/upgrade in bulk.
-		orderGroup.POST("/", orderRouter.CreateOrders)
-		orderGroup.GET("/:id/", orderRouter.LoadOrder)
+		orderGroup.POST("/", subsRouter.CreateOrders)
+		orderGroup.GET("/:id/", subsRouter.LoadOrder)
 	}
 
 	b2bLicenceGroup := b2bAPIGroup.Group("/licences", dk.RequireLoggedIn)
