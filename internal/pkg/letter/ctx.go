@@ -1,10 +1,12 @@
 package letter
 
+import "github.com/FTChinese/ftacademy/internal/pkg/checkout"
+
 // CtxVerification holds data to render a letter upon signup.
 type CtxVerification struct {
-	Email    string
-	UserName string
-	Link     string
+	Email     string
+	AdminName string
+	Link      string
 }
 
 func (ctx CtxVerification) Render() (string, error) {
@@ -13,7 +15,7 @@ func (ctx CtxVerification) Render() (string, error) {
 
 // CtxVerified is used to compose an email after email verified.
 type CtxVerified struct {
-	UserName string
+	AdminName string
 }
 
 func (ctx CtxVerified) Render() (string, error) {
@@ -23,19 +25,28 @@ func (ctx CtxVerified) Render() (string, error) {
 // CtxPwReset is used to compose an email upon requesting
 // password reset.
 type CtxPwReset struct {
-	UserName string
-	Link     string
-	Duration string
+	AdminName string
+	Link      string
+	Duration  string
 }
 
 func (ctx CtxPwReset) Render() (string, error) {
 	return Render(keyPwReset, ctx)
 }
 
+type CtxOrderCreated struct {
+	AdminName string
+	checkout.OrderRow
+}
+
+func (ctx CtxOrderCreated) Render() (string, error) {
+	return Render(keyOrderCreated, ctx)
+}
+
 // CtxInvitation is used to compose an invitation email
 // so that B2B org's member could use a licence.
 type CtxInvitation struct {
-	ToName     string
+	ReaderName string
 	AdminEmail string
 	TeamName   string
 	Tier       string
@@ -49,7 +60,7 @@ func (ctx CtxInvitation) Render() (string, error) {
 // CtxLicenceGranted is used to notify admin that a licence
 // is granted to a member.
 type CtxLicenceGranted struct {
-	Name           string
+	AdminName      string
 	AssigneeEmail  string
 	Tier           string
 	ExpirationDate string
