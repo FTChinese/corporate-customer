@@ -38,9 +38,9 @@ FT中文网
 ` + customerService,
 
 	keyPwReset: `
-FT中文网B2B用户 {{.UserName}}，你好！
+FT中文网企业订阅管理员 {{.UserName}}，你好！
 
-获悉您遗失了B2B网站的登录密码，点击以下链接可以重置密码：
+获悉您遗失了企业订阅网站的登录密码，点击以下链接可以重置密码：
 
 {{.Link}}
 
@@ -59,7 +59,7 @@ FT中文网`,
 `,
 	keyLicenceInvitation: `FT中文网读者 {{.ToName}}，你好！
 
-{{.TeamName}}为您订阅了FT中文网会员 {.Tier.StringCN}}，请点击以下链接接受邀请。
+{{.TeamName}}为您订阅了FT中文网会员 {.Tier}}，请点击以下链接接受邀请。
 
 {{.URL}}
 
@@ -75,8 +75,8 @@ FT中文网B2B管理员 {{.Name}}，你好！
 
 您通过FT中文网B2B业务邀请团队成员{{.AssigneeEmail}}成为FT中文网订阅用户，该成员已经接受了邀请，订阅方案的许可已经授予该用户：
 
-订阅方案：{{.Tier.StringCN}}
-到期日期：{{.ExpirationDate.String}}
+订阅方案：{{.Tier}}
+到期日期：{{.ExpirationDate}}
 
 您随时可以在B2B管理系统中撤销该用户的许可。
 

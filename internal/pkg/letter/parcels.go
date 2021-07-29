@@ -57,7 +57,7 @@ func PasswordResetParcel(a admin.BaseAccount, session admin.PwResetSession) (pos
 func InvitationParcel(assignee licence.Assignee, lic licence.BaseLicence, adminProfile admin.Profile) (postman.Parcel, error) {
 	body, err := CtxInvitation{
 		ToName:     assignee.NormalizeName(),
-		Tier:       lic.Tier,
+		Tier:       lic.Tier.StringCN(),
 		URL:        pkg.B2BVerifyInvitationURL(lic.LatestInvitation.Token),
 		AdminEmail: adminProfile.Email,
 		TeamName:   adminProfile.OrgName,
