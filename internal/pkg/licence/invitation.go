@@ -149,7 +149,7 @@ type InvitationList struct {
 // InvitationVerified is returned after an invitation link
 // is clicked and the corresponding Licence is found.
 type InvitationVerified struct {
-	Licence    Licence // The licence being invited.
-	Assignee   Assignee
-	Membership reader.Membership
+	Licence    Licence           `json:"licence"` // The licence being invited.
+	Assignee   Assignee          `json:"assignee"`
+	Membership reader.Membership `json:"membership"`
 }
