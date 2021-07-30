@@ -84,9 +84,9 @@ func main() {
 		return c.Render(http.StatusOK, "b2b/home.html", nil)
 	})
 
-	api := e.Group("/api")
+	apiGroup := e.Group("/api")
 
-	b2bAPIGroup := api.Group("/b2b")
+	b2bAPIGroup := apiGroup.Group("/b2b")
 
 	b2bAuthGroup := b2bAPIGroup.Group("/auth")
 	{
@@ -167,20 +167,20 @@ func main() {
 	// 2. Use email to find user account (If account not found, go to signup);
 	// 3. Get account data and find out if membership already exists
 	// 4. Grant licence
-	b2bGrantGroup := b2bAPIGroup.Group("/grant-licence")
+	b2bGrantGroup := b2bAPIGroup.Group("/licence")
 	{
 		// Verify the invitation is valid. Cache the invitation for a short period
 		// so that the next step won't hit db.
-		b2bGrantGroup.GET("/verify-invitation/:token/", subsRouter.VerifyInvitation)
-		b2bGrantGroup.POST("/signup/", readerRouter.SignUp)
-		// Grant licence to user:
-		// 1. Retrieve invitation again;
-		// 2. Use invitation email to get reader account and verify it again.
-		// 3. Lock invitation row, lock licence row, lock membership row if exists.
-		// 4. Set invitation being used; link licence to reader id; backup existing
-		// membership if exists; upsert membership.
-		// 5. Sent email to reader and admin about the result.
+		b2bGrantGroup.GET("/invitation/verification/:token/", subsRouter.VerifyInvitation)
+
+		// Grant licence to user
 		b2bGrantGroup.POST("/grant/", subsRouter.GrantLicence)
+	}
+
+	readerAPIGroup := apiGroup.Group("/reader")
+	readerAuthGroup := readerAPIGroup.Group("/auth")
+	{
+		readerAuthGroup.POST("/signup/", readerRouter.SignUp)
 	}
 
 	e.Logger.Fatal(e.Start(":4000"))
