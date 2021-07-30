@@ -10,11 +10,11 @@ import (
 // An admin account can create teams.
 // A team can purchase licences.
 type Team struct {
-	ID      string `db:"team_id"`
-	AdminID string `db:"admin_id"`
+	ID      string `json:"id" db:"team_id"`
+	AdminID string `json:"adminId" db:"admin_id"`
 	input.TeamParams
-	CreatedUTC chrono.Time `db:"created_utc"`
-	UpdatedUTC chrono.Time `db:"updated_utc"`
+	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
+	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }
 
 func NewTeam(adminID string, params input.TeamParams) Team {
