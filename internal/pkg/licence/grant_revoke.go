@@ -12,7 +12,7 @@ import (
 type GrantResult struct {
 	Licence    Licence               `json:"licence"` // The licence after grated.
 	Membership reader.Membership     `json:"membership"`
-	Snapshot   reader.MemberSnapshot `json:"-"`
+	Snapshot   reader.MemberSnapshot `json:"snapshot"`
 	Invoice    reader.Invoice        `json:"invoice"`
 }
 
