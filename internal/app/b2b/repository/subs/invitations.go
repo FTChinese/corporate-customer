@@ -88,14 +88,14 @@ func (env Env) CreateInvitation(params input.InvitationParams, adminID string) (
 	return updateLic, nil
 }
 
-func (env Env) RevokeInvitation(invID, teamID string) (licence.Invitation, error) {
+func (env Env) RevokeInvitation(invID, teamID string) (licence.InvitationRevoked, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
 	tx, err := env.beginTx()
 	if err != nil {
 		sugar.Error(err)
-		return licence.Invitation{}, err
+		return licence.InvitationRevoked{}, err
 	}
 
 	inv, err := tx.RetrieveInvitation(admin.AccessRight{
@@ -105,11 +105,11 @@ func (env Env) RevokeInvitation(invID, teamID string) (licence.Invitation, error
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
-		return licence.Invitation{}, err
+		return licence.InvitationRevoked{}, err
 	}
 	if !inv.IsRevocable() {
 		_ = tx.Rollback()
-		return licence.Invitation{}, errors.New("invitation is not revocable")
+		return licence.InvitationRevoked{}, errors.New("invitation is not revocable")
 	}
 
 	lic, err := tx.RetrieveBaseLicence(admin.AccessRight{
@@ -119,11 +119,11 @@ func (env Env) RevokeInvitation(invID, teamID string) (licence.Invitation, error
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
-		return licence.Invitation{}, err
+		return licence.InvitationRevoked{}, err
 	}
 	if !lic.IsInvitationRevocable() {
 		_ = tx.Rollback()
-		return licence.Invitation{}, errors.New("invitation is not revocable")
+		return licence.InvitationRevoked{}, errors.New("invitation is not revocable")
 	}
 
 	revokedInv := inv.Revoked()
@@ -133,21 +133,27 @@ func (env Env) RevokeInvitation(invID, teamID string) (licence.Invitation, error
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
-		return licence.Invitation{}, err
+		return licence.InvitationRevoked{}, err
 	}
 
 	err = tx.UpdateLicenceStatus(updatedLic)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
-		return licence.Invitation{}, err
+		return licence.InvitationRevoked{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return licence.Invitation{}, err
+		return licence.InvitationRevoked{}, err
 	}
 
-	return revokedInv, nil
+	return licence.InvitationRevoked{
+		Licence: licence.Licence{
+			BaseLicence: updatedLic,
+			Assignee:    licence.AssigneeJSON{},
+		},
+		Invitation: revokedInv,
+	}, nil
 }
 
 // List invitations shows a list of invitations for a team.

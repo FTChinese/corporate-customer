@@ -146,6 +146,11 @@ type InvitationList struct {
 	Data []Invitation `json:"data"`
 }
 
+type InvitationRevoked struct {
+	Licence    Licence    `json:"licence"`
+	Invitation Invitation `json:"invitation"`
+}
+
 // InvitationVerified is returned after an invitation link
 // is clicked and the corresponding Licence is found.
 type InvitationVerified struct {
