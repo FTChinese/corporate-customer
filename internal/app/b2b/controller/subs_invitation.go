@@ -18,12 +18,10 @@ import (
 // email: string,
 // description: string,
 // licenceId: string
-// teamId: string
 func (router SubsRouter) CreateInvitation(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	// TODO: ensure TeamID exists.
 	claims := getPassportClaims(c)
 
 	var params input.InvitationParams
@@ -107,13 +105,13 @@ func (router SubsRouter) RevokeInvitation(c echo.Context) error {
 	invID := c.Param("id") // the invitation id
 	claims := getPassportClaims(c)
 
-	inv, err := router.repo.RevokeInvitation(invID, claims.TeamID.String)
+	result, err := router.repo.RevokeInvitation(invID, claims.TeamID.String)
 	// TODO: handle different errors
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	return c.JSON(http.StatusOK, inv)
+	return c.JSON(http.StatusOK, result)
 }
 
 // ListInvitations shows all invitations
