@@ -119,7 +119,7 @@ func main() {
 		b2bAccountGroup.PATCH("/password/", adminRouter.ChangePassword)
 	}
 
-	b2bTeamGroup := b2bAPIGroup.Group("/team/", dk.RequireLoggedIn)
+	b2bTeamGroup := b2bAPIGroup.Group("/team", dk.RequireLoggedIn)
 	{
 		b2bTeamGroup.GET("/", adminRouter.LoadTeam)
 		b2bTeamGroup.POST("/", adminRouter.CreateTeam)
