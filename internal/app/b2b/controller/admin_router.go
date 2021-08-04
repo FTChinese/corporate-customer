@@ -21,5 +21,6 @@ func NewAdminRouter(dbs db.ReadWriteMyDBs, p postman.Postman, dk Doorkeeper, log
 		keeper: dk,
 		repo:   adminor.NewEnv(dbs, logger),
 		post:   p,
+		logger: logger,
 	}
 }
