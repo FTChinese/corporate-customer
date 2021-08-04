@@ -153,7 +153,7 @@ func main() {
 	{
 		// List invitations
 		b2bInvitationGroup.GET("/", subsRouter.ListInvitations)
-		// CreateTeam invitation.
+		// Create invitation.
 		// Also update the linked licence's status.
 		b2bInvitationGroup.POST("/", subsRouter.CreateInvitation)
 		// Revoked invitation before licence is accepted.
