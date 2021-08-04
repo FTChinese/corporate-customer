@@ -17,7 +17,6 @@ SELECT LOWER(HEX(token)) AS token,
 	created_utc
 FROM b2b.password_reset
 WHERE is_used = 0
-	AND DATE_ADD(created_utc, INTERVAL expires_in SECOND) > UTC_TIMESTAMP()
 	AND token = UNHEX(?)
 LIMIT 1`
 
