@@ -223,11 +223,13 @@ func (router AdminRouter) VerifyResetToken(c echo.Context) error {
 
 	token := c.Param("token")
 
+	// 404 Not Found.
 	session, err := router.repo.PwResetSession(token)
 	if err != nil {
 		sugar.Error(err)
 		return render.NewDBError(err)
 	}
+	// If token is already used, or expired, it is treated as Not Found.
 	if session.IsUsed || session.IsExpired() {
 		return render.NewNotFound("token already used or expired")
 	}
