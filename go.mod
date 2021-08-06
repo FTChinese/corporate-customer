@@ -1,6 +1,6 @@
 module github.com/FTChinese/ftacademy
 
-go 1.13
+go 1.16
 
 require (
 	github.com/FTChinese/go-rest v0.9.1
@@ -18,7 +18,6 @@ require (
 	github.com/labstack/echo/v4 v4.3.0
 	github.com/labstack/gommon v0.3.0
 	github.com/mattn/go-isatty v0.0.13 // indirect
-	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.8.1
 	go.uber.org/zap v1.18.1
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
