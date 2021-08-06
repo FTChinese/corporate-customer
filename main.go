@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"flag"
 	"fmt"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/controller"
@@ -13,6 +14,9 @@ import (
 	"net/http"
 	"os"
 )
+
+//go:embed build/api.toml
+var tomlConfig string
 
 var (
 	isProduction bool
@@ -32,7 +36,7 @@ func init() {
 		os.Exit(0)
 	}
 
-	config.MustSetupViper()
+	config.MustSetupViper([]byte(tomlConfig))
 
 	conf = config.Config{
 		Debug:   !isProduction,
@@ -183,5 +187,24 @@ func main() {
 		readerAuthGroup.POST("/signup/", readerRouter.SignUp)
 	}
 
+	//cmsGroup := apiGroup.Group("/cms")
+	//{
+	//	// List teams
+	//	cmsGroup.GET("/teams/",)
+	//	// Show team detail
+	//	// * admin account;
+	//	// * team name
+	//	// * orders
+	//	// * licences
+	//	cmsGroup.GET("/teams/:id/")
+	//	// List orders
+	//	cmsGroup.GET("/orders/")
+	//	// Details of an order:
+	//	// * order data
+	//	// * team details
+	//	cmsGroup.GET("/orders/:id/")
+	//	// Order payment confirmed.
+	//	cmsGroup.POST("/order/:id/")
+	//}
 	e.Logger.Fatal(e.Start(":4000"))
 }
