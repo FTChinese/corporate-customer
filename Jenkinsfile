@@ -6,9 +6,9 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                echo 'Build ftacademy app'
                 sh 'make build'
-                sh 'make downconfig'
-                archiveArtifacts artifacts: 'build/linux/*', fingerprint: true
+                archiveArtifacts artifacts: 'build/**/*', fingerprint: true
             }
         }
         stage('Deploy') {
@@ -18,8 +18,9 @@ pipeline {
                 }
             }
             steps {
-                sh 'make upconfig'
+                echo 'publish binary'
                 sh 'make publish'
+                echo 'restart app'
                 sh 'make restart'
             }
         }

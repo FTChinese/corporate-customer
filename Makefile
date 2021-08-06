@@ -1,29 +1,55 @@
+config_file_name := api.toml
+local_config_file := $(HOME)/config/$(config_file_name)
+
+version := `git describe --tags`
+build_time := `date +%FT%T%z`
+commit := `git log --max-count=1 --pretty=format:%aI_%h`
+
+ldflags := -ldflags "-w -s -X main.version=${version} -X main.build=${build_time} -X main.commit=${commit}"
+
+app_name := ftacademy
+go_version := go1.16
+
+sys := $(shell uname -s)
+hardware := $(shell uname -m)
 build_dir := build
-config_file := api.toml
-BINARY := ftacademy
+src_dir := .
 
-DEV_OUT := $(build_dir)/$(BINARY)
-LINUX_OUT := $(build_dir)/linux/$(BINARY)
+default_exec := $(build_dir)/$(sys)/$(hardware)/$(app_name)
+compile_default_exec := go build -o $(default_exec) $(ldflags) -tags production -v $(src_dir)
 
-LOCAL_CONFIG_FILE := $(HOME)/config/$(config_file)
+linux_x86_exec := $(build_dir)/linux/x86/$(app_name)
+compile_linux_x86 := GOOS=linux GOARCH=amd64 go build -o $(linux_x86_exec) $(ldflags) -tags production -v $(src_dir)
 
-VERSION := `git describe --tags`
-BUILD := `date +%FT%T%z`
-COMMIT := `git log --max-count=1 --pretty=format:%aI_%h`
+linux_arm_exec := $(build_dir)/linux/arm/$(app_name)
+compile_linux_arm := GOOS=linux GOARM=7 GOARCH=arm go build -o $(linux_arm_exec) $(ldflags) -tags production -v $(src_dir)
 
-LDFLAGS := -ldflags "-w -s -X main.version=${VERSION} -X main.build=${BUILD} -X main.commit=${COMMIT}"
+.PHONY: build
+build :
+	@echo "Build version $(version)"
+	$(compile_default_exec)
 
-BUILD_LINUX := GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(LINUX_OUT) -v .
-
-.PHONY: dev run static linux config deploy build downconfig upconfig publish restart clean
-# Development
-dev :
-	go build $(LDFLAGS) -o $(DEV_OUT) -v .
-
-# Run development build
+.PHONY: run
 run :
-	./$(DEV_OUT)
+	$(default_exec)
 
+.PHONY: amd64
+amd64 :
+	@echo "Build production linux version $(version)"
+	$(compile_linux_x86)
+
+.PHONY: arm
+arm :
+	@echo "Build production arm version $(version)"
+	$(compile_linux_arm)
+
+.PHONY: install-go
+install-go:
+	@echo "Install go version $(go_version)"
+	gvm install $(go_version)
+	gvm use $(go_version)
+
+.PHONY: static
 static :
 	mkdir -p build/static/b2b
 	cp ../b2b-client/dist/b2b-client/*js build/static/b2b/
@@ -34,38 +60,13 @@ linux :
 	rice embed-go
 	$(BUILD_LINUX)
 
-# From local machine to production server
-# Copy env varaible to server
-config :
-	rsync -v $(LOCAL_CONFIG_FILE) tk11:/home/node/config
-
-deploy : config linux
-	rsync -v $(LINUX_OUT) tk11:/home/node/go/bin/
-	ssh tk11 supervisorctl restart $(BINARY)
-
-# For CI/CD
-build :
-	gvm install go1.14.3
-	gvm use go1.14.3
-	rice embed-go
-	$(BUILD_LINUX)
-
-downconfig :
-	rsync -v tk11:/home/node/config/$(config_file) ./$(build_dir)
-
-# Publish artifacts.
-upconfig :
-	rsync -v ./$(build_dir)/$(config_file) ucloud:/home/node/config
-
 publish :
-	ssh ucloud "rm -f /home/node/go/bin/$(BINARY).bak"
-	rsync -v $(LINUX_OUT) bj32:/home/node
-	ssh bj32 "rsync -v /home/node/$(BINARY) ucloud:/home/node/go/bin/$(BINARY).bak"
-#	scp -rp $(LINUX_OUT) ucloud:/home/node/go/bin/$(BINARY).bak
+	ssh ucloud "rm -f /home/node/go/bin/$(app_name).bak"
+	rsync -v ./$(default_exec) ucloud:/home/node/go/bin/$(app_name).bak
 
 restart :
-	ssh ucloud "cd /home/node/go/bin/ && \mv $(BINARY).bak $(BINARY)"
-	ssh ucloud supervisorctl restart $(BINARY)
+	ssh ucloud "cd /home/node/go/bin/ && \mv $(app_name).bak $(app_name)"
+	ssh ucloud supervisorctl restart $(app_name)
 
 clean :
 	go clean -x
