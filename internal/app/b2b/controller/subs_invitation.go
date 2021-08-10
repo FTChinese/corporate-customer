@@ -18,6 +18,8 @@ import (
 // email: string,
 // description: string,
 // licenceId: string
+// Returns a licence.Licence instance with its LatestInvitation
+// field populate with the invitation create here.
 func (router SubsRouter) CreateInvitation(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
@@ -32,9 +34,9 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 	if ve := params.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
-	params.TeamID = claims.TeamID.String
 
-	lic, err := router.repo.CreateInvitation(params, claims.AdminID)
+	// Create invitation and get the update licence.
+	lic, err := router.repo.CreateInvitation(params, claims)
 	if err != nil {
 		switch err {
 		case subs.ErrLicenceUnavailable:
@@ -65,11 +67,13 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 
 	// Send invitation letter
 	go func() {
+		// We
 		assignee, err := router.repo.FindAssignee(params.Email)
 		if err != nil {
 			sugar.Error(err)
 			return
 		}
+		// Find admin so that we could tell user who send the invitation.
 		adminProfile, err := router.repo.AdminProfile(claims.AdminID)
 		if err != nil {
 			sugar.Error(err)
@@ -93,7 +97,7 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, licence.Licence{
 		BaseLicence: lic,
-		Assignee:    licence.AssigneeJSON{},
+		Assignee:    licence.AssigneeJSON{}, // Assignee field should be empty after invitation is created.
 	})
 }
 
@@ -147,6 +151,7 @@ func (router SubsRouter) VerifyInvitation(c echo.Context) error {
 
 	// Ensure the invitation is usable.
 	if !inv.IsAcceptable() {
+		sugar.Infof("Invitation %s is cannot be granted", inv.ID)
 		return render.NewBadRequest("invitation is either used or expired")
 	}
 
@@ -155,12 +160,14 @@ func (router SubsRouter) VerifyInvitation(c echo.Context) error {
 		TeamID: inv.TeamID,
 	})
 	if err != nil {
+		sugar.Infof("Error retrieve licence %s", inv.LicenceID)
 		sugar.Error(err)
 		// 404 Not Found
 		return render.NewDBError(err)
 	}
 	// TODO: remove this or keep it? We could leave it to the client to determine whether the licence is available.
 	if !lic.IsAvailable() {
+		sugar.Infof("Licence %s is not available to be granted", lic.ID)
 		sugar.Error(err)
 		return render.NewBadRequest("Licence is not available to be granted")
 	}
