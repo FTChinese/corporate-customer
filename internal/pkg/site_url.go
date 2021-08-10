@@ -3,8 +3,8 @@ package pkg
 const (
 	SiteBaseURL        = "https://next.ftacademy.cn"
 	B2BBaseURL         = SiteBaseURL + "/corporate"
-	UserBaseURL        = SiteBaseURL + "/user"
-	ReaderVerification = UserBaseURL + "/verification"
+	ReaderBaseURL      = SiteBaseURL + "/reader"
+	ReaderVerification = ReaderBaseURL + "/verification"
 )
 
 func B2BPasswordResetURL(token string) string {
@@ -16,5 +16,5 @@ func B2BVerifyAdminURL(token string) string {
 }
 
 func B2BVerifyInvitationURL(token string) string {
-	return B2BBaseURL + "/verify-invitation/" + token
+	return B2BBaseURL + "/grant-licence/" + token
 }
