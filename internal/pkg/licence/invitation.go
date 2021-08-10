@@ -4,7 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/go-rest/chrono"
@@ -33,7 +35,7 @@ type Invitation struct {
 	RowTime
 }
 
-func NewInvitation(params input.InvitationParams, adminID string) (Invitation, error) {
+func NewInvitation(params input.InvitationParams, p admin.PassportClaims) (Invitation, error) {
 	token, err := rand.Hex(32)
 	if err != nil {
 		return Invitation{}, err
@@ -42,8 +44,8 @@ func NewInvitation(params input.InvitationParams, adminID string) (Invitation, e
 	return Invitation{
 		ID: pkg.InvitationID(),
 		Creator: Creator{
-			CreatorID: adminID,
-			TeamID:    params.TeamID,
+			CreatorID: p.AdminID,
+			TeamID:    p.TeamID.String,
 		},
 		Description:    params.Description,
 		ExpirationDays: 7,
@@ -91,6 +93,10 @@ func (i Invitation) Revoked() Invitation {
 	i.UpdatedUTC = chrono.TimeNow()
 
 	return i
+}
+
+func (i Invitation) FormatDuration() string {
+	return fmt.Sprintf("%d天", i.ExpirationDays)
 }
 
 // InvitationJSON is used to implement sql Valuer interface.
