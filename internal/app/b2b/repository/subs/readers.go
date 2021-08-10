@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
-	"github.com/guregu/null"
 )
 
 func (env Env) RetrieveAssignee(id string) (licence.Assignee, error) {
@@ -18,17 +17,15 @@ func (env Env) RetrieveAssignee(id string) (licence.Assignee, error) {
 	return a, nil
 }
 
+// FindAssignee tries to find a user by email.
+// If user it not found, it is not taken as error and
+// an zero value of Assignee is returned.
 func (env Env) FindAssignee(email string) (licence.Assignee, error) {
 	var a licence.Assignee
 	err := env.dbs.Read.Get(&a, licence.StmtAssigneeByEmail, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return licence.Assignee{
-				FtcID:    null.String{},
-				UnionID:  null.String{},
-				Email:    null.StringFrom(email),
-				UserName: null.String{},
-			}, nil
+			return licence.Assignee{}, nil
 		}
 		return licence.Assignee{}, err
 	}
