@@ -109,8 +109,8 @@ func TestEnv_CreateInvitation(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
 	type args struct {
-		params  input.InvitationParams
-		adminID string
+		params input.InvitationParams
+		p      admin.PassportClaims
 	}
 	tests := []struct {
 		name    string
@@ -125,9 +125,11 @@ func TestEnv_CreateInvitation(t *testing.T) {
 					Email:       gofakeit.Email(),
 					Description: null.String{},
 					LicenceID:   lic.ID,
-					TeamID:      lic.TeamID,
 				},
-				adminID: lic.CreatorID,
+				p: admin.PassportClaims{
+					AdminID: lic.CreatorID,
+					TeamID:  null.StringFrom(lic.TeamID),
+				},
 			},
 			want:    licence.BaseLicence{},
 			wantErr: false,
@@ -136,7 +138,7 @@ func TestEnv_CreateInvitation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := env.CreateInvitation(tt.args.params, tt.args.adminID)
+			got, err := env.CreateInvitation(tt.args.params, tt.args.p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateInvitation() error = %v, wantErr %v", err, tt.wantErr)
 				return

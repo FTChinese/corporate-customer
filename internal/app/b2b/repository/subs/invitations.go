@@ -33,7 +33,7 @@ func (env Env) InvitationByID(r admin.AccessRight) (licence.Invitation, error) {
 // CreateInvitation creates an invitation for a licence
 // depending on the licence availability.
 // The returned licence contains the newly created invitation instance.
-func (env Env) CreateInvitation(params input.InvitationParams, adminID string) (licence.BaseLicence, error) {
+func (env Env) CreateInvitation(params input.InvitationParams, p admin.PassportClaims) (licence.BaseLicence, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
@@ -43,29 +43,35 @@ func (env Env) CreateInvitation(params input.InvitationParams, adminID string) (
 		return licence.BaseLicence{}, err
 	}
 
+	// Retrieve the licence for whom the invitation will be created.
 	lic, err := tx.RetrieveBaseLicence(admin.AccessRight{
 		RowID:  params.LicenceID,
-		TeamID: params.TeamID,
+		TeamID: p.TeamID.String,
 	})
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
 		return licence.BaseLicence{}, err
 	}
+	// Ensure that the licence is not granted to anyone,
+	// and it has no assignee attached to it.
 	if !lic.IsAvailable() {
 		_ = tx.Rollback()
 		return licence.BaseLicence{}, err
 	}
 
-	inv, err := licence.NewInvitation(params, adminID)
+	// Create a new instance of invitation.
+	inv, err := licence.NewInvitation(params, p)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
 		return licence.BaseLicence{}, err
 	}
 
+	// Update licence's LatestInvitation field
 	updateLic := lic.WithInvitation(inv)
 
+	// Save invitation.
 	err = tx.CreateInvitation(inv)
 	if err != nil {
 		sugar.Error(err)
@@ -73,6 +79,7 @@ func (env Env) CreateInvitation(params input.InvitationParams, adminID string) (
 		return licence.BaseLicence{}, err
 	}
 
+	// Update licence
 	err = tx.UpdateLicenceStatus(updateLic)
 	if err != nil {
 		sugar.Error(err)
@@ -85,6 +92,7 @@ func (env Env) CreateInvitation(params input.InvitationParams, adminID string) (
 		return licence.BaseLicence{}, err
 	}
 
+	// Return the updated licence.
 	return updateLic, nil
 }
 
