@@ -44,8 +44,10 @@ func MockInvitation(lic Licence) Invitation {
 		Email:       gofakeit.Email(),
 		Description: null.String{},
 		LicenceID:   lic.ID,
-		TeamID:      lic.TeamID,
-	}, lic.CreatorID)
+	}, admin.PassportClaims{
+		AdminID: lic.CreatorID,
+		TeamID:  null.StringFrom(lic.TeamID),
+	})
 
 	if err != nil {
 		panic(err)
