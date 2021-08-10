@@ -140,7 +140,7 @@ func (router SubsRouter) VerifyInvitation(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	token := c.QueryParam("token")
+	token := c.Param("token")
 
 	inv, err := router.repo.InvitationByToken(token)
 	if err != nil {
@@ -181,7 +181,7 @@ func (router SubsRouter) VerifyInvitation(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 	if assignee.IsZero() {
-		c.JSON(http.StatusOK, licence.InvitationVerified{
+		return c.JSON(http.StatusOK, licence.InvitationVerified{
 			Licence:    lic,
 			Assignee:   assignee,
 			Membership: reader.Membership{},
