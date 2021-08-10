@@ -135,7 +135,7 @@ func main() {
 		productGroup.GET("/", productRouter.Paywall)
 	}
 
-	orderGroup := b2bAPIGroup.Group("/orders", dk.RequireLoggedIn)
+	orderGroup := b2bAPIGroup.Group("/orders", dk.RequireTeamSet)
 	{
 		// List orders
 		orderGroup.GET("/", subsRouter.ListOrders)
@@ -144,7 +144,7 @@ func main() {
 		orderGroup.GET("/:id/", subsRouter.LoadOrder)
 	}
 
-	b2bLicenceGroup := b2bAPIGroup.Group("/licences", dk.RequireLoggedIn)
+	b2bLicenceGroup := b2bAPIGroup.Group("/licences", dk.RequireTeamSet)
 	{
 		// List licences
 		b2bLicenceGroup.GET("/", subsRouter.ListLicence)
@@ -153,7 +153,7 @@ func main() {
 		b2bLicenceGroup.POST("/:id/revoke/", subsRouter.RevokeLicence)
 	}
 
-	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", dk.RequireLoggedIn)
+	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", dk.RequireTeamSet)
 	{
 		// List invitations
 		b2bInvitationGroup.GET("/", subsRouter.ListInvitations)
@@ -173,8 +173,7 @@ func main() {
 	// 4. Grant licence
 	b2bGrantGroup := b2bAPIGroup.Group("/licence")
 	{
-		// Verify the invitation is valid. Cache the invitation for a short period
-		// so that the next step won't hit db.
+		// Verify the invitation is valid.
 		b2bGrantGroup.GET("/invitation/verification/:token/", subsRouter.VerifyInvitation)
 
 		// Grant licence to user
@@ -185,6 +184,8 @@ func main() {
 	readerAuthGroup := readerAPIGroup.Group("/auth")
 	{
 		readerAuthGroup.POST("/signup/", readerRouter.SignUp)
+		readerAuthGroup.POST("/verification/:token", readerRouter.VerifyEmail)
+		// Reader verification.
 	}
 
 	//cmsGroup := apiGroup.Group("/cms")
