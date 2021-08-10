@@ -3,6 +3,7 @@ package pkg
 const (
 	SiteBaseURL        = "https://next.ftacademy.cn"
 	B2BBaseURL         = SiteBaseURL + "/corporate"
+	B2BReaderVrf       = B2BBaseURL + "/reader-verification"
 	ReaderBaseURL      = SiteBaseURL + "/reader"
 	ReaderVerification = ReaderBaseURL + "/verification"
 )
