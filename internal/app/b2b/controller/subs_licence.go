@@ -94,12 +94,14 @@ func (router SubsRouter) GrantLicence(c echo.Context) error {
 		// Find the admin by licence creator id.
 		profile, err := router.repo.AdminProfile(result.Licence.CreatorID)
 		if err != nil {
+			sugar.Infof("Error retreiving admin profile %s of licence %s", result.Licence.CreatorID, result.Licence.ID)
 			sugar.Error(err)
 			return
 		}
 
 		parcel, err := letter.LicenceGrantedParcel(result.Licence, profile)
 		if err != nil {
+			sugar.Infof("Error creating granted parcel for licence %s", result.Licence.ID)
 			sugar.Error(err)
 			return
 		}
