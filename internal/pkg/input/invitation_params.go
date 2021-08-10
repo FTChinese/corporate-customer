@@ -13,7 +13,6 @@ type InvitationParams struct {
 	Email       string      `json:"email"` // To whom the invitation should be sent.
 	Description null.String `json:"description"`
 	LicenceID   string      `json:"licenceId"` // Which licence is being granted.
-	TeamID      string      `json:"teamId"`
 }
 
 func (i *InvitationParams) Validate() *render.ValidationError {
@@ -21,7 +20,6 @@ func (i *InvitationParams) Validate() *render.ValidationError {
 	desc := strings.TrimSpace(i.Description.String)
 	i.Description = null.NewString(desc, desc != "")
 	i.LicenceID = strings.TrimSpace(i.LicenceID)
-	i.TeamID = strings.TrimSpace(i.TeamID)
 
 	ve := validator.New("email").Required().Email().Validate(i.Email)
 	if ve != nil {
@@ -33,10 +31,5 @@ func (i *InvitationParams) Validate() *render.ValidationError {
 		return ve
 	}
 
-	ve = validator.New("licenceId").Required().Validate(i.LicenceID)
-	if ve != nil {
-		return ve
-	}
-
-	return validator.New("teamId").Required().Validate(i.TeamID)
+	return validator.New("licenceId").Required().Validate(i.LicenceID)
 }
