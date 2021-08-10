@@ -50,7 +50,8 @@ type CtxInvitation struct {
 	AdminEmail string
 	TeamName   string
 	Tier       string
-	URL        string
+	Link       string
+	Duration   string
 }
 
 func (ctx CtxInvitation) Render() (string, error) {

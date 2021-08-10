@@ -7,6 +7,7 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/guregu/null"
 )
 
 const (
@@ -82,12 +83,18 @@ func OrderCreatedParcel(a admin.Profile, order checkout.OrderRow) (postman.Parce
 }
 
 func InvitationParcel(assignee licence.Assignee, lic licence.BaseLicence, adminProfile admin.Profile) (postman.Parcel, error) {
+	// If assignee does not exist.
+	if assignee.IsZero() {
+		assignee.Email = null.StringFrom(lic.LatestInvitation.Email)
+	}
+
 	body, err := CtxInvitation{
 		ReaderName: assignee.NormalizeName(),
-		Tier:       lic.Tier.StringCN(),
-		URL:        pkg.B2BVerifyInvitationURL(lic.LatestInvitation.Token),
 		AdminEmail: adminProfile.Email,
 		TeamName:   adminProfile.OrgName,
+		Tier:       lic.Tier.StringCN(),
+		Link:       pkg.B2BVerifyInvitationURL(lic.LatestInvitation.Token),
+		Duration:   lic.LatestInvitation.FormatDuration(),
 	}.Render()
 
 	if err != nil {

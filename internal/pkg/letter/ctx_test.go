@@ -95,27 +95,22 @@ func TestCtxPwReset_Render(t *testing.T) {
 }
 
 func TestCtxInvitation_Render(t *testing.T) {
-	type fields struct {
-		ToName     string
-		AdminEmail string
-		TeamName   string
-		Tier       string
-		URL        string
-	}
+
 	tests := []struct {
 		name    string
-		fields  fields
+		fields  CtxInvitation
 		want    string
 		wantErr bool
 	}{
 		{
 			name: "Invitation",
-			fields: fields{
-				ToName:     gofakeit.Username(),
+			fields: CtxInvitation{
+				ReaderName: gofakeit.Username(),
 				AdminEmail: gofakeit.Email(),
 				TeamName:   gofakeit.Company(),
-				Tier:       "Standard",
-				URL:        gofakeit.URL(),
+				Tier:       "标准版",
+				Link:       gofakeit.URL(),
+				Duration:   "7天",
 			},
 			want:    "",
 			wantErr: false,
@@ -123,13 +118,7 @@ func TestCtxInvitation_Render(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := CtxInvitation{
-				ReaderName: tt.fields.ToName,
-				AdminEmail: tt.fields.AdminEmail,
-				TeamName:   tt.fields.TeamName,
-				Tier:       tt.fields.Tier,
-				URL:        tt.fields.URL,
-			}
+			ctx := tt.fields
 			got, err := ctx.Render()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Render() error = %v, wantErr %v", err, tt.wantErr)

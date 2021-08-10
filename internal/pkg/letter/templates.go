@@ -67,15 +67,16 @@ FT中文网企业订阅管理员 {{.AdminName}},
 请联系我方客服洽谈付款事宜：
 ` + customerService,
 
-	keyLicenceInvitation: `FT中文网读者 {{.ReaderName}}，你好！
+	keyLicenceInvitation: `
+FT中文网读者 {{.ReaderName}}，你好！
 
-{{.TeamName}}为您订阅了FT中文网会员 {.Tier}}，请点击以下链接接受邀请。
+{{.TeamName}}为您订阅了FT中文网会员 {{.Tier}}，请点击以下链接接受邀请。
 
-{{.URL}}
+{{.Link}}
 
 接受邀请后即获得FT会员，可以阅读FT中文网的付费内容。
 
-本链接3日内有效，请尽快接受邀请。如果链接已过期，请联系您所属机构的管理员 {{.AdminEmail}}。
+本链接{{.Duration}}内有效，请尽快接受邀请。如果链接已过期，请联系您所属机构的管理员 {{.AdminEmail}}。
 
 本邮件由系统自动生成，请勿回复。
 
