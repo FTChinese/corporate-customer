@@ -9,6 +9,7 @@ import (
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
+	"github.com/FTChinese/ftacademy/web"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
@@ -22,7 +23,6 @@ var (
 	isProduction bool
 	version      string
 	build        string
-	conf         Config
 )
 
 func init() {
@@ -37,15 +37,15 @@ func init() {
 	}
 
 	config.MustSetupViper([]byte(tomlConfig))
+}
 
-	conf = Config{
+func main() {
+	webCfg := web.Config{
 		Debug:   !isProduction,
 		Version: version,
 		BuiltAt: build,
 	}
-}
 
-func main() {
 	logger := config.MustGetLogger(isProduction)
 
 	myDBs := db.MustNewMyDBs(isProduction)
@@ -64,7 +64,7 @@ func main() {
 	readerRouter := controller.NewReaderRouter(apiClient)
 
 	e := echo.New()
-	e.Renderer = MustNewRenderer(conf)
+	e.Renderer = web.MustNewRenderer(webCfg)
 
 	if !isProduction {
 		e.Static("/static", "build/public/static")
@@ -72,7 +72,7 @@ func main() {
 
 	e.Pre(middleware.AddTrailingSlash())
 
-	e.HTTPErrorHandler = errorHandler
+	e.HTTPErrorHandler = web.ErrorHandler
 
 	e.Use(controller.DumpRequest)
 	e.Use(middleware.Logger())
