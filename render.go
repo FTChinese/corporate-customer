@@ -11,6 +11,7 @@ import (
 )
 
 // NewRenderer creates a new instance of Renderer based on runtime configuration.
+// Deprecated
 func NewRenderer(conf web.Config) (Renderer, error) {
 	// In debug mode, we use pongo's default local file system loader.
 	if conf.Debug {
@@ -41,6 +42,8 @@ func NewRenderer(conf web.Config) (Renderer, error) {
 	}, nil
 }
 
+// MustNewRenderer panics.
+// Deprecated
 func MustNewRenderer(config web.Config) Renderer {
 	r, err := NewRenderer(config)
 	if err != nil {
@@ -51,11 +54,14 @@ func MustNewRenderer(config web.Config) Renderer {
 }
 
 // Renderer is used to render pong2 templates.
+// Deprecated.
 type Renderer struct {
 	templateSet *pongo2.TemplateSet // Load templates from filesystem or rice.
 	config      web.Config
 }
 
+// Render implements pongo render interface.
+// Deprecated.
 func (r Renderer) Render(w io.Writer, name string, data interface{}, e echo.Context) error {
 	var ctx = pongo2.Context{}
 
@@ -90,10 +96,13 @@ func (r Renderer) Render(w io.Writer, name string, data interface{}, e echo.Cont
 
 // RiceTemplateLoader implements pongo2.TemplateLoader to
 // loads templates from compiled binary
+// Deprecated.
 type RiceTemplateLoader struct {
 	box *rice.Box
 }
 
+// NewRiceTemplateLoader creates a new instance of RiceTemplateLoader.
+// Deprecated.
 func NewRiceTemplateLoader(box *rice.Box) *RiceTemplateLoader {
 
 	return &RiceTemplateLoader{box: box}
