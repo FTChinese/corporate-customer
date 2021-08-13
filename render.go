@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/go-rest/render"
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/flosch/pongo2"
@@ -12,8 +11,14 @@ import (
 	"net/http"
 )
 
+type Config struct {
+	Debug   bool
+	Version string
+	BuiltAt string
+}
+
 // NewRenderer creates a new instance of Renderer based on runtime configuration.
-func NewRenderer(conf config.Config) (Renderer, error) {
+func NewRenderer(conf Config) (Renderer, error) {
 	// In debug mode, we use pongo's default local file system loader.
 	if conf.Debug {
 		log.Info("Development environment using local file system loader")
@@ -43,7 +48,7 @@ func NewRenderer(conf config.Config) (Renderer, error) {
 	}, nil
 }
 
-func MustNewRenderer(config config.Config) Renderer {
+func MustNewRenderer(config Config) Renderer {
 	r, err := NewRenderer(config)
 	if err != nil {
 		log.Fatal(err)
@@ -55,7 +60,7 @@ func MustNewRenderer(config config.Config) Renderer {
 // Renderer is used to render pong2 templates.
 type Renderer struct {
 	templateSet *pongo2.TemplateSet // Load templates from filesystem or rice.
-	config      config.Config
+	config      Config
 }
 
 func (r Renderer) Render(w io.Writer, name string, data interface{}, e echo.Context) error {

@@ -22,7 +22,7 @@ var (
 	isProduction bool
 	version      string
 	build        string
-	conf         config.Config
+	conf         Config
 )
 
 func init() {
@@ -38,7 +38,7 @@ func init() {
 
 	config.MustSetupViper([]byte(tomlConfig))
 
-	conf = config.Config{
+	conf = Config{
 		Debug:   !isProduction,
 		Version: version,
 		BuiltAt: build,
