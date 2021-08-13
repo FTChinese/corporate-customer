@@ -1,21 +1,32 @@
-package main
+package web
 
 import (
+	"embed"
 	"errors"
-	"github.com/FTChinese/ftacademy/web"
-	rice "github.com/GeertJohan/go.rice"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/flosch/pongo2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"io"
+	"net/http"
 )
 
+//go:embed template/*
+var templates embed.FS
+
+type Config struct {
+	Debug   bool
+	Version string
+	BuiltAt string
+}
+
 // NewRenderer creates a new instance of Renderer based on runtime configuration.
-func NewRenderer(conf web.Config) (Renderer, error) {
+func NewRenderer(conf Config) (Renderer, error) {
 	// In debug mode, we use pongo's default local file system loader.
 	if conf.Debug {
 		log.Info("Development environment using local file system loader")
 
+		// Relative to current working directory.
 		loader := pongo2.MustNewLocalFileSystemLoader("web/template")
 		set := pongo2.NewSet("local", loader)
 		set.Debug = true
@@ -27,11 +38,7 @@ func NewRenderer(conf web.Config) (Renderer, error) {
 	}
 
 	log.Info("Production environment using rice template loader")
-	box, err := rice.FindBox("web/template")
-	if err != nil {
-		return Renderer{}, err
-	}
-	loader := NewRiceTemplateLoader(box)
+	loader := NewEmbedFTTemplateLoader(templates)
 	set := pongo2.NewSet("rice", loader)
 	set.Debug = false
 
@@ -41,7 +48,7 @@ func NewRenderer(conf web.Config) (Renderer, error) {
 	}, nil
 }
 
-func MustNewRenderer(config web.Config) Renderer {
+func MustNewRenderer(config Config) Renderer {
 	r, err := NewRenderer(config)
 	if err != nil {
 		log.Fatal(err)
@@ -53,7 +60,7 @@ func MustNewRenderer(config web.Config) Renderer {
 // Renderer is used to render pong2 templates.
 type Renderer struct {
 	templateSet *pongo2.TemplateSet // Load templates from filesystem or rice.
-	config      web.Config
+	config      Config
 }
 
 func (r Renderer) Render(w io.Writer, name string, data interface{}, e echo.Context) error {
@@ -88,21 +95,43 @@ func (r Renderer) Render(w io.Writer, name string, data interface{}, e echo.Cont
 	return t.ExecuteWriter(ctx, w)
 }
 
-// RiceTemplateLoader implements pongo2.TemplateLoader to
-// loads templates from compiled binary
-type RiceTemplateLoader struct {
-	box *rice.Box
+type EmbedFSTemplateLoader struct {
+	f embed.FS
 }
 
-func NewRiceTemplateLoader(box *rice.Box) *RiceTemplateLoader {
-
-	return &RiceTemplateLoader{box: box}
+func NewEmbedFTTemplateLoader(f embed.FS) EmbedFSTemplateLoader {
+	return EmbedFSTemplateLoader{
+		f: f,
+	}
 }
 
-func (loader RiceTemplateLoader) Abs(base, name string) string {
+func (loader EmbedFSTemplateLoader) Abs(base, name string) string {
 	return name
 }
 
-func (loader RiceTemplateLoader) Get(path string) (io.Reader, error) {
-	return loader.box.Open(path)
+func (loader EmbedFSTemplateLoader) Get(path string) (io.Reader, error) {
+	return loader.f.Open(path)
+}
+
+// ErrorHandler implements echo's HTTPErrorHandler.
+func ErrorHandler(err error, c echo.Context) {
+	re, ok := err.(*render.ResponseError)
+	if !ok {
+		re = render.NewInternalError(err.Error())
+	}
+
+	if re.Message == "" {
+		re.Message = http.StatusText(re.StatusCode)
+	}
+
+	if !c.Response().Committed {
+		if c.Request().Method == http.MethodHead {
+			err = c.NoContent(re.StatusCode)
+		} else {
+			err = c.JSON(re.StatusCode, re)
+		}
+		if err != nil {
+			c.Logger().Error(err)
+		}
+	}
 }
