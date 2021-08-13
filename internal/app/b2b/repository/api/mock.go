@@ -13,7 +13,7 @@ import (
 )
 
 func MockNewClient() Client {
-	config.MustSetupViper()
+	config.MustSetupViper(config.MustReadConfigFile())
 	return NewSubsAPIClient(false)
 }
 
