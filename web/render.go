@@ -9,10 +9,15 @@ import (
 	"github.com/labstack/gommon/log"
 	"io"
 	"net/http"
+	"time"
 )
 
 //go:embed template/*
 var templates embed.FS
+
+type Footer struct {
+	Year int
+}
 
 type Config struct {
 	Debug   bool
@@ -90,7 +95,7 @@ func (r Renderer) Render(w io.Writer, name string, data interface{}, e echo.Cont
 		return err
 	}
 
-	ctx["env"] = r.config
+	ctx["footer"] = Footer{Year: time.Now().Year()}
 
 	return t.ExecuteWriter(ctx, w)
 }
