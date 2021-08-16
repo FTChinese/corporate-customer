@@ -49,16 +49,9 @@ install-go:
 	gvm install $(go_version)
 	gvm use $(go_version)
 
-.PHONY: static
-static :
-	mkdir -p build/static/b2b
-	cp ../b2b-client/dist/b2b-client/*js build/static/b2b/
-	cp ../b2b-client/dist/index.html.go internal/app/b2b/controller/
-
-# Cross compiling linux on for dev.
-linux :
-	rice embed-go
-	$(BUILD_LINUX)
+.PHONY: config
+config :
+	rsync -v tk11:/home/node/config/$(config_file_name) ./$(build_dir)
 
 publish :
 	ssh ucloud "rm -f /home/node/go/bin/$(app_name).bak"
