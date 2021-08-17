@@ -55,8 +55,8 @@ arm :
 
 .PHONY: install-go
 install-go:
-	@echo "Install go version $(go_version)"
-	gvm install $(go_version)
+#	@echo "Install go version $(go_version)"
+#	gvm install $(go_version)
 	gvm use $(go_version)
 
 .PHONY: config
