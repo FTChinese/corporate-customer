@@ -24,11 +24,10 @@ compile_linux_x86 := GOOS=linux GOARCH=amd64 go build -o $(linux_x86_exec) $(ldf
 linux_arm_exec := $(build_dir)/linux/arm/$(app_name)
 compile_linux_arm := GOOS=linux GOARM=7 GOARCH=arm go build -o $(linux_arm_exec) $(ldflags) -tags production -v $(src_dir)
 
-goroot := $(echo )
-
 .PHONY: build
 build :
 	which go
+	go version
 	@echo "GOROOT=$(GOROOT)"
 	@echo "GOPATH=$(GOPATH)"
 	@echo "GOBIN=$(GOBIN)"
