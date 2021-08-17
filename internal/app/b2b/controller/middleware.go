@@ -4,7 +4,7 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
+	"log"
 	"net/http"
 	"net/http/httputil"
 )
@@ -25,13 +25,13 @@ func (keeper Doorkeeper) getPassportClaims(req *http.Request) (admin.PassportCla
 	authHeader := req.Header.Get("Authorization")
 	ss, err := ParseBearer(authHeader)
 	if err != nil {
-		log.Errorf("Error parsing Authorization header: %v", err)
+		log.Printf("Error parsing Authorization header: %v", err)
 		return admin.PassportClaims{}, err
 	}
 
 	claims, err := admin.ParsePassportClaims(ss, keeper.signingKey)
 	if err != nil {
-		log.Errorf("Error parsing JWT %v", err)
+		log.Printf("Error parsing JWT %v", err)
 		return admin.PassportClaims{}, err
 	}
 
@@ -43,7 +43,7 @@ func (keeper Doorkeeper) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc
 
 		claims, err := keeper.getPassportClaims(c.Request())
 		if err != nil {
-			log.Errorf("Error parsing JWT %v", err)
+			log.Printf("Error parsing JWT %v", err)
 			return render.NewUnauthorized(err.Error())
 		}
 
@@ -57,12 +57,12 @@ func (keeper Doorkeeper) RequireTeamSet(next echo.HandlerFunc) echo.HandlerFunc 
 
 		claims, err := keeper.getPassportClaims(c.Request())
 		if err != nil {
-			log.Errorf("Error parsing JWT %v", err)
+			log.Printf("Error parsing JWT %v", err)
 			return render.NewUnauthorized(err.Error())
 		}
 
 		if claims.TeamID.IsZero() {
-			log.Errorf("Team is not set")
+			log.Printf("Team is not set")
 			return render.NewUnauthorized("Organization team is required")
 		}
 
