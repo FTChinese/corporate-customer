@@ -35,6 +35,10 @@ build :
 	@echo "Build version $(version)"
 	$(compile_default_exec)
 
+.PHONY: devconfig
+devconfig :
+	rsync local_config_file $(build_dir)/$(config_file_name)
+
 .PHONY: run
 run :
 	$(default_exec)
@@ -59,14 +63,17 @@ install-go:
 config :
 	rsync -v tk11:/home/node/config/$(config_file_name) ./$(build_dir)
 
+.PHONY: publish
 publish :
 	ssh ucloud "rm -f /home/node/go/bin/$(app_name).bak"
 	rsync -v ./$(default_exec) ucloud:/home/node/go/bin/$(app_name).bak
 
+.PHONY: restart
 restart :
 	ssh ucloud "cd /home/node/go/bin/ && \mv $(app_name).bak $(app_name)"
 	ssh ucloud supervisorctl restart $(app_name)
 
+.PHONY: clean
 clean :
 	go clean -x
 	rm build/*
