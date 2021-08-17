@@ -28,7 +28,11 @@ goroot := $(echo )
 
 .PHONY: build
 build :
-	@echo $(GOROOT)
+	which go
+	@echo "GOROOT=$(GOROOT)"
+	@echo "GOPATH=$(GOPATH)"
+	@echo "GOBIN=$(GOBIN)"
+	@echo "GO111MODULEON=$(GO111MODULEON)"
 	@echo "Build version $(version)"
 	$(compile_default_exec)
 
