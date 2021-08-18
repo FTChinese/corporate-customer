@@ -1,10 +1,10 @@
 package subs
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/txrepo"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
+	api2 "github.com/FTChinese/ftacademy/internal/repository/api"
+	txrepo2 "github.com/FTChinese/ftacademy/internal/repository/txrepo"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"go.uber.org/zap/zaptest"
@@ -15,7 +15,7 @@ import (
 func TestEnv_RetrieveAssignee(t *testing.T) {
 	faker.SeedGoFake()
 
-	a := api.MockNewClient().MustCreateAssignee()
+	a := api2.MockNewClient().MustCreateAssignee()
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
@@ -54,7 +54,7 @@ func TestEnv_RetrieveAssignee(t *testing.T) {
 func TestEnv_FindAssignee(t *testing.T) {
 	faker.SeedGoFake()
 
-	a := api.MockNewClient().MustCreateAssignee()
+	a := api2.MockNewClient().MustCreateAssignee()
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
@@ -96,7 +96,7 @@ func TestEnv_RetrieveMembership(t *testing.T) {
 
 	m := reader.MockMembership("")
 
-	txrepo.MockNewRepo().MustCreateMember(m)
+	txrepo2.MockNewRepo().MustCreateMember(m)
 
 	type args struct {
 		compoundID string

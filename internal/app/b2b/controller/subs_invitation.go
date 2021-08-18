@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subs"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/letter"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
+	subs2 "github.com/FTChinese/ftacademy/internal/repository/subs"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -39,21 +39,21 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 	lic, err := router.repo.CreateInvitation(params, claims)
 	if err != nil {
 		switch err {
-		case subs.ErrLicenceUnavailable:
+		case subs2.ErrLicenceUnavailable:
 			return &render.ValidationError{
 				Message: "The licence is already taken",
 				Field:   "licence",
 				Code:    "already_taken",
 			}
 
-		case subs.ErrInviteeMismatch:
+		case subs2.ErrInviteeMismatch:
 			return &render.ValidationError{
 				Message: err.Error(),
 				Field:   "invitee",
 				Code:    render.CodeAlreadyExists,
 			}
 
-		case subs.ErrAlreadyMember:
+		case subs2.ErrAlreadyMember:
 			return &render.ValidationError{
 				Message: "The email to accept the invitation is already a valid member",
 				Field:   "membership",

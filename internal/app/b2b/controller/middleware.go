@@ -2,8 +2,8 @@ package controller
 
 import (
 	"database/sql"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/access"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	access2 "github.com/FTChinese/ftacademy/internal/repository/access"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/oauth"
 	"github.com/FTChinese/go-rest/render"
@@ -92,12 +92,12 @@ func DumpRequest(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 type OAuthGuard struct {
-	repo access.Env
+	repo access2.Env
 }
 
 func NewOAuthGuard(dbs db.ReadWriteMyDBs) OAuthGuard {
 	return OAuthGuard{
-		repo: access.NewEnv(dbs),
+		repo: access2.NewEnv(dbs),
 	}
 }
 

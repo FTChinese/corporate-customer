@@ -1,10 +1,10 @@
 package subs
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/txrepo"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
+	txrepo2 "github.com/FTChinese/ftacademy/internal/repository/txrepo"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/FTChinese/ftacademy/pkg/price"
@@ -22,7 +22,7 @@ func TestEnv_InvitationByToken(t *testing.T) {
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
-	txrepo.MockNewRepo().MustCreateInvitation(inv)
+	txrepo2.MockNewRepo().MustCreateInvitation(inv)
 
 	type args struct {
 		token string
@@ -62,7 +62,7 @@ func TestEnv_InvitationByID(t *testing.T) {
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
-	txrepo.MockNewRepo().MustCreateInvitation(inv)
+	txrepo2.MockNewRepo().MustCreateInvitation(inv)
 
 	type args struct {
 		r admin.AccessRight
@@ -104,7 +104,7 @@ func TestEnv_CreateInvitation(t *testing.T) {
 
 	lic := licence.MockLicence(price.MockPriceStdYear)
 
-	txrepo.MockNewRepo().MustCreateLicence(lic.BaseLicence)
+	txrepo2.MockNewRepo().MustCreateLicence(lic.BaseLicence)
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
@@ -158,7 +158,7 @@ func TestEnv_RevokeInvitation(t *testing.T) {
 	lic := licence.MockLicence(price.MockPriceStdYear)
 	inv := licence.MockInvitation(lic)
 
-	mockRepo := txrepo.MockNewRepo()
+	mockRepo := txrepo2.MockNewRepo()
 	mockRepo.MustCreateLicence(lic.WithInvitation(inv))
 	mockRepo.MustCreateInvitation(inv)
 
@@ -203,7 +203,7 @@ func TestEnv_RevokeInvitation(t *testing.T) {
 
 func TestEnv_countInvitation(t *testing.T) {
 	inv := licence.MockInvitation(licence.MockLicence(price.MockPriceStdYear))
-	txrepo.MockNewRepo().MustCreateInvitation(inv)
+	txrepo2.MockNewRepo().MustCreateInvitation(inv)
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
@@ -242,7 +242,7 @@ func TestEnv_countInvitation(t *testing.T) {
 
 func TestEnv_listInvitations(t *testing.T) {
 	inv := licence.MockInvitation(licence.MockLicence(price.MockPriceStdYear))
-	txrepo.MockNewRepo().MustCreateInvitation(inv)
+	txrepo2.MockNewRepo().MustCreateInvitation(inv)
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
@@ -283,7 +283,7 @@ func TestEnv_listInvitations(t *testing.T) {
 
 func TestEnv_ListInvitations(t *testing.T) {
 	inv := licence.MockInvitation(licence.MockLicence(price.MockPriceStdYear))
-	txrepo.MockNewRepo().MustCreateInvitation(inv)
+	txrepo2.MockNewRepo().MustCreateInvitation(inv)
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 

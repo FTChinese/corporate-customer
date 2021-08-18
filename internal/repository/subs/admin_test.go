@@ -1,9 +1,9 @@
 package subs
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/adminor"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
+	adminor2 "github.com/FTChinese/ftacademy/internal/repository/adminor"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"go.uber.org/zap/zaptest"
 	"reflect"
@@ -14,7 +14,7 @@ func TestEnv_AdminProfile(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 	account := admin.MockAccount()
 
-	_ = adminor.NewEnv(db.MockMySQL(), zaptest.NewLogger(t)).
+	_ = adminor2.NewEnv(db.MockMySQL(), zaptest.NewLogger(t)).
 		SignUp(account)
 
 	type args struct {
