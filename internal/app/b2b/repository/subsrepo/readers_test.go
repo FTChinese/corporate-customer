@@ -1,10 +1,10 @@
-package subs
+package subsrepo
 
 import (
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/txrepo"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	api2 "github.com/FTChinese/ftacademy/internal/repository/api"
-	txrepo2 "github.com/FTChinese/ftacademy/internal/repository/txrepo"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"go.uber.org/zap/zaptest"
@@ -96,7 +96,7 @@ func TestEnv_RetrieveMembership(t *testing.T) {
 
 	m := reader.MockMembership("")
 
-	txrepo2.MockNewRepo().MustCreateMember(m)
+	txrepo.MockNewRepo().MustCreateMember(m)
 
 	type args struct {
 		compoundID string

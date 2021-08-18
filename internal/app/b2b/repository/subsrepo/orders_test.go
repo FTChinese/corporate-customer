@@ -1,4 +1,4 @@
-package subs
+package subsrepo
 
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg"

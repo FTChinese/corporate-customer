@@ -1,4 +1,4 @@
-package subs
+package subsrepo
 
 import (
 	"errors"

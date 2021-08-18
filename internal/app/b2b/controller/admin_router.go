@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/repository/adminor"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/adminrepo"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
 	"go.uber.org/zap"
@@ -10,7 +10,7 @@ import (
 // AdminRouter defines what an admin can do before login.
 type AdminRouter struct {
 	keeper JWTGuard
-	repo   adminor.Env
+	repo   adminrepo.Env
 	post   postman.Postman
 	logger *zap.Logger
 }
@@ -19,7 +19,7 @@ type AdminRouter struct {
 func NewAdminRouter(dbs db.ReadWriteMyDBs, p postman.Postman, dk JWTGuard, logger *zap.Logger) AdminRouter {
 	return AdminRouter{
 		keeper: dk,
-		repo:   adminor.NewEnv(dbs, logger),
+		repo:   adminrepo.NewEnv(dbs, logger),
 		post:   p,
 		logger: logger,
 	}

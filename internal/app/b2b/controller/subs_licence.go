@@ -1,10 +1,10 @@
 package controller
 
 import (
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subsrepo"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/letter"
-	subs2 "github.com/FTChinese/ftacademy/internal/repository/subs"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -78,10 +78,10 @@ func (router SubsRouter) GrantLicence(c echo.Context) error {
 	if err != nil {
 		sugar.Error(err)
 		switch err {
-		case subs2.ErrInvalidInvitation:
+		case subsrepo.ErrInvalidInvitation:
 			return render.NewNotFound(err.Error())
 
-		case subs2.ErrLicenceTaken:
+		case subsrepo.ErrLicenceTaken:
 			return render.NewNotFound(err.Error())
 
 		default:

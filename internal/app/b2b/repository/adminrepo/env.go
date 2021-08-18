@@ -1,4 +1,4 @@
-package adminor
+package adminrepo
 
 import (
 	"github.com/FTChinese/ftacademy/pkg/db"

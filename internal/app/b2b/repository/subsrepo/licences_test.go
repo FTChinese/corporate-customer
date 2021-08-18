@@ -1,11 +1,11 @@
-package subs
+package subsrepo
 
 import (
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/txrepo"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	api2 "github.com/FTChinese/ftacademy/internal/repository/api"
-	txrepo2 "github.com/FTChinese/ftacademy/internal/repository/txrepo"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/FTChinese/ftacademy/pkg/price"
@@ -19,7 +19,7 @@ func TestEnv_LoadLicence(t *testing.T) {
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 	lic := licence.MockLicence(price.MockPriceStdYear)
-	txrepo2.MockNewRepo().MustCreateLicence(lic.BaseLicence)
+	txrepo.MockNewRepo().MustCreateLicence(lic.BaseLicence)
 
 	type args struct {
 		r admin.AccessRight
@@ -60,7 +60,7 @@ func TestEnv_LoadLicence(t *testing.T) {
 func TestEnv_listLicences(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 	lic := licence.MockLicence(price.MockPriceStdYear)
-	txrepo2.MockNewRepo().MustCreateLicence(lic.BaseLicence)
+	txrepo.MockNewRepo().MustCreateLicence(lic.BaseLicence)
 
 	type args struct {
 		teamID string
@@ -99,7 +99,7 @@ func TestEnv_listLicences(t *testing.T) {
 func TestEnv_countLicences(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 	lic := licence.MockLicence(price.MockPriceStdYear)
-	txrepo2.MockNewRepo().MustCreateLicence(lic.BaseLicence)
+	txrepo.MockNewRepo().MustCreateLicence(lic.BaseLicence)
 
 	type args struct {
 		teamID string
@@ -138,7 +138,7 @@ func TestEnv_GrantLicence(t *testing.T) {
 
 	a := api2.MockNewClient().MustCreateAssignee()
 
-	mockRepo := txrepo2.MockNewRepo()
+	mockRepo := txrepo.MockNewRepo()
 	mockRepo.MustCreateMember(reader.MockMembership(a.FtcID.String))
 	lic := mockRepo.MustCreateInvitedLicence(a)
 
@@ -187,7 +187,7 @@ func TestEnv_GrantLicence(t *testing.T) {
 func TestEnv_RevokeLicence(t *testing.T) {
 	a := api2.MockNewClient().MustCreateAssignee()
 
-	mockRepo := txrepo2.MockNewRepo()
+	mockRepo := txrepo.MockNewRepo()
 
 	lic := mockRepo.MustCreateGrantedLicence(a)
 
