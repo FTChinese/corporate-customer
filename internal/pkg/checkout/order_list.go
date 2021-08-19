@@ -1,74 +1,10 @@
 package checkout
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
-	"github.com/FTChinese/ftacademy/pkg/price"
 	"github.com/FTChinese/go-rest/chrono"
 )
-
-// ProductQuantity describes the quantity of a product put into an order.
-// This is used when save all items of an order as JSON
-// in an order's row.
-type ProductQuantity struct {
-	Price         price.Price `json:"price"`
-	NewCopies     int64       `json:"newCopies"`     // How many new copies user purchased
-	RenewalCopies int64       `json:"renewalCopies"` // How many renewals user purchased.
-}
-
-func NewProductQuantity(i CartItem) ProductQuantity {
-	return ProductQuantity{
-		Price:         i.Price,
-		NewCopies:     i.NewCopies,
-		RenewalCopies: int64(len(i.Renewals)),
-	}
-}
-
-// OrderedProducts is used the retrieve/save an array of
-// CheckoutProduct into db.
-type OrderedProducts []ProductQuantity
-
-func NewOrderedProducts(items []CartItem) OrderedProducts {
-	var p = make([]ProductQuantity, 0)
-	for _, v := range items {
-		p = append(p, NewProductQuantity(v))
-	}
-
-	return p
-}
-
-// Value implements Valuer interface when saving
-func (b OrderedProducts) Value() (driver.Value, error) {
-	j, err := json.Marshal(b)
-	if err != nil {
-		return nil, err
-	}
-
-	return string(j), nil
-}
-
-func (b *OrderedProducts) Scan(src interface{}) error {
-	if src == nil {
-		*b = []ProductQuantity{}
-		return nil
-	}
-	switch s := src.(type) {
-	case []byte:
-		var tmp []ProductQuantity
-		err := json.Unmarshal(s, &tmp)
-		if err != nil {
-			return err
-		}
-		*b = tmp
-		return nil
-
-	default:
-		return errors.New("incompatible type to scan to []CheckoutProduct")
-	}
-}
 
 // OrderRow describes the details of a transaction for a
 // session of shopping.
@@ -85,7 +21,7 @@ func (b *OrderedProducts) Scan(src interface{}) error {
 type OrderRow struct {
 	BaseOrder
 	// An array of products, together with the quantities, use is trying to purchase.
-	Products OrderedProducts `json:"products" db:"checkout_products"`
+	ItemSummaryList CartItemSummaryList `json:"items" db:"cart_items_summary"`
 }
 
 func NewOrderRow(cart ShoppingCart, p admin.PassportClaims) OrderRow {
@@ -99,7 +35,7 @@ func NewOrderRow(cart ShoppingCart, p admin.PassportClaims) OrderRow {
 			Status:        StatusPending,
 			TeamID:        p.TeamID.String,
 		},
-		Products: NewOrderedProducts(cart.Items),
+		ItemSummaryList: newCartItemSummaryList(cart.Items),
 	}
 }
 
