@@ -15,6 +15,7 @@ pipeline {
             }
     
             steps {
+                sh 'printenv'
                 echo 'Download config file'
                 sh 'make config'
                 echo 'Install go'
