@@ -10,6 +10,7 @@ import (
 type TeamParams struct {
 	OrgName      string      `json:"orgName" db:"org_name"`
 	InvoiceTitle null.String `json:"invoiceTitle" db:"invoice_title"`
+	Phone        null.String `json:"phone" db:"phone"`
 }
 
 func (t *TeamParams) Validate() *render.ValidationError {
