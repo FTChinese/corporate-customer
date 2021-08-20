@@ -56,7 +56,7 @@ FT中文网企业订阅管理员 {{.AdminName}},
 
 {{.ID}}
 
-{{range .Products}}
+{{range .ItemSummaryList}}
 {{.Price.Tier | tierSC}}  {{.Price.UnitAmount | currency}}/{{.Price.Cycle.StringCN}}
 	新增 {{.NewCopies}}份
 	续订 {{.RenewalCopies}}份
