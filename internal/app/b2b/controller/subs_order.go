@@ -59,7 +59,10 @@ func (router SubsRouter) ListOrders(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	list, err := router.repo.ListOrders(claims.TeamID.String, page)
+	list, err := router.repo.ListOrders(
+		checkout.NewOrderFilter(claims.TeamID.String),
+		page)
+
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -70,7 +73,7 @@ func (router SubsRouter) ListOrders(c echo.Context) error {
 func (router SubsRouter) LoadOrder(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	id := c.QueryParam("id")
+	id := c.Param("id")
 
 	o, err := router.repo.LoadDetailedOrder(admin.AccessRight{
 		RowID:  id,
