@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/controller"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
+	api2 "github.com/FTChinese/ftacademy/internal/repository/api"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
@@ -53,15 +53,16 @@ func main() {
 	pm := postman.New(config.MustGetHanqiConn())
 
 	appKey := config.MustGetAppKey("web_app.b2b")
+	jwtGuard := controller.NewJWTGuard(appKey.GetJWTKey())
+	oauthGuard := controller.NewOAuthGuard(myDBs)
 
-	apiClient := api.NewSubsAPIClient(isProduction)
-	dk := controller.NewDoorkeeper(appKey.GetJWTKey())
+	apiClient := api2.NewSubsAPIClient(isProduction)
 
-	adminRouter := controller.NewAdminRouter(myDBs, pm, dk, logger)
+	adminRouter := controller.NewAdminRouter(myDBs, pm, jwtGuard, logger)
 	subsRouter := controller.NewSubsRouter(myDBs, pm, logger)
-
 	productRouter := controller.NewProductRouter(apiClient, logger)
 	readerRouter := controller.NewReaderRouter(apiClient)
+	cmsRouter := controller.NewCMSRouter(myDBs, pm, logger)
 
 	e := echo.New()
 	e.Renderer = web.MustNewRenderer(webCfg)
@@ -114,7 +115,7 @@ func main() {
 		}
 	}
 
-	b2bAccountGroup := b2bAPIGroup.Group("/account", dk.RequireLoggedIn)
+	b2bAccountGroup := b2bAPIGroup.Group("/account", jwtGuard.RequireLoggedIn)
 	{
 		//b2bAccountGroup.GET("/", accountRouter.Account)
 		b2bAccountGroup.GET("/jwt/", adminRouter.RefreshJWT)
@@ -123,19 +124,19 @@ func main() {
 		b2bAccountGroup.PATCH("/password/", adminRouter.ChangePassword)
 	}
 
-	b2bTeamGroup := b2bAPIGroup.Group("/team", dk.RequireLoggedIn)
+	b2bTeamGroup := b2bAPIGroup.Group("/team", jwtGuard.RequireLoggedIn)
 	{
 		b2bTeamGroup.GET("/", adminRouter.LoadTeam)
 		b2bTeamGroup.POST("/", adminRouter.CreateTeam)
 		b2bTeamGroup.PATCH("/", adminRouter.UpdateTeam)
 	}
 
-	productGroup := b2bAPIGroup.Group("/paywall", dk.RequireLoggedIn)
+	productGroup := b2bAPIGroup.Group("/paywall", jwtGuard.RequireLoggedIn)
 	{
 		productGroup.GET("/", productRouter.Paywall)
 	}
 
-	orderGroup := b2bAPIGroup.Group("/orders", dk.RequireTeamSet)
+	orderGroup := b2bAPIGroup.Group("/orders", jwtGuard.RequireTeamSet)
 	{
 		// List orders
 		orderGroup.GET("/", subsRouter.ListOrders)
@@ -144,7 +145,7 @@ func main() {
 		orderGroup.GET("/:id/", subsRouter.LoadOrder)
 	}
 
-	b2bLicenceGroup := b2bAPIGroup.Group("/licences", dk.RequireTeamSet)
+	b2bLicenceGroup := b2bAPIGroup.Group("/licences", jwtGuard.RequireTeamSet)
 	{
 		// List licences
 		b2bLicenceGroup.GET("/", subsRouter.ListLicence)
@@ -153,7 +154,7 @@ func main() {
 		b2bLicenceGroup.POST("/:id/revoke/", subsRouter.RevokeLicence)
 	}
 
-	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", dk.RequireTeamSet)
+	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", jwtGuard.RequireTeamSet)
 	{
 		// List invitations
 		b2bInvitationGroup.GET("/", subsRouter.ListInvitations)
@@ -188,24 +189,34 @@ func main() {
 		// Reader verification.
 	}
 
-	//cmsGroup := apiGroup.Group("/cms")
-	//{
-	//	// List teams
-	//	cmsGroup.GET("/teams/",)
-	//	// Show team detail
-	//	// * admin account;
-	//	// * team name
-	//	// * orders
-	//	// * licences
-	//	cmsGroup.GET("/teams/:id/")
-	//	// List orders
-	//	cmsGroup.GET("/orders/")
-	//	// Details of an order:
-	//	// * order data
-	//	// * team details
-	//	cmsGroup.GET("/orders/:id/")
-	//	// Order payment confirmed.
-	//	cmsGroup.POST("/order/:id/")
-	//}
+	// The following is used by internal system.
+	// It is not used by any customer-side client.
+	// Instead it is a restful API used by superyard
+	// to forward request since I do not want to repeat
+	// identical data type definition and manipulation
+	// inside another Golang app.
+	cmsGroup := apiGroup.Group("/cms", oauthGuard.RequireToken)
+	{
+		// List teams
+		//cmsGroup.GET("/teams/",)
+		// Show team detail
+		// * admin account;
+		// * team name
+		// * orders
+		// * licences
+		cmsGroup.GET("/teams/:id/", cmsRouter.LoadTeam)
+		// List orders
+		// Query parameters used as filters:
+		// team=xxx - List orders of the specified team
+		// status=pending_payment | paid | processing | cancelled - List orders of the specified status
+		cmsGroup.GET("/orders/", cmsRouter.ListOrders)
+		// Details of an order:
+		// * order data
+		// * team details
+		cmsGroup.GET("/orders/:id/", cmsRouter.LoadOrder)
+		// Order payment confirmed.
+		cmsGroup.POST("/order/:id/", cmsRouter.ConfirmPayment)
+	}
+
 	e.Logger.Fatal(e.Start(":4000"))
 }
