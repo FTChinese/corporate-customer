@@ -9,7 +9,7 @@ import (
 
 // AdminRouter defines what an admin can do before login.
 type AdminRouter struct {
-	keeper JWTGuard
+	guard  JWTGuard
 	repo   adminrepo.Env
 	post   postman.Postman
 	logger *zap.Logger
@@ -18,7 +18,7 @@ type AdminRouter struct {
 // NewAdminRouter creates a new instance of AdminRouter.
 func NewAdminRouter(dbs db.ReadWriteMyDBs, p postman.Postman, dk JWTGuard, logger *zap.Logger) AdminRouter {
 	return AdminRouter{
-		keeper: dk,
+		guard:  dk,
 		repo:   adminrepo.NewEnv(dbs, logger),
 		post:   p,
 		logger: logger,
