@@ -17,9 +17,14 @@ func (env Env) CreateTeam(t admin.Team) error {
 	return nil
 }
 
+// LoadTeam loads a team by id belong to an admin.
 func (env Env) LoadTeam(teamID, adminID string) (admin.Team, error) {
 	var t admin.Team
-	err := env.DBs.Read.Get(&t, admin.StmtTeamByID, teamID, adminID)
+	err := env.DBs.Read.Get(
+		&t,
+		admin.BuildStmtLoadTeam(true),
+		teamID,
+		adminID)
 	if err != nil {
 		return admin.Team{}, err
 	}
