@@ -38,7 +38,7 @@ func (router AdminRouter) SignUp(c echo.Context) error {
 		_ = router.sendEmailVerification(adminAccount.BaseAccount)
 	}()
 
-	jwtBearer, err := admin.NewPassport(adminAccount.BaseAccount, router.keeper.signingKey)
+	jwtBearer, err := admin.NewPassport(adminAccount.BaseAccount, router.guard.signingKey)
 	if err != nil {
 		sugar.Error(err)
 		return render.NewInternalError(err.Error())
@@ -152,7 +152,7 @@ func (router AdminRouter) Login(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	jwtBearer, err := admin.NewPassport(baseAccount, router.keeper.signingKey)
+	jwtBearer, err := admin.NewPassport(baseAccount, router.guard.signingKey)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}

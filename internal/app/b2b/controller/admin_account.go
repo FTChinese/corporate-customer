@@ -17,7 +17,7 @@ func (router AdminRouter) RefreshJWT(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	bearer, err := admin.NewPassport(baseAccount, router.keeper.signingKey)
+	bearer, err := admin.NewPassport(baseAccount, router.guard.signingKey)
 	if err != nil {
 		return render.NewDBError(err)
 	}
