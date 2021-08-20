@@ -6,8 +6,8 @@ import (
 )
 
 type Creator struct {
-	CreatorID string `json:"creatorId" db:"creator_id"`
-	TeamID    string `json:"teamId" db:"team_id"`
+	AdminID string `json:"adminId" db:"admin_id"`
+	TeamID  string `json:"teamId" db:"team_id"`
 }
 
 type RowTime struct {
