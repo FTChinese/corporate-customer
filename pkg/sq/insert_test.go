@@ -3,7 +3,7 @@ package sq
 import "testing"
 
 func TestInsert_Build(t *testing.T) {
-	insert := NewInsert().
+	insert := NewBulkInsert().
 		Into(NewTable("b2b.order")).
 		AddColumn(NewColumn("id")).
 		AddColumn(NewColumn("plan_id")).
