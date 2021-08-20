@@ -39,15 +39,15 @@ func (env Env) CreateOrder(schema checkout.OrderInputSchema) error {
 	return nil
 }
 
-func (env Env) listOrders(teamID string, page gorest.Pagination) ([]checkout.OrderRow, error) {
+func (env Env) listOrders(w pkg.SQLWhere, page gorest.Pagination) ([]checkout.OrderRow, error) {
 	var orders = make([]checkout.OrderRow, 0)
+
+	w = w.AddValues(page.Limit, page.Offset())
 
 	err := env.dbs.Read.Select(
 		&orders,
-		checkout.StmtListBaseOrders,
-		teamID,
-		page.Limit,
-		page.Offset())
+		checkout.BuildStmtListOrders(w.Clause),
+		w.Values)
 
 	if err != nil {
 		return nil, err
@@ -56,9 +56,13 @@ func (env Env) listOrders(teamID string, page gorest.Pagination) ([]checkout.Ord
 	return orders, nil
 }
 
-func (env Env) countOrder(teamID string) (int64, error) {
+func (env Env) countOrder(w pkg.SQLWhere) (int64, error) {
 	var total int64
-	err := env.dbs.Read.Get(&total, checkout.StmtCountOrder, teamID)
+	err := env.dbs.Read.Get(
+		&total,
+		checkout.BuildStmtCountOrder(w.Clause),
+		w.Values)
+
 	if err != nil {
 		return 0, err
 	}
@@ -66,16 +70,18 @@ func (env Env) countOrder(teamID string) (int64, error) {
 	return total, nil
 }
 
-func (env Env) ListOrders(teamID string, page gorest.Pagination) (checkout.OrderRowList, error) {
+// ListOrders retrieves a list of orders created by an admin.
+func (env Env) ListOrders(filter checkout.OrderFilter, page gorest.Pagination) (checkout.OrderRowList, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
+	where := filter.SQLWhere()
 	countCh := make(chan int64)
 	listCh := make(chan checkout.OrderRowList)
 
 	go func() {
 		defer close(countCh)
-		n, err := env.countOrder(teamID)
+		n, err := env.countOrder(where)
 		if err != nil {
 			sugar.Error(err)
 		}
@@ -86,7 +92,7 @@ func (env Env) ListOrders(teamID string, page gorest.Pagination) (checkout.Order
 	go func() {
 		defer close(listCh)
 
-		orders, err := env.listOrders(teamID, page)
+		orders, err := env.listOrders(where, page)
 
 		listCh <- checkout.OrderRowList{
 			PagedList: pkg.PagedList{
@@ -117,7 +123,11 @@ func (env Env) ListOrders(teamID string, page gorest.Pagination) (checkout.Order
 // checkout_products column.
 func (env Env) orderDetails(r admin.AccessRight) (checkout.Order, error) {
 	var ord checkout.Order
-	err := env.dbs.Read.Get(&ord, checkout.StmtOrderDetails, r.RowID, r.TeamID)
+	err := env.dbs.Read.Get(
+		&ord,
+		checkout.BuildStmtOrder(true),
+		r.RowID,
+		r.TeamID)
 
 	if err != nil {
 		return checkout.Order{}, err
