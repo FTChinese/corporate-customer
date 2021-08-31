@@ -36,7 +36,7 @@ func (ctx CtxPwReset) Render() (string, error) {
 
 type CtxOrderCreated struct {
 	AdminName string
-	checkout.OrderRow
+	checkout.Order
 }
 
 func (ctx CtxOrderCreated) Render() (string, error) {
