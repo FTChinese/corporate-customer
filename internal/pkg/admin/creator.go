@@ -1,4 +1,4 @@
-package licence
+package admin
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
