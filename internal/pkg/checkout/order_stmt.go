@@ -2,98 +2,40 @@ package checkout
 
 import "strings"
 
-// StmtCreateBaseOrder is used to save an OrderRow
-const StmtCreateBaseOrder = `
+// StmtCreateOrder is used to save a row of Order.
+const StmtCreateOrder = `
 INSERT INTO b2b.order
 SET id = :order_id,
+	admin_id = :admin_id,
+	team_id = :team_id,
 	amount_payable = :amount_payable,
-	created_by = :created_by,
 	created_utc = :created_utc,
 	item_count = :item_count,
-	current_status = :current_status,
-	team_id = :team_id,
-	cart_items_summary = :cart_items_summary`
+	item_list = :item_list,
+	current_status = :current_status
+`
 
-const StmtCreateOrderItem = `
-INSERT INTO b2b.order_item
-SET id = :order_item_id,
-	order_id = :order_id,
-	price_off_per_copy = :price_off_per_copy,
-	price_snapshot = :price_snapshot,
-	new_copy_count = :new_copy_count,
-	renewal_licences = :renewal_licences`
-
-const colBaseOrder = `
+// Shared columns used both when retrieving a list orders,
+// or a single row of order.
+const colOrder = `
 SELECT o.id AS order_id,
-	o.amount_payable,
-	o.created_by,
-	o.created_utc,
-	o.current_status,
-	o.item_count,
-	o.current_status,
-	o.team_id
-`
-
-const colOrderList = colBaseOrder + `,
-o.cart_items_summary`
-
-const colOrderTeam = `
-JSON_OBJECT(
-	"orgName", t.org_name,
-	"invoiceTitle", t.invoice_title,
-	"phone", t.phone
-)
-AS team
-`
-
-//const StmtListOrders = colOrderList + `
-//FROM b2b.order AS o
-//WHERE o.team_id = ?
-//ORDER BY o.created_utc DESC
-//LIMIT ? OFFSET ?`
-
-// BuildStmtListOrders retrieve multiple rows of order
-// for CMS.
-func BuildStmtListOrders(where string) string {
-	return colOrderList + `,
-` + colOrderTeam + `
-FROM b2b.order AS o
-LEFT JOIN b2b.team AS t
-	ON o.team_id = t.id
-WHERE ` + where + `
-ORDER BY o.created_utc DESC
-LIMIT ? OFFSET ?
-`
-}
-
-func BuildStmtCountOrder(where string) string {
-	return `
-SELECT COUNT(*)
-FROM b2b.order AS o
-WHERE ` + where
-}
-
-const colPayment = `
-o.amount_paid,
-o.approved_by,
-o.approved_utc,
-o.description,
-o.payment_method,
-o.transaction_id
+	o.admin_id AS admin_id,
+	o.team_id AS team_id,
+	o.amount_payable AS amount_payable,
+	o.created_utc AS created_utc,
+	o.item_count AS item_count,
+	o.item_summary_overview AS item_summary_overview,
+	o.current_status AS current_status,
 `
 
 // BuildStmtOrder retrieve a row from order table
-// without the cart_items_summary column.
-// The data consists of the Payment and BaseOrder parts of
-// an Order.
-// withTeam - if true, adn team_id to where clause when used
-// by an admin. When used by CMS, team_id should not present.
+// withTeam - if true, add team_id to where clause when used
+// by an admin.
+// When used by CMS, team_id should be omitted.
 func BuildStmtOrder(withTeam bool) string {
 	var buf strings.Builder
 
-	buf.WriteString(colBaseOrder)
-	buf.WriteByte(',')
-	buf.WriteString(colPayment)
+	buf.WriteString(colOrder)
 	buf.WriteString("FROM b2b.order AS o WHERE o.id = ?")
 	if withTeam {
 		buf.WriteString(" AND o.team_id = ?")
@@ -104,14 +46,50 @@ func BuildStmtOrder(withTeam bool) string {
 	return buf.String()
 }
 
-// StmtItemsOfOrder retrieves all items belong to an Order.
-const StmtItemsOfOrder = `
-SELECT id AS order_item_id,
-	order_id,
-	price_off_per_copy,
-	price_snapshot,
-	new_copy_count,
-	renewal_licences
-FROM b2b.order_item
-WHERE order_id = ?
-ORDER BY tier ASC`
+// StmtListOrders retrieves a list of orders for an admin.
+const StmtListOrders = colOrder + `
+FROM b2b.order AS o
+WHERE o.team_id = ?
+ORDER BY o.created_utc DESC
+LIMIT ? OFFSET ?`
+
+const StmtCountOrder = `
+SELECT COUNT(*)
+FROM b2b.order AS o
+WHERE o.team_id = ?
+`
+
+// BuildStmtListOrdersCMS retrieve multiple rows of order
+// for CMS.
+// The WHERE clause is empty by default.
+// Client could provide team_id or current_status or both
+// to filter data.
+func BuildStmtListOrdersCMS(where string) string {
+	return colOrder + `,
+JSON_OBJECT(
+	"orgName", t.org_name,
+	"invoiceTitle", t.invoice_title,
+	"phone", t.phone
+) AS team
+FROM b2b.order AS o
+LEFT JOIN b2b.team AS t
+	ON o.team_id = t.id
+` + where + `
+ORDER BY o.created_utc DESC
+LIMIT ? OFFSET ?
+`
+}
+
+func BuildStmtCountOrder(where string) string {
+	return `
+SELECT COUNT(*)
+FROM b2b.order AS o
+` + where
+}
+
+const StmtUpdateOrderStatus = `
+UPDATE b2b.order
+SET current_status = :current_status
+WHERE id = :order_id
+LIMIT 1
+`
