@@ -60,7 +60,7 @@ func (router SubsRouter) ListOrders(c echo.Context) error {
 	}
 
 	list, err := router.repo.ListOrders(
-		checkout.NewOrderFilter(claims.TeamID.String),
+		claims.TeamID.String,
 		page)
 
 	if err != nil {
@@ -75,7 +75,7 @@ func (router SubsRouter) LoadOrder(c echo.Context) error {
 
 	id := c.Param("id")
 
-	o, err := router.repo.LoadDetailedOrder(admin.AccessRight{
+	o, err := router.repo.RetrieveOrder(admin.AccessRight{
 		RowID:  id,
 		TeamID: claims.TeamID.String,
 	})
