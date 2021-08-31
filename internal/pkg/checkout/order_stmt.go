@@ -10,9 +10,9 @@ SET id = :order_id,
 	team_id = :team_id,
 	amount_payable = :amount_payable,
 	created_utc = :created_utc,
+	current_status = :current_status,
 	item_count = :item_count,
-	item_list = :item_list,
-	current_status = :current_status
+	item_list = :item_list
 `
 
 // Shared columns used both when retrieving a list orders,
@@ -24,7 +24,7 @@ SELECT o.id AS order_id,
 	o.amount_payable AS amount_payable,
 	o.created_utc AS created_utc,
 	o.item_count AS item_count,
-	o.item_summary_overview AS item_summary_overview,
+	o.item_list AS item_list,
 	o.current_status AS current_status,
 `
 
