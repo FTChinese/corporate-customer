@@ -10,7 +10,7 @@ import (
 )
 
 type GrantResult struct {
-	Licence    Licence               `json:"licence"` // The licence after grated.
+	Licence    ExpandedLicence       `json:"licence"` // The licence after grated.
 	Membership reader.Membership     `json:"membership"`
 	Snapshot   reader.MemberSnapshot `json:"snapshot"`
 	Invoice    reader.Invoice        `json:"invoice"`
@@ -24,7 +24,7 @@ type GrantResult struct {
 // IAP and stripe should not be allowed to use a licence.
 // @param grantedLic - the licence to grant
 // @param m - current membership
-func NewGrantResult(grantedLic Licence, m reader.Membership) GrantResult {
+func NewGrantResult(grantedLic ExpandedLicence, m reader.Membership) GrantResult {
 	var inv reader.Invoice
 	// If membership is still valid, turn remaining days to
 	// carried-over addon.
@@ -38,7 +38,7 @@ func NewGrantResult(grantedLic Licence, m reader.Membership) GrantResult {
 			FtcID:      grantedLic.Assignee.FtcID,
 			UnionID:    grantedLic.Assignee.UnionID,
 		},
-		grantedLic.BaseLicence,
+		grantedLic.Licence,
 		m.AddOn.Plus(addon.New(inv.Tier, inv.TotalDays())),
 	)
 
@@ -56,7 +56,7 @@ func NewGrantResult(grantedLic Licence, m reader.Membership) GrantResult {
 }
 
 type RevokeResult struct {
-	Licence    Licence               `json:"licence"`
+	Licence    ExpandedLicence       `json:"licence"`
 	Membership reader.Membership     `json:"membership"`
 	Snapshot   reader.MemberSnapshot `json:"snapshot"`
 }
