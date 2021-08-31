@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -38,7 +39,7 @@ func (router CMSRouter) ListOrders(c echo.Context) error {
 func (router CMSRouter) LoadOrder(c echo.Context) error {
 	orderID := c.Param("id")
 
-	o, err := router.repo.LoadDetailedOrder(orderID)
+	o, err := router.repo.LoadOrder(orderID)
 
 	if err != nil {
 		return render.NewDBError(err)
@@ -53,14 +54,49 @@ func (router CMSRouter) LoadOrder(c echo.Context) error {
 // description?: string;
 // paymentMethod: string;
 // transactionId: string;
-// priceOffPerCopy: [{ orderItemId: string, priceOff: number }]
+// offers: [{
+// 		copies: number;
+//		kind: 'create' | 'renew';
+//		price: Price;
+//		priceOffPerCopy: number;
+// }]
 func (router CMSRouter) ConfirmPayment(c echo.Context) error {
 	orderID := c.Param("id")
 
-	// Get operator name
-	// Change order payment fields
-	// Update price_off_per_copy of order_item
-	// TODO: what's next?
+	var params input.OrderPaidParams
+	if err := c.Bind(&params); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
 
-	return c.JSON(http.StatusOK, orderID)
+	// Retrieve order.
+	order, err := router.repo.LoadOrder(orderID)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	if order.IsFinal() {
+		return render.NewBadRequest("Order already paid")
+	}
+
+	// Update order status
+	order = order.ChangeStatus(checkout.StatusProcessing)
+	err = router.repo.UpdateOrderStatus(order)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	// Save payment
+	payResult := checkout.NewOrderPid(order.ID, params)
+	err = router.repo.SavePaymentResult(payResult)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	// TODO: run without blocking.
+	err = router.repo.ConfirmPayment(order)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, payResult)
 }
