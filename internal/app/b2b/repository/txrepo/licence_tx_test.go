@@ -13,7 +13,7 @@ import (
 func TestTxRepo_RetrieveBaseLicence(t *testing.T) {
 	lic := licence.MockLicence(price.MockPriceStdYear)
 
-	MockNewRepo().MustCreateLicence(lic.BaseLicence)
+	MockNewRepo().MustCreateLicence(lic.Licence)
 
 	type fields struct {
 		Tx *sqlx.Tx
@@ -25,7 +25,7 @@ func TestTxRepo_RetrieveBaseLicence(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    licence.BaseLicence
+		want    licence.Licence
 		wantErr bool
 	}{
 		{
@@ -39,7 +39,7 @@ func TestTxRepo_RetrieveBaseLicence(t *testing.T) {
 					TeamID: lic.TeamID,
 				},
 			},
-			want:    lic.BaseLicence,
+			want:    lic.Licence,
 			wantErr: false,
 		},
 	}
@@ -48,14 +48,14 @@ func TestTxRepo_RetrieveBaseLicence(t *testing.T) {
 			tx := TxRepo{
 				Tx: tt.fields.Tx,
 			}
-			got, err := tx.RetrieveBaseLicence(tt.args.r)
+			got, err := tx.LockBaseLicence(tt.args.r)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RetrieveBaseLicence() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("LockBaseLicence() error = %v, wantErr %v", err, tt.wantErr)
 				_ = tx.Rollback()
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RetrieveBaseLicence() got = %v, \nwant %v", got, tt.want)
+				t.Errorf("LockBaseLicence() got = %v, \nwant %v", got, tt.want)
 			}
 
 			_ = tx.Commit()
@@ -66,13 +66,13 @@ func TestTxRepo_RetrieveBaseLicence(t *testing.T) {
 func TestTxRepo_UpdateLicenceStatus(t *testing.T) {
 	lic := licence.MockLicence(price.MockPriceStdYear)
 
-	MockNewRepo().MustCreateLicence(lic.BaseLicence)
+	MockNewRepo().MustCreateLicence(lic.Licence)
 
 	type fields struct {
 		Tx *sqlx.Tx
 	}
 	type args struct {
-		lic licence.BaseLicence
+		lic licence.Licence
 	}
 	tests := []struct {
 		name    string
@@ -81,7 +81,7 @@ func TestTxRepo_UpdateLicenceStatus(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Licence with invitation",
+			name: "ExpandedLicence with invitation",
 			fields: fields{
 				Tx: db.MockMySQL().Write.MustBegin(),
 			},
@@ -91,7 +91,7 @@ func TestTxRepo_UpdateLicenceStatus(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Licence invitation revoked",
+			name: "ExpandedLicence invitation revoked",
 			fields: fields{
 				Tx: db.MockMySQL().Write.MustBegin(),
 			},
@@ -101,7 +101,7 @@ func TestTxRepo_UpdateLicenceStatus(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Licence granted",
+			name: "ExpandedLicence granted",
 			fields: fields{
 				Tx: db.MockMySQL().Write.MustBegin(),
 			},
@@ -111,7 +111,7 @@ func TestTxRepo_UpdateLicenceStatus(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Licence revoked",
+			name: "ExpandedLicence revoked",
 			fields: fields{
 				Tx: db.MockMySQL().Write.MustBegin(),
 			},
