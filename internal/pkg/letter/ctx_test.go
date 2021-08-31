@@ -146,7 +146,7 @@ func TestCtxLicenceGranted_Render(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Licence granted",
+			name: "ExpandedLicence granted",
 			fields: fields{
 				Name:           gofakeit.Username(),
 				AssigneeEmail:  gofakeit.Email(),
@@ -182,7 +182,7 @@ func TestCtxLicenceGranted_Render(t *testing.T) {
 func TestCtxOrderCreated_Render(t *testing.T) {
 	type fields struct {
 		AdminName string
-		OrderRow  checkout.OrderRow
+		OrderRow  checkout.Order
 	}
 	tests := []struct {
 		name    string
@@ -204,7 +204,7 @@ func TestCtxOrderCreated_Render(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := CtxOrderCreated{
 				AdminName: tt.fields.AdminName,
-				OrderRow:  tt.fields.OrderRow,
+				Order:     tt.fields.OrderRow,
 			}
 			got, err := ctx.Render()
 			if (err != nil) != tt.wantErr {
