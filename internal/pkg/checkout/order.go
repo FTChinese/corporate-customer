@@ -1,35 +1,49 @@
 package checkout
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/guregu/null"
 )
 
-type BaseOrder struct {
-	ID            string      `json:"id" db:"order_id"`
-	AmountPayable float64     `json:"amountPayable" db:"amount_payable"`
-	CreatedBy     string      `json:"createdBy" db:"created_by"`
-	CreatedUTC    chrono.Time `json:"createdUtc" db:"created_utc"`
-	ItemCount     int64       `json:"itemCount" db:"item_count"`
-	Status        Status      `json:"status" db:"current_status"`
-	TeamID        string      `json:"teamId" db:"team_id"`
-}
-
-// Payment describes the details the an order's payment.
-type Payment struct {
-	AmountPaid    null.Float    `json:"amountPaid" db:"amount_paid"`
-	ApprovedBy    null.String   `json:"approvedBy" db:"approved_by"`
-	ApprovedUTC   chrono.Time   `json:"approvedUtc" db:"approved_utc"`
-	Description   null.String   `json:"description" db:"description"`
-	PaymentMethod PaymentMethod `json:"paymentMethod" db:"payment_method"`
-	TransactionID null.String   `json:"transactionId" db:"transaction_id"`
-}
-
-// Order contains all details of what user wanted to buy,
-// how payment is handled.
-// Used as JSON output to display an order's details..
+// Order is what a shopping cart should create.
 type Order struct {
-	BaseOrder
-	Items []OrderItem `json:"items"`
-	Payment
+	ID string `json:"id" db:"order_id"`
+	admin.Creator
+	AmountPayable float64           `json:"amountPayable" db:"amount_payable"`
+	CreatedUTC    chrono.Time       `json:"createdUtc" db:"created_utc"`
+	ItemCount     int64             `json:"itemCount" db:"item_count"`
+	ItemList      OrderItemListJSON `json:"itemList" db:"item_list"`
+	Status        Status            `json:"status" db:"current_status"`
+}
+
+func NewOrder(cart ShoppingCart, p admin.PassportClaims) Order {
+	return Order{
+		ID: pkg.OrderID(),
+		Creator: admin.Creator{
+			AdminID: p.AdminID,
+			TeamID:  p.TeamID.String,
+		},
+		AmountPayable: cart.TotalAmount,
+		CreatedUTC:    chrono.TimeUTCNow(),
+		ItemList:      newOrderItemList(cart.Items),
+		ItemCount:     cart.ItemCount,
+		Status:        StatusPending,
+	}
+}
+
+func (o Order) ChangeStatus(s Status) Order {
+	o.Status = s
+
+	return o
+}
+
+func (o Order) IsFinal() bool {
+	return o.Status == StatusPaid || o.Status == StatusCancelled
+}
+
+// OrderList contains a list of orders
+type OrderList struct {
+	pkg.PagedList
+	Data []Order `json:"data"`
 }
