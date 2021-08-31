@@ -3,7 +3,7 @@ package licence
 const StmtCreateInvitation = `
 INSERT INTO b2b.invitation
 SET id = :invite_id,
-	creator_id = :creator_id,
+	admin_id = :admin_id,
 	team_id = :team_id,
 	description = :invite_desc,
 	expiration_days = :invite_expiration_days,
@@ -19,7 +19,7 @@ SET id = :invite_id,
 // email.
 const colInvitation = `
 SELECT i.id AS invite_id,
-	i.creator_id AS creator_id,
+	i.admin_id AS admin_id,
 	i.team_id AS team_id,
 	i.current_status AS invite_status,
 	i.description AS invite_desc,
