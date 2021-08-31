@@ -8,7 +8,7 @@ import (
 	"github.com/guregu/null"
 )
 
-func NewMembership(userIDs reader.UserIDs, l BaseLicence, addOn addon.AddOn) reader.Membership {
+func NewMembership(userIDs reader.UserIDs, l Licence, addOn addon.AddOn) reader.Membership {
 	return reader.Membership{
 		UserIDs:       userIDs,
 		Edition:       l.Edition,
