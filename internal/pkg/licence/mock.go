@@ -24,20 +24,21 @@ func MockAssignee() Assignee {
 	}
 }
 
-func MockLicence(p price.Price) Licence {
-	return Licence{
-		BaseLicence: NewBaseLicence(
+func MockLicence(p price.Price) ExpandedLicence {
+
+	return ExpandedLicence{
+		Licence: NewLicence(
 			p,
 			pkg.OrderID(),
-			admin.PassportClaims{
-				AdminID: uuid.New().String(),
-				TeamID:  null.StringFrom(pkg.TeamID()),
+			admin.Creator{
+				AdminID: "",
+				TeamID:  "",
 			}),
 		Assignee: AssigneeJSON{},
 	}
 }
 
-func MockInvitation(lic Licence) Invitation {
+func MockInvitation(lic ExpandedLicence) Invitation {
 	faker.SeedGoFake()
 
 	inv, err := NewInvitation(input.InvitationParams{
@@ -45,7 +46,7 @@ func MockInvitation(lic Licence) Invitation {
 		Description: null.String{},
 		LicenceID:   lic.ID,
 	}, admin.PassportClaims{
-		AdminID: lic.CreatorID,
+		AdminID: lic.AdminID,
 		TeamID:  null.StringFrom(lic.TeamID),
 	})
 
