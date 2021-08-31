@@ -60,12 +60,12 @@ func PasswordResetParcel(a admin.BaseAccount, session admin.PwResetSession) (pos
 	}, nil
 }
 
-func OrderCreatedParcel(a admin.Profile, order checkout.OrderRow) (postman.Parcel, error) {
+func OrderCreatedParcel(a admin.Profile, order checkout.Order) (postman.Parcel, error) {
 	name := a.NormalizeName()
 
 	body, err := CtxOrderCreated{
 		AdminName: name,
-		OrderRow:  order,
+		Order:     order,
 	}.Render()
 
 	if err != nil {
@@ -82,7 +82,7 @@ func OrderCreatedParcel(a admin.Profile, order checkout.OrderRow) (postman.Parce
 	}, nil
 }
 
-func InvitationParcel(assignee licence.Assignee, lic licence.BaseLicence, adminProfile admin.Profile) (postman.Parcel, error) {
+func InvitationParcel(assignee licence.Assignee, lic licence.Licence, adminProfile admin.Profile) (postman.Parcel, error) {
 	// If assignee does not exist.
 	if assignee.IsZero() {
 		assignee.Email = null.StringFrom(lic.LatestInvitation.Email)
@@ -116,7 +116,7 @@ func InvitationParcel(assignee licence.Assignee, lic licence.BaseLicence, adminP
 // licence is granted.
 // We need to know the admin's account, reader's email
 // the the licence's plan.
-func LicenceGrantedParcel(lic licence.Licence, adminAccount admin.Profile) (postman.Parcel, error) {
+func LicenceGrantedParcel(lic licence.ExpandedLicence, adminAccount admin.Profile) (postman.Parcel, error) {
 
 	var data = CtxLicenceGranted{
 		AdminName:      adminAccount.NormalizeName(),
