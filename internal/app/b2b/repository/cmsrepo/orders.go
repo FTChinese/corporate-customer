@@ -11,9 +11,9 @@ func (env Env) listOrders(w pkg.SQLWhere, page gorest.Pagination) ([]checkout.CM
 
 	w = w.AddValues(page.Limit, page.Offset())
 
-	err := env.dbs.Read.Select(
+	err := env.DBs.Read.Select(
 		&orders,
-		checkout.BuildStmtListOrders(w.Clause),
+		checkout.BuildStmtListOrdersCMS(w.Clause),
 		w.Values...)
 
 	if err != nil {
@@ -25,7 +25,7 @@ func (env Env) listOrders(w pkg.SQLWhere, page gorest.Pagination) ([]checkout.CM
 
 func (env Env) countOrder(w pkg.SQLWhere) (int64, error) {
 	var total int64
-	err := env.dbs.Read.Get(
+	err := env.DBs.Read.Get(
 		&total,
 		checkout.BuildStmtCountOrder(w.Clause),
 		w.Values...)
@@ -85,11 +85,10 @@ func (env Env) ListOrders(filter checkout.OrderFilter, page gorest.Pagination) (
 	}, nil
 }
 
-// orderDetails retrieve a row from order table, excluding
-// checkout_products column.
-func (env Env) orderDetails(orderID string) (checkout.Order, error) {
+func (env Env) LoadOrder(orderID string) (checkout.Order, error) {
+
 	var ord checkout.Order
-	err := env.dbs.Read.Get(
+	err := env.DBs.Read.Get(
 		&ord,
 		checkout.BuildStmtOrder(false),
 		orderID)
@@ -101,73 +100,14 @@ func (env Env) orderDetails(orderID string) (checkout.Order, error) {
 	return ord, nil
 }
 
-func (env Env) orderItems(orderID string) ([]checkout.OrderItem, error) {
-	var items = make([]checkout.OrderItem, 0)
-	err := env.dbs.Read.Select(
-		&items,
-		checkout.StmtItemsOfOrder,
-		orderID)
+func (env Env) UpdateOrderStatus(o checkout.Order) error {
+	_, err := env.DBs.Write.NamedExec(
+		checkout.StmtUpdateOrderStatus,
+		o)
+
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return items, nil
-}
-
-type orderResult struct {
-	value checkout.Order
-	err   error
-}
-
-type orderItemsResult struct {
-	value []checkout.OrderItem
-	err   error
-}
-
-func (env Env) LoadDetailedOrder(orderID string) (checkout.Order, error) {
-	defer env.logger.Sync()
-	sugar := env.logger.Sugar()
-
-	orderCh := make(chan orderResult)
-	itemsCh := make(chan orderItemsResult)
-
-	go func() {
-		defer close(orderCh)
-
-		ord, err := env.orderDetails(orderID)
-		if err != nil {
-			sugar.Error(err)
-		}
-		orderCh <- orderResult{
-			value: ord,
-			err:   err,
-		}
-	}()
-
-	go func() {
-		defer close(itemsCh)
-
-		items, err := env.orderItems(orderID)
-		if err != nil {
-			sugar.Error(err)
-		}
-		itemsCh <- orderItemsResult{
-			value: items,
-			err:   err,
-		}
-	}()
-
-	ordRes, itemsRes := <-orderCh, <-itemsCh
-	if ordRes.err != nil {
-		return checkout.Order{}, ordRes.err
-	}
-	if itemsRes.err != nil {
-		return checkout.Order{}, itemsRes.err
-	}
-
-	return checkout.Order{
-		BaseOrder: ordRes.value.BaseOrder,
-		Items:     itemsRes.value,
-		Payment:   ordRes.value.Payment,
-	}, nil
+	return nil
 }
