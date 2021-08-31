@@ -5,16 +5,16 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 )
 
-func (tx TxRepo) RetrieveBaseLicence(r admin.AccessRight) (licence.BaseLicence, error) {
-	var bl licence.BaseLicence
+func (tx TxRepo) LockBaseLicence(r admin.AccessRight) (licence.Licence, error) {
+	var bl licence.Licence
 	err := tx.Get(
 		&bl,
-		licence.StmtLockLicence,
+		licence.StmtLockBaseLicence,
 		r.RowID,
 		r.TeamID)
 
 	if err != nil {
-		return licence.BaseLicence{}, err
+		return licence.Licence{}, err
 	}
 
 	return bl, nil
@@ -24,7 +24,7 @@ func (tx TxRepo) RetrieveBaseLicence(r admin.AccessRight) (licence.BaseLicence, 
 // * when invitation is created;
 // * when it is revoked
 // * when it is granted
-func (tx TxRepo) UpdateLicenceStatus(lic licence.BaseLicence) error {
+func (tx TxRepo) UpdateLicenceStatus(lic licence.Licence) error {
 	_, err := tx.NamedExec(licence.StmtUpdateLicenceStatus, lic)
 	if err != nil {
 		return err
