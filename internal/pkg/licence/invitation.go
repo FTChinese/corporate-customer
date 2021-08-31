@@ -25,14 +25,14 @@ import (
 // TODO: should we allow an invitation be re-sent if user failed to receive the email? Or just let admin to create a new invitation?
 type Invitation struct {
 	ID string `json:"id" db:"invite_id"`
-	Creator
+	admin.Creator
 	Status         InvitationStatus `json:"status" db:"invite_status"`
 	Description    null.String      `json:"description" db:"invite_desc"`
 	ExpirationDays int64            `json:"expirationDays" db:"invite_expiration_days"`
 	Email          string           `json:"email" db:"invite_email"`
 	LicenceID      string           `json:"licenceId" db:"licence_id"`
 	Token          string           `json:"-" db:"invite_token"` // This field is used only when inserting data. Retrieval does not include this field. However, it is included when saving to the JSON column in licence.
-	RowTime
+	admin.RowTime
 }
 
 func NewInvitation(params input.InvitationParams, p admin.PassportClaims) (Invitation, error) {
@@ -43,9 +43,9 @@ func NewInvitation(params input.InvitationParams, p admin.PassportClaims) (Invit
 
 	return Invitation{
 		ID: pkg.InvitationID(),
-		Creator: Creator{
-			CreatorID: p.AdminID,
-			TeamID:    p.TeamID.String,
+		Creator: admin.Creator{
+			AdminID: p.AdminID,
+			TeamID:  p.TeamID.String,
 		},
 		Description:    params.Description,
 		ExpirationDays: 7,
@@ -53,7 +53,7 @@ func NewInvitation(params input.InvitationParams, p admin.PassportClaims) (Invit
 		LicenceID:      params.LicenceID,
 		Status:         InvitationStatusCreated,
 		Token:          token,
-		RowTime:        NewRowTime(),
+		RowTime:        admin.NewRowTime(),
 	}, nil
 }
 
@@ -153,14 +153,14 @@ type InvitationList struct {
 }
 
 type InvitationRevoked struct {
-	Licence    Licence    `json:"licence"`
-	Invitation Invitation `json:"invitation"`
+	Licence    ExpandedLicence `json:"licence"`
+	Invitation Invitation      `json:"invitation"`
 }
 
 // InvitationVerified is returned after an invitation link
-// is clicked and the corresponding Licence is found.
+// is clicked and the corresponding ExpandedLicence is found.
 type InvitationVerified struct {
-	Licence    Licence           `json:"licence"` // The licence being invited.
+	Licence    ExpandedLicence   `json:"licence"` // The licence being invited.
 	Assignee   Assignee          `json:"assignee"`
 	Membership reader.Membership `json:"membership"`
 }
