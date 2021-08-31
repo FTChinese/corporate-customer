@@ -10,9 +10,14 @@ func OrderID() string {
 	return "ord_" + rand.String(12)
 }
 
-func OrderItemID() string {
-	return "ori_" + rand.String(12)
+func CartItemID() string {
+	return "cti_" + rand.String(12)
 }
+
+func LicenceQueueItemID() string {
+	return "lqi_" + rand.String(12)
+}
+
 func LicenceID() string {
 	return "lic_" + rand.String(12)
 }
