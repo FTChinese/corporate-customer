@@ -12,7 +12,7 @@ import (
 // InvitationByToken tries to find an Invitation by token.
 func (env Env) InvitationByToken(token string) (licence.Invitation, error) {
 	var inv licence.Invitation
-	err := env.dbs.Read.Get(&inv, licence.StmtInvitationByToken, token)
+	err := env.DBs.Read.Get(&inv, licence.StmtInvitationByToken, token)
 	if err != nil {
 		return inv, err
 	}
@@ -22,7 +22,7 @@ func (env Env) InvitationByToken(token string) (licence.Invitation, error) {
 
 func (env Env) InvitationByID(r admin.AccessRight) (licence.Invitation, error) {
 	var inv licence.Invitation
-	err := env.dbs.Read.Get(&inv, licence.StmtInvitationByID, r.RowID, r.TeamID)
+	err := env.DBs.Read.Get(&inv, licence.StmtInvitationByID, r.RowID, r.TeamID)
 	if err != nil {
 		return licence.Invitation{}, err
 	}
@@ -33,31 +33,31 @@ func (env Env) InvitationByID(r admin.AccessRight) (licence.Invitation, error) {
 // CreateInvitation creates an invitation for a licence
 // depending on the licence availability.
 // The returned licence contains the newly created invitation instance.
-func (env Env) CreateInvitation(params input.InvitationParams, p admin.PassportClaims) (licence.BaseLicence, error) {
+func (env Env) CreateInvitation(params input.InvitationParams, p admin.PassportClaims) (licence.Licence, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
 	tx, err := env.beginTx()
 	if err != nil {
 		sugar.Error(err)
-		return licence.BaseLicence{}, err
+		return licence.Licence{}, err
 	}
 
 	// Retrieve the licence for whom the invitation will be created.
-	lic, err := tx.RetrieveBaseLicence(admin.AccessRight{
+	lic, err := tx.LockBaseLicence(admin.AccessRight{
 		RowID:  params.LicenceID,
 		TeamID: p.TeamID.String,
 	})
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
-		return licence.BaseLicence{}, err
+		return licence.Licence{}, err
 	}
 	// Ensure that the licence is not granted to anyone,
 	// and it has no assignee attached to it.
 	if !lic.IsAvailable() {
 		_ = tx.Rollback()
-		return licence.BaseLicence{}, err
+		return licence.Licence{}, err
 	}
 
 	// Create a new instance of invitation.
@@ -65,7 +65,7 @@ func (env Env) CreateInvitation(params input.InvitationParams, p admin.PassportC
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
-		return licence.BaseLicence{}, err
+		return licence.Licence{}, err
 	}
 
 	// Update licence's LatestInvitation field
@@ -76,7 +76,7 @@ func (env Env) CreateInvitation(params input.InvitationParams, p admin.PassportC
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
-		return licence.BaseLicence{}, err
+		return licence.Licence{}, err
 	}
 
 	// Update licence
@@ -84,12 +84,12 @@ func (env Env) CreateInvitation(params input.InvitationParams, p admin.PassportC
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
-		return licence.BaseLicence{}, err
+		return licence.Licence{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		sugar.Error(err)
-		return licence.BaseLicence{}, err
+		return licence.Licence{}, err
 	}
 
 	// Return the updated licence.
@@ -120,7 +120,7 @@ func (env Env) RevokeInvitation(invID, teamID string) (licence.InvitationRevoked
 		return licence.InvitationRevoked{}, errors.New("invitation is not revocable")
 	}
 
-	lic, err := tx.RetrieveBaseLicence(admin.AccessRight{
+	lic, err := tx.LockBaseLicence(admin.AccessRight{
 		RowID:  inv.LicenceID,
 		TeamID: teamID,
 	})
@@ -156,9 +156,9 @@ func (env Env) RevokeInvitation(invID, teamID string) (licence.InvitationRevoked
 	}
 
 	return licence.InvitationRevoked{
-		Licence: licence.Licence{
-			BaseLicence: updatedLic,
-			Assignee:    licence.AssigneeJSON{},
+		Licence: licence.ExpandedLicence{
+			Licence:  updatedLic,
+			Assignee: licence.AssigneeJSON{},
 		},
 		Invitation: revokedInv,
 	}, nil
@@ -168,7 +168,7 @@ func (env Env) RevokeInvitation(invID, teamID string) (licence.InvitationRevoked
 func (env Env) listInvitations(teamID string, page gorest.Pagination) ([]licence.Invitation, error) {
 	var invs = make([]licence.Invitation, 0)
 
-	err := env.dbs.Read.Select(
+	err := env.DBs.Read.Select(
 		&invs,
 		licence.StmtListInvitation,
 		teamID,
@@ -185,7 +185,7 @@ func (env Env) listInvitations(teamID string, page gorest.Pagination) ([]licence
 func (env Env) countInvitation(teamID string) (int64, error) {
 	var total int64
 
-	err := env.dbs.Read.Get(
+	err := env.DBs.Read.Get(
 		&total,
 		licence.StmtCountInvitation,
 		teamID)

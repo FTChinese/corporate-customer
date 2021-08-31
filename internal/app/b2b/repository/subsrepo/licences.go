@@ -12,12 +12,12 @@ import (
 // LoadLicence retrieves a licence, together with its
 // subscription plan and the user to whom it was assigned.
 // If the licence is not assigned yet, assignee fields are empty..
-func (env Env) LoadLicence(r admin.AccessRight) (licence.Licence, error) {
-	var lic licence.Licence
-	err := env.dbs.Read.Get(&lic, licence.StmtLicence, r.RowID, r.TeamID)
+func (env Env) LoadLicence(r admin.AccessRight) (licence.ExpandedLicence, error) {
+	var lic licence.ExpandedLicence
+	err := env.DBs.Read.Get(&lic, licence.StmtLicence, r.RowID, r.TeamID)
 
 	if err != nil {
-		return licence.Licence{}, err
+		return licence.ExpandedLicence{}, err
 	}
 
 	return lic, nil
@@ -25,10 +25,10 @@ func (env Env) LoadLicence(r admin.AccessRight) (licence.Licence, error) {
 
 // listLicences shows a list all licence.
 // Each licence's plan, invitation, assignee are attached.
-func (env Env) listLicences(teamID string, page gorest.Pagination) ([]licence.Licence, error) {
-	var licences = make([]licence.Licence, 0)
+func (env Env) listLicences(teamID string, page gorest.Pagination) ([]licence.ExpandedLicence, error) {
+	var licences = make([]licence.ExpandedLicence, 0)
 
-	err := env.dbs.Read.Select(
+	err := env.DBs.Read.Select(
 		&licences,
 		licence.StmtListLicences,
 		teamID,
@@ -45,19 +45,19 @@ func (env Env) listLicences(teamID string, page gorest.Pagination) ([]licence.Li
 
 func (env Env) countLicences(teamID string) (int64, error) {
 	var total int64
-	if err := env.dbs.Read.Get(&total, licence.StmtCountLicence, teamID); err != nil {
+	if err := env.DBs.Read.Get(&total, licence.StmtCountLicence, teamID); err != nil {
 		return total, err
 	}
 
 	return total, nil
 }
 
-func (env Env) ListLicence(teamID string, page gorest.Pagination) (licence.LicList, error) {
+func (env Env) ListLicence(teamID string, page gorest.Pagination) (licence.PagedLicenceList, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
 	countCh := make(chan int64)
-	listCh := make(chan licence.LicList)
+	listCh := make(chan licence.PagedLicenceList)
 
 	go func() {
 		defer close(countCh)
@@ -73,7 +73,7 @@ func (env Env) ListLicence(teamID string, page gorest.Pagination) (licence.LicLi
 		defer close(listCh)
 		licences, err := env.listLicences(teamID, page)
 
-		listCh <- licence.LicList{
+		listCh <- licence.PagedLicenceList{
 			PagedList: pkg.PagedList{
 				Total:      0,
 				Pagination: gorest.Pagination{},
@@ -86,9 +86,9 @@ func (env Env) ListLicence(teamID string, page gorest.Pagination) (licence.LicLi
 	count, listResult := <-countCh, <-listCh
 
 	if listResult.Err != nil {
-		return licence.LicList{}, listResult.Err
+		return licence.PagedLicenceList{}, listResult.Err
 	}
-	return licence.LicList{
+	return licence.PagedLicenceList{
 		PagedList: pkg.PagedList{
 			Total:      count,
 			Pagination: page,
@@ -109,7 +109,7 @@ func (env Env) GrantLicence(r admin.AccessRight, to licence.Assignee) (licence.G
 		return licence.GrantResult{}, err
 	}
 	// Retrieve the licence to be granted.
-	lic, err := tx.RetrieveBaseLicence(r)
+	lic, err := tx.LockBaseLicence(r)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -150,9 +150,9 @@ func (env Env) GrantLicence(r admin.AccessRight, to licence.Assignee) (licence.G
 	// Update licence.
 	grantedLic := lic.Granted(to, acceptedInv)
 	// Create/update membership based on licence.
-	result := licence.NewGrantResult(licence.Licence{
-		BaseLicence: grantedLic,
-		Assignee:    licence.AssigneeJSON{Assignee: to},
+	result := licence.NewGrantResult(licence.ExpandedLicence{
+		Licence:  grantedLic,
+		Assignee: licence.AssigneeJSON{Assignee: to},
 	}, mmb)
 
 	// Update invitation
@@ -213,13 +213,13 @@ func (env Env) RevokeLicence(r admin.AccessRight) (licence.RevokeResult, error) 
 		return licence.RevokeResult{}, err
 	}
 
-	lic, err := tx.RetrieveBaseLicence(r)
+	lic, err := tx.LockBaseLicence(r)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
 		return licence.RevokeResult{}, err
 	}
-	sugar.Infof("Licence to revoke: %v", lic)
+	sugar.Infof("ExpandedLicence to revoke: %v", lic)
 	if !lic.IsRevocable() {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -261,9 +261,9 @@ func (env Env) RevokeLicence(r admin.AccessRight) (licence.RevokeResult, error) 
 	}
 
 	return licence.RevokeResult{
-		Licence: licence.Licence{
-			BaseLicence: updatedLic,
-			Assignee:    licence.AssigneeJSON{},
+		Licence: licence.ExpandedLicence{
+			Licence:  updatedLic,
+			Assignee: licence.AssigneeJSON{},
 		},
 		Membership: updatedMmb,
 		Snapshot:   mmb.Archive(reader.B2BArchiver(reader.ArchiveActionRevoke)),

@@ -19,7 +19,7 @@ func TestEnv_LoadLicence(t *testing.T) {
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 	lic := licence.MockLicence(price.MockPriceStdYear)
-	txrepo.MockNewRepo().MustCreateLicence(lic.BaseLicence)
+	txrepo.MockNewRepo().MustCreateLicence(lic.Licence)
 
 	type args struct {
 		r admin.AccessRight
@@ -27,7 +27,7 @@ func TestEnv_LoadLicence(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    licence.Licence
+		want    licence.ExpandedLicence
 		wantErr bool
 	}{
 		{
@@ -60,7 +60,7 @@ func TestEnv_LoadLicence(t *testing.T) {
 func TestEnv_listLicences(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 	lic := licence.MockLicence(price.MockPriceStdYear)
-	txrepo.MockNewRepo().MustCreateLicence(lic.BaseLicence)
+	txrepo.MockNewRepo().MustCreateLicence(lic.Licence)
 
 	type args struct {
 		teamID string
@@ -69,7 +69,7 @@ func TestEnv_listLicences(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []licence.Licence
+		want    []licence.ExpandedLicence
 		wantErr bool
 	}{
 		{
@@ -78,7 +78,7 @@ func TestEnv_listLicences(t *testing.T) {
 				teamID: lic.TeamID,
 				page:   gorest.NewPagination(1, 10),
 			},
-			want:    []licence.Licence{lic},
+			want:    []licence.ExpandedLicence{lic},
 			wantErr: false,
 		},
 	}
@@ -99,7 +99,7 @@ func TestEnv_listLicences(t *testing.T) {
 func TestEnv_countLicences(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 	lic := licence.MockLicence(price.MockPriceStdYear)
-	txrepo.MockNewRepo().MustCreateLicence(lic.BaseLicence)
+	txrepo.MockNewRepo().MustCreateLicence(lic.Licence)
 
 	type args struct {
 		teamID string

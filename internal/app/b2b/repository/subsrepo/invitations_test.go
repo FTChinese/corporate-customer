@@ -104,7 +104,7 @@ func TestEnv_CreateInvitation(t *testing.T) {
 
 	lic := licence.MockLicence(price.MockPriceStdYear)
 
-	txrepo.MockNewRepo().MustCreateLicence(lic.BaseLicence)
+	txrepo.MockNewRepo().MustCreateLicence(lic.Licence)
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
@@ -115,7 +115,7 @@ func TestEnv_CreateInvitation(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    licence.BaseLicence
+		want    licence.Licence
 		wantErr bool
 	}{
 		{
@@ -127,11 +127,11 @@ func TestEnv_CreateInvitation(t *testing.T) {
 					LicenceID:   lic.ID,
 				},
 				p: admin.PassportClaims{
-					AdminID: lic.CreatorID,
+					AdminID: lic.AdminID,
 					TeamID:  null.StringFrom(lic.TeamID),
 				},
 			},
-			want:    licence.BaseLicence{},
+			want:    licence.Licence{},
 			wantErr: false,
 		},
 	}

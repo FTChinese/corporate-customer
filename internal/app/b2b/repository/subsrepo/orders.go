@@ -7,6 +7,8 @@ import (
 	"github.com/FTChinese/go-rest"
 )
 
+// CreateOrder inserts a row into order table based on
+// shopping cart.
 func (env Env) CreateOrder(schema checkout.OrderInputSchema) error {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
@@ -19,16 +21,25 @@ func (env Env) CreateOrder(schema checkout.OrderInputSchema) error {
 
 	err = tx.CreateOrder(schema.OrderRow)
 	if err != nil {
+		sugar.Error(err)
 		_ = tx.Rollback()
 		return err
 	}
 
-	for _, v := range schema.ItemRows {
-		err := tx.CreateOrderItem(v)
+	for _, v := range schema.CartItems {
+		err := tx.SaveCartItem(v)
 		if err != nil {
+			sugar.Error(err)
 			_ = tx.Rollback()
 			return err
 		}
+	}
+
+	err = tx.SaveLicenceQueue(schema.Queue)
+	if err != nil {
+		sugar.Error(err)
+		_ = tx.Rollback()
+		return err
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -39,15 +50,16 @@ func (env Env) CreateOrder(schema checkout.OrderInputSchema) error {
 	return nil
 }
 
-func (env Env) listOrders(w pkg.SQLWhere, page gorest.Pagination) ([]checkout.OrderRow, error) {
-	var orders = make([]checkout.OrderRow, 0)
+// Retrieve a list of orders belong to a team.
+func (env Env) listOrders(teamID string, page gorest.Pagination) ([]checkout.Order, error) {
+	var orders = make([]checkout.Order, 0)
 
-	w = w.AddValues(page.Limit, page.Offset())
-
-	err := env.dbs.Read.Select(
+	err := env.DBs.Read.Select(
 		&orders,
-		checkout.BuildStmtListOrders(w.Clause),
-		w.Values)
+		checkout.StmtListOrders,
+		teamID,
+		page.Limit,
+		page.Offset())
 
 	if err != nil {
 		return nil, err
@@ -56,12 +68,12 @@ func (env Env) listOrders(w pkg.SQLWhere, page gorest.Pagination) ([]checkout.Or
 	return orders, nil
 }
 
-func (env Env) countOrder(w pkg.SQLWhere) (int64, error) {
+func (env Env) countOrder(teamID string) (int64, error) {
 	var total int64
-	err := env.dbs.Read.Get(
+	err := env.DBs.Read.Get(
 		&total,
-		checkout.BuildStmtCountOrder(w.Clause),
-		w.Values)
+		checkout.StmtCountOrder,
+		teamID)
 
 	if err != nil {
 		return 0, err
@@ -71,17 +83,16 @@ func (env Env) countOrder(w pkg.SQLWhere) (int64, error) {
 }
 
 // ListOrders retrieves a list of orders created by an admin.
-func (env Env) ListOrders(filter checkout.OrderFilter, page gorest.Pagination) (checkout.OrderRowList, error) {
+func (env Env) ListOrders(teamID string, page gorest.Pagination) (checkout.OrderList, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
-	where := filter.SQLWhere()
 	countCh := make(chan int64)
-	listCh := make(chan checkout.OrderRowList)
+	listCh := make(chan checkout.OrderList)
 
 	go func() {
 		defer close(countCh)
-		n, err := env.countOrder(where)
+		n, err := env.countOrder(teamID)
 		if err != nil {
 			sugar.Error(err)
 		}
@@ -92,9 +103,9 @@ func (env Env) ListOrders(filter checkout.OrderFilter, page gorest.Pagination) (
 	go func() {
 		defer close(listCh)
 
-		orders, err := env.listOrders(where, page)
+		orders, err := env.listOrders(teamID, page)
 
-		listCh <- checkout.OrderRowList{
+		listCh <- checkout.OrderList{
 			PagedList: pkg.PagedList{
 				Total:      0,
 				Pagination: gorest.Pagination{},
@@ -106,10 +117,10 @@ func (env Env) ListOrders(filter checkout.OrderFilter, page gorest.Pagination) (
 
 	count, listResult := <-countCh, <-listCh
 	if listResult.Err != nil {
-		return checkout.OrderRowList{}, listResult.Err
+		return checkout.OrderList{}, listResult.Err
 	}
 
-	return checkout.OrderRowList{
+	return checkout.OrderList{
 		PagedList: pkg.PagedList{
 			Total:      count,
 			Pagination: page,
@@ -119,15 +130,15 @@ func (env Env) ListOrders(filter checkout.OrderFilter, page gorest.Pagination) (
 	}, nil
 }
 
-// orderDetails retrieve a row from order table, excluding
-// checkout_products column.
-func (env Env) orderDetails(r admin.AccessRight) (checkout.Order, error) {
+func (env Env) RetrieveOrder(r admin.AccessRight) (checkout.Order, error) {
+
 	var ord checkout.Order
-	err := env.dbs.Read.Get(
+	err := env.DBs.Read.Get(
 		&ord,
 		checkout.BuildStmtOrder(true),
 		r.RowID,
-		r.TeamID)
+		r.TeamID,
+	)
 
 	if err != nil {
 		return checkout.Order{}, err
@@ -136,73 +147,17 @@ func (env Env) orderDetails(r admin.AccessRight) (checkout.Order, error) {
 	return ord, nil
 }
 
-func (env Env) orderItems(orderID string) ([]checkout.OrderItem, error) {
-	var items = make([]checkout.OrderItem, 0)
-	err := env.dbs.Read.Select(
-		&items,
-		checkout.StmtItemsOfOrder,
-		orderID)
+func (env Env) RetrieveGroupedQueue(orderID string, priceID string) (checkout.GroupedQueues, error) {
+	var q = make([]checkout.LicenceQueue, 0)
+	err := env.DBs.Read.Select(
+		&q,
+		checkout.StmtListLicenceQueue,
+		orderID,
+		priceID,
+	)
 	if err != nil {
-		return nil, err
+		return checkout.GroupedQueues{}, err
 	}
 
-	return items, nil
-}
-
-type orderResult struct {
-	value checkout.Order
-	err   error
-}
-
-type orderItemsResult struct {
-	value []checkout.OrderItem
-	err   error
-}
-
-func (env Env) LoadDetailedOrder(r admin.AccessRight) (checkout.Order, error) {
-	defer env.logger.Sync()
-	sugar := env.logger.Sugar()
-
-	orderCh := make(chan orderResult)
-	itemsCh := make(chan orderItemsResult)
-
-	go func() {
-		defer close(orderCh)
-
-		ord, err := env.orderDetails(r)
-		if err != nil {
-			sugar.Error(err)
-		}
-		orderCh <- orderResult{
-			value: ord,
-			err:   err,
-		}
-	}()
-
-	go func() {
-		defer close(itemsCh)
-
-		items, err := env.orderItems(r.RowID)
-		if err != nil {
-			sugar.Error(err)
-		}
-		itemsCh <- orderItemsResult{
-			value: items,
-			err:   err,
-		}
-	}()
-
-	ordRes, itemsRes := <-orderCh, <-itemsCh
-	if ordRes.err != nil {
-		return checkout.Order{}, ordRes.err
-	}
-	if itemsRes.err != nil {
-		return checkout.Order{}, itemsRes.err
-	}
-
-	return checkout.Order{
-		BaseOrder: ordRes.value.BaseOrder,
-		Items:     itemsRes.value,
-		Payment:   ordRes.value.Payment,
-	}, nil
+	return checkout.NewGroupedQueues(priceID, q), nil
 }
