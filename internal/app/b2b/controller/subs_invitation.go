@@ -18,7 +18,7 @@ import (
 // email: string,
 // description: string,
 // licenceId: string
-// Returns a licence.Licence instance with its LatestInvitation
+// Returns a licence.ExpandedLicence instance with its LatestInvitation
 // field populate with the invitation create here.
 func (router SubsRouter) CreateInvitation(c echo.Context) error {
 	defer router.logger.Sync()
@@ -95,9 +95,9 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 		}
 	}()
 
-	return c.JSON(http.StatusOK, licence.Licence{
-		BaseLicence: lic,
-		Assignee:    licence.AssigneeJSON{}, // Assignee field should be empty after invitation is created.
+	return c.JSON(http.StatusOK, licence.ExpandedLicence{
+		Licence:  lic,
+		Assignee: licence.AssigneeJSON{}, // Assignee field should be empty after invitation is created.
 	})
 }
 
@@ -167,9 +167,9 @@ func (router SubsRouter) VerifyInvitation(c echo.Context) error {
 	}
 	// TODO: remove this or keep it? We could leave it to the client to determine whether the licence is available.
 	if !lic.IsAvailable() {
-		sugar.Infof("Licence %s is not available to be granted", lic.ID)
+		sugar.Infof("ExpandedLicence %s is not available to be granted", lic.ID)
 		sugar.Error(err)
-		return render.NewBadRequest("Licence is not available to be granted")
+		return render.NewBadRequest("ExpandedLicence is not available to be granted")
 	}
 
 	// Find user by invitation email.
