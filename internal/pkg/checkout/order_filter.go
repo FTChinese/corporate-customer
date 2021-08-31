@@ -29,7 +29,7 @@ func (f OrderFilter) SQLWhere() pkg.SQLWhere {
 	var args = make([]interface{}, 0)
 
 	if f.TeamID != "" {
-		clause.WriteString("o.team_id = ?")
+		clause.WriteString("WHERE o.team_id = ?")
 		args = append(args, f.TeamID)
 	}
 
