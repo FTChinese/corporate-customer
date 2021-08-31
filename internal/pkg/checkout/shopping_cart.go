@@ -19,8 +19,8 @@ type ShoppingCart struct {
 func (c ShoppingCart) CartItemSchema(orderID string) []CartItemSchema {
 	var s = make([]CartItemSchema, 0)
 
-	for _, item := range c.Items {
-		s = append(s, item.Schema(orderID))
+	for i, item := range c.Items {
+		s = append(s, item.Schema(orderID, i))
 	}
 
 	return s
