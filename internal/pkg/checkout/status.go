@@ -7,13 +7,22 @@ import (
 	"fmt"
 )
 
+// Status represents the current payment status of an order.
+// The status changes as our staff process an order.
+// Once in final status everything related to an order
+// should not be touched again.
+// Both StatusPaid and StatusCancelled are final states.
+// Initially an order is in StatusPending.
+// Then it could be turned into:
+// * StatusPending -> StatusProcessing -> StatusPaid;
+// * StatusPending -> StatusCancelled.
 type Status int
 
 const (
 	StatusNull Status = iota
 	StatusPending
-	StatusPaid
 	StatusProcessing
+	StatusPaid
 	StatusCancelled
 )
 
