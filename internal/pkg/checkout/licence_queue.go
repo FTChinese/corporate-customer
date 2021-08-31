@@ -11,8 +11,9 @@ import (
 
 type LicenceQueue struct {
 	ID           string         `json:"id" db:"id"`
+	CreatedUTC   chrono.Time    `json:"createdUtc" db:"created_utc"`
 	FinalizedUTC chrono.Time    `json:"finalizedUtc" db:"finalized_utc"`
-	Index        int64          `json:"-" db:"order_by_index"`
+	Index        int64          `json:"-" db:"array_index"`
 	Kind         enum.OrderKind `json:"kind" db:"kind"`                  // Only create or renew.
 	LicencePrior LicenceJSON    `json:"licencePrior" db:"licence_prior"` // The licence when this row is created. Do not use it to build renewed licence since it might already become obsolete.
 	LicenceAfter LicenceJSON    `json:"licenceAfter" db:"licence_after"`
@@ -31,7 +32,7 @@ func NewLicenceQueue(orderID string, p price.Price, currLic licence.ExpandedLice
 	}
 
 	return LicenceQueue{
-		ID:           pkg.LicenceQueueItemID(),
+		ID:           pkg.LicenceQueueID(),
 		FinalizedUTC: chrono.Time{},
 		Index:        int64(i),
 		Kind:         k,

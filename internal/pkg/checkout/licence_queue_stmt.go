@@ -11,7 +11,7 @@ func StmtBulkLicenceQueue(n int) sq.BulkInsert {
 		SetColumns(
 			sq.NewColumn("id"),
 			sq.NewColumn("finalized_utc"),
-			sq.NewColumn("order_by_index"),
+			sq.NewColumn("array_index"),
 			sq.NewColumn("kind"),
 			sq.NewColumn("licence_prior"),
 			sq.NewColumn("licence_after"),
@@ -29,9 +29,10 @@ WHERE id = :id
 LIMIT 1`
 
 const colLicenceQueue = `
-SELECT qid,
+SELECT id,
+	created_utc,
 	finalized_utc,
-	order_by_index,
+	array_index,
 	kind,
 	licence_prior,
 	licence_after,
@@ -45,7 +46,7 @@ FROM b2b.licence_queue
 const StmtListLicenceQueue = colLicenceQueue + `
 WHERE order_id = ?
 	AND price_id = ?
-ORDER BY kind ASC, order_by_index ASC
+ORDER BY kind ASC, array_index ASC
 `
 
 // StmtLockLicenceQueue locks a row in licence queue

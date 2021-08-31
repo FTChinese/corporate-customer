@@ -14,8 +14,8 @@ func CartItemID() string {
 	return "cti_" + rand.String(12)
 }
 
-func LicenceQueueItemID() string {
-	return "lqi_" + rand.String(12)
+func LicenceQueueID() string {
+	return "lnq_" + rand.String(12)
 }
 
 func LicenceID() string {
