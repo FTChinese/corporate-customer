@@ -57,7 +57,7 @@ arm :
 install-go:
 #	@echo "Install go version $(go_version)"
 #	gvm install $(go_version)
-	gvm use $(go_version)
+	/data/opt/server/jenkins/jenkins/.gvm/bin/gvm use $(go_version)
 
 .PHONY: config
 config :
