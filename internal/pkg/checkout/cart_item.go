@@ -32,3 +32,11 @@ func (ci CartItem) Schema(orderID string, i int) CartItemSchema {
 		CartItem:   ci,
 	}
 }
+
+// CartItemSchema is used to save/retrieve CartItem.
+type CartItemSchema struct {
+	ID         string `json:"id" db:"id"`
+	OrderID    string `json:"order_d" db:"order_id"`
+	ArrayIndex int64  `json:"-" db:"array_index"`
+	CartItem
+}
