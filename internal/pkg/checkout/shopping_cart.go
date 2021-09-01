@@ -15,7 +15,19 @@ type ShoppingCart struct {
 	TotalAmount float64    `json:"totalAmount"`
 }
 
-// CartItemSchema creates db schema to save items array.
+// OrderItemList turns Items field to a list to be saved
+// as a column of order row.
+func (c ShoppingCart) OrderItemList() OrderItemListJSON {
+	var list = make([]OrderItem, 0)
+	for _, v := range c.Items {
+		list = append(list, v.OrderItem())
+	}
+
+	return list
+}
+
+// CartItemSchema turns Items to a list to be saved one
+// row per element in a table separate from order.
 func (c ShoppingCart) CartItemSchema(orderID string) []CartItemSchema {
 	var s = make([]CartItemSchema, 0)
 
