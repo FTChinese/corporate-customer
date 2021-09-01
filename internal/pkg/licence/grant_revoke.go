@@ -64,8 +64,8 @@ type RevokeResult struct {
 // RevokeLicence revokes a licence granted to a membership.
 // Ideally, if membership has addon, we should use addon
 // invoices to re-build membership.
-// The process, however, is quite complicated and we have
-// duplicate all invoice manipulate from subscription api.
+// The process, however, is quite complicated, and we have
+// duplicated all invoice manipulate from subscription api.
 // To save effort, we simply change the expiration date
 // to now and set payment method to a one-time payment,
 // and leave addon fields untouched so that when client
