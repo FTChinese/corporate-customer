@@ -3,8 +3,17 @@ package checkout
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/pkg/price"
 	"github.com/FTChinese/go-rest/chrono"
 )
+
+// OrderItem is a summary of CartItem.
+// It will be saved as an array into one of order columns.
+type OrderItem struct {
+	Price         price.Price `json:"price"`
+	NewCopies     int         `json:"newCopies"`     // How many new copies user purchased
+	RenewalCopies int         `json:"renewalCopies"` // How many renewal user purchased.
+}
 
 // Order is what a shopping cart should create.
 type Order struct {
@@ -26,7 +35,7 @@ func NewOrder(cart ShoppingCart, p admin.PassportClaims) Order {
 		},
 		AmountPayable: cart.TotalAmount,
 		CreatedUTC:    chrono.TimeUTCNow(),
-		ItemList:      newOrderItemList(cart.Items),
+		ItemList:      cart.OrderItemList(),
 		ItemCount:     cart.ItemCount,
 		Status:        StatusPending,
 	}
