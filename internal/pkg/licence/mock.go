@@ -24,6 +24,8 @@ func MockAssignee() Assignee {
 	}
 }
 
+// MockLicence creates a new licence of this price.
+// Deprecated.
 func MockLicence(p price.Price) ExpandedLicence {
 
 	return ExpandedLicence{
@@ -55,4 +57,51 @@ func MockInvitation(lic ExpandedLicence) Invitation {
 	}
 
 	return inv
+}
+
+type LicBuilder struct {
+	price   price.Price
+	orderID string
+	by      admin.Creator
+	to      Assignee
+}
+
+// NewLicBuilder creates defaults values for a licence.
+func NewLicBuilder(p price.Price) LicBuilder {
+	return LicBuilder{
+		price:   p,
+		orderID: pkg.OrderID(),
+		by: admin.Creator{
+			AdminID: uuid.NewString(),
+			TeamID:  pkg.TeamID(),
+		},
+		to: Assignee{},
+	}
+}
+
+// SetOrderID changes the default order id
+func (b LicBuilder) SetOrderID(id string) LicBuilder {
+	b.orderID = id
+
+	return b
+}
+
+// SetCreator changes the default creator
+func (b LicBuilder) SetCreator(by admin.Creator) LicBuilder {
+	b.by = by
+	return b
+}
+
+// SetAssignee grant a licence to someone.
+func (b LicBuilder) SetAssignee(to Assignee) LicBuilder {
+	b.to = to
+
+	return b
+}
+
+func (b LicBuilder) Build() ExpandedLicence {
+	return ExpandedLicence{
+		Licence:  NewLicence(b.price, b.orderID, b.by),
+		Assignee: AssigneeJSON{Assignee: b.to},
+	}
 }
