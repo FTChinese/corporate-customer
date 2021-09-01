@@ -1,8 +1,8 @@
 package checkout
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/pkg/price"
+	"github.com/FTChinese/go-rest/chrono"
 )
 
 // CartItem describes an item user put into shopping cart.
@@ -24,19 +24,17 @@ func (ci CartItem) OrderItem() OrderItem {
 	}
 }
 
-func (ci CartItem) Schema(orderID string, i int) CartItemSchema {
+func (ci CartItem) Schema(orderID string) CartItemSchema {
 	return CartItemSchema{
-		ID:         pkg.CartItemID(),
 		OrderID:    orderID,
-		ArrayIndex: int64(i),
 		CartItem:   ci,
+		CreatedUTC: chrono.TimeNow(),
 	}
 }
 
 // CartItemSchema is used to save/retrieve CartItem.
 type CartItemSchema struct {
-	ID         string `json:"id" db:"id"`
-	OrderID    string `json:"order_d" db:"order_id"`
-	ArrayIndex int64  `json:"-" db:"array_index"`
+	OrderID string `json:"order_d" db:"order_id"`
 	CartItem
+	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 }
