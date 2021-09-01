@@ -1,6 +1,7 @@
 package adminrepo
 
 import (
+	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
@@ -25,7 +26,7 @@ func TestEnv_CreateTeam(t *testing.T) {
 		{
 			name: "Create team",
 			args: args{
-				t: admin.MockTeam(),
+				t: mock.NewAdmin().Team(),
 			},
 		},
 	}
@@ -42,7 +43,7 @@ func TestEnv_LoadTeam(t *testing.T) {
 	faker.SeedGoFake()
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	team := admin.MockTeam()
+	team := mock.NewAdmin().Team()
 	team.CreatedUTC = chrono.TimeFrom(team.CreatedUTC.Truncate(time.Second).In(time.UTC))
 	_ = env.CreateTeam(team)
 
@@ -84,7 +85,7 @@ func TestEnv_LoadTeam(t *testing.T) {
 func TestEnv_UpdateTeam(t *testing.T) {
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	team := admin.MockTeam()
+	team := mock.NewAdmin().Team()
 
 	_ = env.CreateTeam(team)
 
@@ -99,7 +100,7 @@ func TestEnv_UpdateTeam(t *testing.T) {
 		{
 			name: "Update team",
 			args: args{
-				t: team.Update(admin.MockTeamParams()),
+				t: team.Update(mock.NewAdmin().TeamParams()),
 			},
 			wantErr: false,
 		},

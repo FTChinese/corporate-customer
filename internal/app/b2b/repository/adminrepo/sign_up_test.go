@@ -1,6 +1,7 @@
 package adminrepo
 
 import (
+	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"go.uber.org/zap/zaptest"
@@ -21,7 +22,7 @@ func TestEnv_SignUp(t *testing.T) {
 		{
 			name: "Sign up",
 			args: args{
-				a: admin.MockAccount(),
+				a: mock.NewAdmin().Account,
 			},
 			wantErr: false,
 		},

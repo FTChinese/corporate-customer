@@ -1,12 +1,11 @@
 package adminrepo
 
 import (
+	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
-	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/brianvoe/gofakeit/v5"
 	"go.uber.org/zap/zaptest"
 	"reflect"
 	"testing"
@@ -29,9 +28,7 @@ func TestEnv_SavePwResetSession(t *testing.T) {
 		{
 			name: "Save password reset session",
 			args: args{
-				s: admin.MockPwResetSession(input.ForgotPasswordParams{
-					Email: gofakeit.Email(),
-				}),
+				s: mock.NewAdmin().PwResetSession(),
 			},
 		},
 	}
@@ -47,9 +44,7 @@ func TestEnv_SavePwResetSession(t *testing.T) {
 func TestEnv_PwResetSession(t *testing.T) {
 	faker.SeedGoFake()
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	s := admin.MockPwResetSession(input.ForgotPasswordParams{
-		Email: gofakeit.Email(),
-	})
+	s := mock.NewAdmin().PwResetSession()
 	s.CreatedUTC = chrono.TimeFrom(s.CreatedUTC.Truncate(time.Second).In(time.UTC))
 
 	_ = env.SavePwResetSession(s)
@@ -90,9 +85,7 @@ func TestEnv_PwResetSession(t *testing.T) {
 func TestEnv_DisablePasswordReset(t *testing.T) {
 	faker.SeedGoFake()
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	s := admin.MockPwResetSession(input.ForgotPasswordParams{
-		Email: gofakeit.Email(),
-	})
+	s := mock.NewAdmin().PwResetSession()
 
 	_ = env.SavePwResetSession(s)
 

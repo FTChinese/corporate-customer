@@ -1,11 +1,11 @@
 package adminrepo
 
 import (
+	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/brianvoe/gofakeit/v5"
 	"go.uber.org/zap/zaptest"
 	"reflect"
 	"testing"
@@ -28,7 +28,7 @@ func TestEnv_SaveEmailVerifier(t *testing.T) {
 		{
 			name: "Save email verification",
 			args: args{
-				v: admin.MockEmailVerifier(gofakeit.Email()),
+				v: mock.NewAdmin().EmailVerifier(),
 			},
 			wantErr: false,
 		},
@@ -46,7 +46,7 @@ func TestEnv_RetrieveEmailVerifier(t *testing.T) {
 	faker.SeedGoFake()
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
-	v := admin.MockEmailVerifier(gofakeit.Email())
+	v := mock.NewAdmin().EmailVerifier()
 	// Hack to make time equal.
 	v.CreatedUTC = chrono.TimeFrom(v.CreatedUTC.Truncate(time.Second).In(time.UTC))
 	_ = env.SaveEmailVerifier(v)
@@ -86,7 +86,7 @@ func TestEnv_RetrieveEmailVerifier(t *testing.T) {
 
 func TestEnv_EmailVerified(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	account := admin.MockAccount()
+	account := mock.NewAdmin().Account
 	_ = env.SignUp(account)
 
 	type args struct {

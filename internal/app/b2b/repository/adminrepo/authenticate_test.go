@@ -1,6 +1,7 @@
 package adminrepo
 
 import (
+	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/db"
@@ -11,7 +12,7 @@ import (
 
 func TestEnv_Authenticate(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	account := admin.MockAccount()
+	account := mock.NewAdmin().Account
 	_ = env.SignUp(account)
 
 	type args struct {
@@ -55,7 +56,7 @@ func TestEnv_Authenticate(t *testing.T) {
 
 func TestEnv_VerifyPassword(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	account := admin.MockAccount()
+	account := mock.NewAdmin().Account
 	_ = env.SignUp(account)
 
 	type args struct {
