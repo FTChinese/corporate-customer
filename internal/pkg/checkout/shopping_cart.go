@@ -31,8 +31,8 @@ func (c ShoppingCart) OrderItemList() OrderItemListJSON {
 func (c ShoppingCart) CartItemSchema(orderID string) []CartItemSchema {
 	var s = make([]CartItemSchema, 0)
 
-	for i, item := range c.Items {
-		s = append(s, item.Schema(orderID, i))
+	for _, item := range c.Items {
+		s = append(s, item.Schema(orderID))
 	}
 
 	return s
@@ -43,16 +43,21 @@ func (c ShoppingCart) LicenceQueue(orderID string) []LicenceQueue {
 	var queue = make([]LicenceQueue, 0)
 
 	// Loop over each cart item
+	index := 0
 	for _, item := range c.Items {
 		// Loop over each new copy of a cart item.
 		for i := 0; i < int(item.NewCopies); i++ {
-			qi := NewLicenceQueue(orderID, item.Price, licence.ExpandedLicence{}, i)
+			index += 1
+
+			qi := NewLicenceQueue(orderID, item.Price, licence.ExpandedLicence{}, index)
 			queue = append(queue, qi)
 		}
 
 		// Loop over each renewed licence.
-		for i, lic := range item.Renewals {
-			item := NewLicenceQueue(orderID, item.Price, lic, i)
+		for _, lic := range item.Renewals {
+			index += 1
+
+			item := NewLicenceQueue(orderID, item.Price, lic, index)
 			queue = append(queue, item)
 		}
 	}
