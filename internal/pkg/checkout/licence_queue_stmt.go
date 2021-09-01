@@ -7,9 +7,8 @@ import "github.com/FTChinese/ftacademy/pkg/sq"
 // Its value is built by BulkLicenceQueue.
 func StmtBulkLicenceQueue(n int) sq.BulkInsert {
 	return sq.NewBulkInsert().
-		Into(sq.NewTable("licence_queue")).
+		Into(sq.NewTable("b2b.licence_queue")).
 		SetColumns(
-			sq.NewColumn("id"),
 			sq.NewColumn("finalized_utc"),
 			sq.NewColumn("array_index"),
 			sq.NewColumn("kind"),
@@ -17,6 +16,7 @@ func StmtBulkLicenceQueue(n int) sq.BulkInsert {
 			sq.NewColumn("licence_after"),
 			sq.NewColumn("order_id"),
 			sq.NewColumn("price_id"),
+			sq.NewColumn("created_utc"),
 		).
 		Rows(n)
 }

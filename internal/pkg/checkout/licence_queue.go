@@ -1,7 +1,6 @@
 package checkout
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/price"
 	"github.com/FTChinese/ftacademy/pkg/sq"
@@ -10,15 +9,14 @@ import (
 )
 
 type LicenceQueue struct {
-	ID           string         `json:"id" db:"id"`
-	CreatedUTC   chrono.Time    `json:"createdUtc" db:"created_utc"`
-	FinalizedUTC chrono.Time    `json:"finalizedUtc" db:"finalized_utc"`
 	Index        int64          `json:"-" db:"array_index"`
 	Kind         enum.OrderKind `json:"kind" db:"kind"`                  // Only create or renew.
 	LicencePrior LicenceJSON    `json:"licencePrior" db:"licence_prior"` // The licence when this row is created. Do not use it to build renewed licence since it might already become obsolete.
 	LicenceAfter LicenceJSON    `json:"licenceAfter" db:"licence_after"`
 	OrderID      string         `json:"orderId" db:"order_id"`
 	PriceID      string         `json:"priceId" db:"price_id"`
+	CreatedUTC   chrono.Time    `json:"createdUtc" db:"created_utc"`
+	FinalizedUTC chrono.Time    `json:"finalizedUtc" db:"finalized_utc"`
 }
 
 // NewLicenceQueue creates a new LicenceQueue for each
@@ -32,7 +30,7 @@ func NewLicenceQueue(orderID string, p price.Price, currLic licence.ExpandedLice
 	}
 
 	return LicenceQueue{
-		ID:           pkg.LicenceQueueID(),
+		CreatedUTC:   chrono.TimeNow(),
 		FinalizedUTC: chrono.Time{},
 		Index:        int64(i),
 		Kind:         k,
@@ -54,7 +52,6 @@ func (q LicenceQueue) Finalize(lic licence.ExpandedLicence) LicenceQueue {
 // RowValues build the values of an SQL bulk insert.
 func (q LicenceQueue) RowValues() []interface{} {
 	return []interface{}{
-		q.ID,
 		q.FinalizedUTC,
 		q.Index,
 		q.Kind,
@@ -62,6 +59,7 @@ func (q LicenceQueue) RowValues() []interface{} {
 		q.LicenceAfter,
 		q.OrderID,
 		q.PriceID,
+		q.CreatedUTC,
 	}
 }
 
