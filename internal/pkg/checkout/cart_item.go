@@ -11,16 +11,16 @@ import (
 // an order row, and also save one by one with all details
 // into a separate table.
 type CartItem struct {
-	Price     price.Price     `json:"price" db:"price"`
-	NewCopies int64           `json:"newCopies" db:"new_copy_count"`
-	Renewals  LicenceListJSON `json:"renewals" db:"renewal_list"` // This field is saved as SQL JSON type.
+	Price     price.Price        `json:"price" db:"price"`
+	NewCopies int64              `json:"newCopies" db:"new_copy_count"`
+	Renewals  ExpLicenceListJSON `json:"renewals" db:"renewal_list"` // This field is saved as SQL JSON type.
 }
 
-func (ci CartItem) Summary() OrderItem {
+func (ci CartItem) OrderItem() OrderItem {
 	return OrderItem{
 		Price:         ci.Price,
-		NewCopies:     ci.NewCopies,
-		RenewalCopies: int64(len(ci.Renewals)),
+		NewCopies:     int(ci.NewCopies),
+		RenewalCopies: len(ci.Renewals),
 	}
 }
 
