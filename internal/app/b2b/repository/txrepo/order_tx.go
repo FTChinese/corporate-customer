@@ -17,7 +17,7 @@ func (tx TxRepo) CreateOrder(order checkout.Order) error {
 
 // SaveCartItem saves an element of shopping cart's
 // item array.
-// Used this together with CreateOrder to save a complete
+// Use this together with CreateOrder to save a complete
 // shopping cart.
 func (tx TxRepo) SaveCartItem(c checkout.CartItemSchema) error {
 	_, err := tx.NamedExec(checkout.StmtInsertCartItem, c)
