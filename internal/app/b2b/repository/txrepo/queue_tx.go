@@ -5,24 +5,8 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
-	"github.com/FTChinese/ftacademy/pkg/sq"
 	"github.com/FTChinese/go-rest/enum"
 )
-
-// SaveLicenceQueue inserts a list of LicenceQueue when
-// creating an order.
-func (tx TxRepo) SaveLicenceQueue(q checkout.BulkLicenceQueue) error {
-	_, err := tx.Exec(
-		checkout.StmtBulkLicenceQueue(len(q)).Build(),
-		sq.BuildBulkInsertValues(q),
-	)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 // LockLicenceQueue retrieves a row from licence_queue.
 func (tx TxRepo) LockLicenceQueue(id string) (checkout.LicenceQueue, error) {
