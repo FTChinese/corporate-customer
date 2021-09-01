@@ -2,6 +2,7 @@ package subsrepo
 
 import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/adminrepo"
+	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/db"
@@ -12,7 +13,7 @@ import (
 
 func TestEnv_AdminProfile(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	account := admin.MockAccount()
+	account := mock.NewAdmin().Account
 
 	_ = adminrepo.NewEnv(db.MockMySQL(), zaptest.NewLogger(t)).
 		SignUp(account)
