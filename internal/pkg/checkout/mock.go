@@ -54,6 +54,14 @@ func (b CartBuilder) AddN(p price.Price, n int) CartBuilder {
 	return b
 }
 
+func (b CartBuilder) AddStandardN(n int) CartBuilder {
+	return b.AddN(price.MockPriceStdYear, n)
+}
+
+func (b CartBuilder) AddPremiumN(n int) CartBuilder {
+	return b.AddN(price.MockPricePrm, n)
+}
+
 func (b CartBuilder) AddRenewal(lic licence.ExpandedLicence) CartBuilder {
 	item, ok := b.store[lic.LatestPrice.ID]
 	if !ok {
