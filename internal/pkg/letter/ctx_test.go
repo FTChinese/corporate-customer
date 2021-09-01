@@ -1,7 +1,9 @@
 package letter
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
+	"github.com/FTChinese/ftacademy/pkg/price"
 	"github.com/brianvoe/gofakeit/v5"
 	"testing"
 )
@@ -194,7 +196,10 @@ func TestCtxOrderCreated_Render(t *testing.T) {
 			name: "Order created",
 			fields: fields{
 				AdminName: gofakeit.Username(),
-				OrderRow:  checkout.MockOrderInputSchema().OrderRow,
+				OrderRow: checkout.NewOrder(
+					checkout.NewCartBuilder().AddN(price.MockPriceStdYear, 5).AddN(price.MockPricePrm, 3).Build(),
+					admin.MockPassportClaims(),
+				),
 			},
 			want:    "",
 			wantErr: false,
