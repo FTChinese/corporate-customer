@@ -49,11 +49,11 @@ func (l *LicenceJSON) Scan(src interface{}) error {
 	}
 }
 
-// LicenceListJSON is used to save a list of ExpandedLicence as JSON.
+// ExpLicenceListJSON is used to save a list of ExpandedLicence as JSON.
 // when saving a CartItem
-type LicenceListJSON []licence.ExpandedLicence
+type ExpLicenceListJSON []licence.ExpandedLicence
 
-func (l LicenceListJSON) Value() (driver.Value, error) {
+func (l ExpLicenceListJSON) Value() (driver.Value, error) {
 	b, err := json.Marshal(l)
 	if err != nil {
 		return nil, err
@@ -62,9 +62,9 @@ func (l LicenceListJSON) Value() (driver.Value, error) {
 	return string(b), nil
 }
 
-func (l *LicenceListJSON) Scan(src interface{}) error {
+func (l *ExpLicenceListJSON) Scan(src interface{}) error {
 	if src == nil {
-		*l = LicenceListJSON{}
+		*l = ExpLicenceListJSON{}
 		return nil
 	}
 	switch s := src.(type) {
@@ -78,7 +78,7 @@ func (l *LicenceListJSON) Scan(src interface{}) error {
 		return nil
 
 	default:
-		return errors.New("incompatible type to scan to LicenceListJSON")
+		return errors.New("incompatible type to scan to ExpLicenceListJSON")
 	}
 }
 
