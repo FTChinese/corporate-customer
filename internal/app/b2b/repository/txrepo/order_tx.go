@@ -33,7 +33,7 @@ func (tx TxRepo) SaveCartItem(c checkout.CartItemSchema) error {
 func (tx TxRepo) SaveLicenceQueue(q checkout.BulkLicenceQueue) error {
 	_, err := tx.Exec(
 		checkout.StmtBulkLicenceQueue(len(q)).Build(),
-		sq.BuildBulkInsertValues(q),
+		sq.BuildBulkInsertValues(q)...,
 	)
 
 	if err != nil {
