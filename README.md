@@ -45,7 +45,7 @@ Excluding the above cases, we are left with switching between alipay/wechat/b2b:
 
 ### Alipay/wechat to B2B
 
-Whe a valid alipay/wechat subscription is trying to use b2b licence, turn current remaining subscription period to add-on and grant the licence to this user immediately.
+When a valid alipay/wechat subscription is trying to use b2b licence, turn current remaining subscription period to add-on and grant the licence to this user immediately.
 
 ### Licence renewal prior to expiration
 
@@ -55,11 +55,11 @@ When a B2B licence is renewed before it is expired, the corresponding membership
 
 When a b2b membership expired and licence is no longer renewed:
 
-* If it has addon, addon will be re-enabled the linked licence should be reset to available state;
+* If it has addon, addon will be re-enabled, and the linked licence should be reset to available state;
 * With or without addon, the user is free to make purchase as normal.
 
 In the above 2 cases, to ensure data integrity, always **reset** the linked licence to clean state by removing the `assignee_id` field and `current_status` to `available`.
 
-When a licence is renewed after expired, the licence user will be renewed if it is not touched after expiration. If the user, however, changed subscription via alipay/wechat either by a purchase out of its own pocket or previous addon, the licence is reset and does not have a membership linked to it, we are safe to update the licence. 
+When a licence is renewed after expired, the licence user will be renewed if it is not touched after expiration. If the user, however, changed subscription via alipay/wechat either by a purchase out of its own pocket or previous addon, the licence should already have been reset and does not have a membership linked to it now. In such case we are safe to update the licence only.
 
-There's special case in such case when data integrity is broken: user's payment method is changed from b2b to alipay/wechat, but the licence still contain assignee_id pointing to this membership, licence renewal should never change user's membership. Shall we simply reset licence to clean state?
+There's special case under the above case if data integrity is broken: user's payment method is changed from b2b to alipay/wechat, but the licence still contain assignee_id pointing to this membership. In such case licence renewal should never change its linked user's membership. Shall we simply reset licence to clean state?
