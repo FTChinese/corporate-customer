@@ -26,21 +26,6 @@ type Order struct {
 	Status        Status            `json:"status" db:"current_status"`
 }
 
-func NewOrder(cart ShoppingCart, p admin.PassportClaims) Order {
-	return Order{
-		ID: pkg.OrderID(),
-		Creator: admin.Creator{
-			AdminID: p.AdminID,
-			TeamID:  p.TeamID.String,
-		},
-		AmountPayable: cart.TotalAmount,
-		CreatedUTC:    chrono.TimeUTCNow(),
-		ItemList:      cart.OrderItemList(),
-		ItemCount:     cart.ItemCount,
-		Status:        StatusPending,
-	}
-}
-
 func (o Order) ChangeStatus(s Status) Order {
 	o.Status = s
 
@@ -60,17 +45,7 @@ type OrderList struct {
 // OrderInputSchema is db schema to save a shopping cart.
 // A shopping cart is dissected into 3 tables.
 type OrderInputSchema struct {
-	OrderRow  Order
-	CartItems []CartItemSchema
-	Queue     []LicenceQueue // All copies created from shopping cart items.
-}
-
-func NewOrderInputSchema(cart ShoppingCart, p admin.PassportClaims) OrderInputSchema {
-	o := NewOrder(cart, p)
-
-	return OrderInputSchema{
-		OrderRow:  o,
-		CartItems: cart.CartItemSchema(o.ID),
-		Queue:     cart.LicenceQueue(o.ID),
-	}
+	OrderRow     Order
+	CartItems    []CartItemSchema
+	Transactions []LicenceTransaction // All copies created from shopping cart items.
 }
