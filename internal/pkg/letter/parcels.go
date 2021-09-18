@@ -116,11 +116,11 @@ func InvitationParcel(assignee licence.Assignee, lic licence.Licence, adminProfi
 // licence is granted.
 // We need to know the admin's account, reader's email
 // the the licence's plan.
-func LicenceGrantedParcel(lic licence.ExpandedLicence, adminAccount admin.Profile) (postman.Parcel, error) {
+func LicenceGrantedParcel(lic licence.Licence, a licence.Assignee, adminAccount admin.Profile) (postman.Parcel, error) {
 
 	var data = CtxLicenceGranted{
 		AdminName:      adminAccount.NormalizeName(),
-		AssigneeEmail:  lic.Assignee.Email.String,
+		AssigneeEmail:  a.Email.String,
 		Tier:           lic.Tier.StringCN(),
 		ExpirationDate: chrono.DateFrom(lic.CurrentPeriodEndUTC.Time).String(),
 	}
