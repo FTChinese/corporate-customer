@@ -4,6 +4,7 @@ package faker
 
 import (
 	"fmt"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/brianvoe/gofakeit/v5"
@@ -58,4 +59,26 @@ func GenCardSerial() string {
 	suffix := rand.IntRange(0, 9999)
 
 	return fmt.Sprintf("%d%02d%04d", anni, now.Month(), suffix)
+}
+
+func GenWxID() string {
+	id, _ := gorest.RandomBase64(21)
+	return id
+}
+
+func GenStripeSubID() string {
+	id, _ := rand.Base64(9)
+	return "sub_" + id
+}
+
+func GenStripeCusID() string {
+	return "cus_" + rand.String(12)
+}
+
+func GenStripePlanID() string {
+	return "plan_" + rand.String(14)
+}
+
+func GenAppleSubID() string {
+	return "1000000" + RandNumericString()
 }
