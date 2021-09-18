@@ -11,9 +11,9 @@ import (
 
 // AddOnInvoiceCreated is the result of manually adding an invoice.
 type AddOnInvoiceCreated struct {
-	Invoice    Invoice        `json:"invoice"`
-	Membership Membership     `json:"membership"`
-	Snapshot   MemberSnapshot `json:"snapshot"`
+	Invoice    Invoice             `json:"invoice"`
+	Membership Membership          `json:"membership"`
+	Snapshot   MembershipVersioned `json:"snapshot"`
 }
 
 func (m Membership) HasAddOn() bool {
