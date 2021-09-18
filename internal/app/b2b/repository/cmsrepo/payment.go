@@ -1,6 +1,8 @@
 package cmsrepo
 
-import "github.com/FTChinese/ftacademy/internal/pkg/checkout"
+import (
+	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
+)
 
 func (env Env) SavePayment(p checkout.Payment) error {
 	_, err := env.DBs.Write.NamedExec(
@@ -37,6 +39,15 @@ func (env Env) SavePaymentResult(op checkout.OrderPaid) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (env Env) SavePaymentError(pe checkout.PaymentError) error {
+	_, err := env.DBs.Write.NamedExec(checkout.StmtInsertPaymentErr, pe)
+	if err != nil {
+		return err
 	}
 
 	return nil
