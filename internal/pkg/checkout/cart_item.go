@@ -1,6 +1,7 @@
 package checkout
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/pkg/price"
 	"github.com/FTChinese/go-rest/chrono"
 )
@@ -24,17 +25,20 @@ func (ci CartItem) OrderItem() OrderItem {
 	}
 }
 
-func (ci CartItem) Schema(orderID string) CartItemSchema {
+func (ci CartItem) Schema(orderID string, creator admin.Creator) CartItemSchema {
 	return CartItemSchema{
 		OrderID:    orderID,
 		CartItem:   ci,
+		Creator:    creator,
 		CreatedUTC: chrono.TimeNow(),
 	}
 }
 
-// CartItemSchema is used to save/retrieve CartItem.
+// CartItemSchema is used to save/retrieve CartItem into
+// table order_item
 type CartItemSchema struct {
 	OrderID string `json:"order_d" db:"order_id"`
 	CartItem
+	admin.Creator
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 }
