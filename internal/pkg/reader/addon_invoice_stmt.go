@@ -11,6 +11,7 @@ SET id = :id,
 	extra_days = :days,
 	addon_source = :addon_source,
 	apple_tx_id = :apple_tx_id,
+	licence_tx_id = :licence_tx_id,
 	order_id = :order_id,
 	order_kind = :order_kind,
 	paid_amount = :paid_amount,
@@ -21,4 +22,5 @@ SET id = :id,
 	consumed_utc = :consumed_utc,
 	start_utc = :start_utc,
 	end_utc = :end_utc,
-	carried_over_utc = :carried_over_utc`
+	carried_over_utc = :carried_over_utc
+`
