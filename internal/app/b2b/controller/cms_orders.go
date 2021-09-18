@@ -86,7 +86,7 @@ func (router CMSRouter) ConfirmPayment(c echo.Context) error {
 	}
 
 	// Save payment
-	payResult := checkout.NewOrderPid(order.ID, params)
+	payResult := checkout.NewOrderPaid(order.ID, params)
 	err = router.repo.SavePaymentResult(payResult)
 	if err != nil {
 		return render.NewDBError(err)
