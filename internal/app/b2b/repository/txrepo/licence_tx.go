@@ -5,11 +5,13 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 )
 
-func (tx TxRepo) LockBaseLicence(r admin.AccessRight) (licence.Licence, error) {
+// LockLicence retrieves and locks a licence row when
+// creating an invitation.
+func (tx TxRepo) LockLicence(r admin.AccessRight) (licence.Licence, error) {
 	var bl licence.Licence
 	err := tx.Get(
 		&bl,
-		licence.StmtLockBaseLicence,
+		licence.StmtLockLicence,
 		r.RowID,
 		r.TeamID)
 
@@ -33,6 +35,7 @@ func (tx TxRepo) UpdateLicenceStatus(lic licence.Licence) error {
 	return nil
 }
 
+// CreateInvitation inserts an invitation for a licence.
 func (tx TxRepo) CreateInvitation(inv licence.Invitation) error {
 	_, err := tx.NamedExec(licence.StmtCreateInvitation, inv)
 	if err != nil {
@@ -42,6 +45,8 @@ func (tx TxRepo) CreateInvitation(inv licence.Invitation) error {
 	return nil
 }
 
+// RetrieveInvitation locks a row in invitation when we want
+// to grant a licence or revoke an invitation.
 func (tx TxRepo) RetrieveInvitation(r admin.AccessRight) (licence.Invitation, error) {
 	var inv licence.Invitation
 	err := tx.Get(
@@ -56,6 +61,8 @@ func (tx TxRepo) RetrieveInvitation(r admin.AccessRight) (licence.Invitation, er
 	return inv, nil
 }
 
+// UpdateInvitationStatus after an invitation is accepted or
+// revoked.
 func (tx TxRepo) UpdateInvitationStatus(inv licence.Invitation) error {
 	_, err := tx.NamedExec(licence.StmtUpdateInvitationStatus, inv)
 	if err != nil {
