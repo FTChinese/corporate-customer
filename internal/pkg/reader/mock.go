@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+// MockMembership generates a mocking membership.
+// Deprecated
 func MockMembership(ftcID string) Membership {
 	if ftcID == "" {
 		ftcID = uuid.New().String()
