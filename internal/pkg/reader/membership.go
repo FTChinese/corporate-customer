@@ -138,6 +138,45 @@ func (m Membership) Sync() Membership {
 	return m
 }
 
+// IsOneTime checks whether current membership is purchased
+// via alipay or wechat pay.
+func (m Membership) IsOneTime() bool {
+	// For backward compatibility. If Tier field comes from LegacyTier, then PayMethod field will be null.
+	// We treat all those cases as wxpay or alipay.
+	if m.Tier != enum.TierNull && m.PaymentMethod == enum.PayMethodNull {
+		return true
+	}
+
+	return m.PaymentMethod == enum.PayMethodAli || m.PaymentMethod == enum.PayMethodWx
+}
+
+func (m Membership) IsAutoRenew() bool {
+	return m.PaymentMethod == enum.PayMethodApple || m.PaymentMethod == enum.PayMethodStripe
+}
+
+func (m Membership) IsIAP() bool {
+	return !m.IsZero() && m.PaymentMethod == enum.PayMethodApple && m.AppleSubsID.Valid
+}
+
+func (m Membership) IsStripe() bool {
+	return !m.IsZero() && m.PaymentMethod == enum.PayMethodStripe && m.StripeSubsID.Valid
+}
+
 func (m Membership) IsB2B() bool {
 	return m.PaymentMethod == enum.PayMethodB2B && m.B2BLicenceID.Valid
+}
+
+// LicenceRevoked change membership to expired state.
+func (m Membership) LicenceRevoked() Membership {
+	if m.HasAddOn() {
+		if m.AddOn.Standard > 0 {
+			m.Tier = enum.TierStandard
+		} else if m.AddOn.Premium > 0 {
+			m.Tier = enum.TierPremium
+		}
+	}
+
+	m.ExpireDate = chrono.DateFrom(time.Now().AddDate(0, 0, -1))
+	m.PaymentMethod = enum.PayMethodAli
+	return m
 }
