@@ -23,7 +23,8 @@ func (router SubsRouter) CreateOrders(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	schema := checkout.NewOrderInputSchema(cart, claims)
+	schema := checkout.NewOrderSchemaBuilder(cart, claims).
+		Build()
 	err := router.repo.CreateOrder(schema)
 	if err != nil {
 		return render.NewDBError(err)

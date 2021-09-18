@@ -91,17 +91,29 @@ func (router SubsRouter) GrantLicence(c echo.Context) error {
 
 	// Send a notification letter to admin.
 	go func() {
-		// Find the admin by licence creator id.
-		profile, err := router.repo.AdminProfile(result.Licence.AdminID)
+		err := router.repo.SaveVersionedLicence(result.LicenceVersion)
 		if err != nil {
-			sugar.Infof("Error retreiving admin profile %s of licence %s", result.Licence.AdminID, result.Licence.ID)
+			sugar.Error()
+		}
+
+		err = router.repo.ArchiveMembership(result.MemberModified.MembershipVersion)
+		if err != nil {
+			sugar.Error(err)
+		}
+
+		// TODO: send email to this user.
+
+		// Find the admin by licence creator id.
+		profile, err := router.repo.AdminProfile(result.LicenceVersion.PostChange.AdminID)
+		if err != nil {
+			sugar.Infof("Error retreiving admin profile %s of licence %s", result.LicenceVersion.PostChange.AdminID, result.LicenceVersion.PostChange.ID)
 			sugar.Error(err)
 			return
 		}
 
-		parcel, err := letter.LicenceGrantedParcel(result.Licence, profile)
+		parcel, err := letter.LicenceGrantedParcel(result.LicenceVersion.PostChange.Licence, assignee, profile)
 		if err != nil {
-			sugar.Infof("Error creating granted parcel for licence %s", result.Licence.ID)
+			sugar.Infof("Error creating granted parcel for licence %s", result.LicenceVersion.PostChange.ID)
 			sugar.Error(err)
 			return
 		}
@@ -136,7 +148,20 @@ func (router SubsRouter) RevokeLicence(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	// TODO: send email to user.
+	go func() {
+		err := router.repo.SaveVersionedLicence(result.LicenceVersion)
+		if err != nil {
+			sugar.Error()
+		}
+
+		err = router.repo.ArchiveMembership(result.MembershipVersioned)
+		if err != nil {
+			sugar.Error(err)
+		}
+
+		// TODO: if membership has addon, send a request to API to re-enable it.
+		// TODO: send email to this user.
+	}()
 
 	return c.JSON(http.StatusOK, result)
 }
