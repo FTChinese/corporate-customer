@@ -31,8 +31,9 @@ type Invoice struct {
 	dt.YearMonthDay
 	AddOnSource   addon.Source   `json:"addOnSource" db:"addon_source"` // Only exists when OrderKind is AddOn.
 	AppleTxID     null.String    `json:"appleTxId" db:"apple_tx_id"`    // The apple original transaction id which caused this invoice to be generated as a carry_over kind.
-	OrderID       null.String    `json:"orderId" db:"order_id"`         // Which order created this invoice. For upgrading carry-over, it indicates which order caused the the carry-over.         // Carry over for stripe does not have order id.
-	OrderKind     enum.OrderKind `json:"orderKind" db:"order_kind"`     // Which kind of order created this invoice. For addon, there's actually no original order.
+	LicenceTxID   null.String    `json:"licenceTxId" db:"licence_tx_id"`
+	OrderID       null.String    `json:"orderId" db:"order_id"`     // Which order created this invoice. For upgrading carry-over, it indicates which order caused the carry-over.         // Carry over for stripe does not have order id.
+	OrderKind     enum.OrderKind `json:"orderKind" db:"order_kind"` // Which kind of order created this invoice. For addon, there's actually no original order.
 	PaidAmount    float64        `json:"paidAmount" db:"paid_amount"`
 	PaymentMethod enum.PayMethod `json:"payMethod" db:"payment_method"`
 	PriceID       null.String    `json:"priceId" db:"price_id"`
