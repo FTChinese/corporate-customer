@@ -28,8 +28,20 @@ func (r SharedRepo) RetrieveAssignee(id string) (licence.Assignee, error) {
 }
 
 // ArchiveMembership save membership prior to modification.
-func (r SharedRepo) ArchiveMembership(m reader.MemberSnapshot) error {
-	_, err := r.DBs.Write.NamedExec(reader.StmtArchiveMembership, m)
+func (r SharedRepo) ArchiveMembership(m reader.MembershipVersioned) error {
+	_, err := r.DBs.Write.NamedExec(reader.StmtVersionMembership, m)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SaveVersionedLicence whenever a licence is changed.
+// This could happen when a licence is created, renewed,
+// granted or revoked.
+func (r SharedRepo) SaveVersionedLicence(s licence.Versioned) error {
+	_, err := r.DBs.Write.NamedExec(licence.StmtVersioned, s)
 	if err != nil {
 		return err
 	}
