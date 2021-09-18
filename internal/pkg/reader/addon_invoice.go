@@ -43,3 +43,12 @@ type Invoice struct {
 	dt.DateTimePeriod
 	CarriedOverUtc chrono.Time `json:"carriedOver" db:"carried_over_utc"` // In case user has carry-over for upgrading or switching stripe, add a timestamp to original invoice.
 }
+
+func (i Invoice) WithLicTxID(id null.String) Invoice {
+	i.LicenceTxID = id
+	return i
+}
+
+func (i Invoice) IsZero() bool {
+	return i.ID == ""
+}
