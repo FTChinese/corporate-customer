@@ -28,12 +28,12 @@ func (tx TxRepo) SaveCartItem(c checkout.CartItemSchema) error {
 	return nil
 }
 
-// SaveLicenceQueue inserts a list of LicenceQueue when
+// SaveLicenceTxnList inserts a list of LicenceTransaction when
 // creating an order.
-func (tx TxRepo) SaveLicenceQueue(q checkout.BulkLicenceQueue) error {
+func (tx TxRepo) SaveLicenceTxnList(list checkout.BulkLicenceTxn) error {
 	_, err := tx.Exec(
-		checkout.StmtBulkLicenceQueue(len(q)).Build(),
-		sq.BuildBulkInsertValues(q)...,
+		checkout.StmtBulkLicenceTxn(len(list)).Build(),
+		sq.BuildBulkInsertValues(list)...,
 	)
 
 	if err != nil {
