@@ -44,7 +44,7 @@ func (env Env) CreateInvitation(params input.InvitationParams, p admin.PassportC
 	}
 
 	// Retrieve the licence for whom the invitation will be created.
-	lic, err := tx.LockBaseLicence(admin.AccessRight{
+	lic, err := tx.LockLicence(admin.AccessRight{
 		RowID:  params.LicenceID,
 		TeamID: p.TeamID.String,
 	})
@@ -60,19 +60,16 @@ func (env Env) CreateInvitation(params input.InvitationParams, p admin.PassportC
 		return licence.Licence{}, err
 	}
 
-	// Create a new instance of invitation.
-	inv, err := licence.NewInvitation(params, p)
+	// Create invitation and update existing licence's latest invitation field.
+	invitedLic, err := lic.CreateInvitation(params, p)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
 		return licence.Licence{}, err
 	}
 
-	// Update licence's LatestInvitation field
-	updateLic := lic.WithInvitation(inv)
-
 	// Save invitation.
-	err = tx.CreateInvitation(inv)
+	err = tx.CreateInvitation(invitedLic.LatestInvitation.Invitation)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -80,7 +77,7 @@ func (env Env) CreateInvitation(params input.InvitationParams, p admin.PassportC
 	}
 
 	// Update licence
-	err = tx.UpdateLicenceStatus(updateLic)
+	err = tx.UpdateLicenceStatus(invitedLic)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -93,7 +90,7 @@ func (env Env) CreateInvitation(params input.InvitationParams, p admin.PassportC
 	}
 
 	// Return the updated licence.
-	return updateLic, nil
+	return invitedLic, nil
 }
 
 func (env Env) RevokeInvitation(invID, teamID string) (licence.InvitationRevoked, error) {
@@ -120,7 +117,7 @@ func (env Env) RevokeInvitation(invID, teamID string) (licence.InvitationRevoked
 		return licence.InvitationRevoked{}, errors.New("invitation is not revocable")
 	}
 
-	lic, err := tx.LockBaseLicence(admin.AccessRight{
+	lic, err := tx.LockLicence(admin.AccessRight{
 		RowID:  inv.LicenceID,
 		TeamID: teamID,
 	})

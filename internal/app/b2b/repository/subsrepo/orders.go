@@ -7,8 +7,9 @@ import (
 	"github.com/FTChinese/go-rest"
 )
 
-// CreateOrder inserts a row into order table based on
-// shopping cart.
+// CreateOrder inserts OrderRow field as a single row
+// into order table, multiple rows the array of CartItems,
+// rows for each copy of licence to be generated.
 func (env Env) CreateOrder(schema checkout.OrderInputSchema) error {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
@@ -19,6 +20,7 @@ func (env Env) CreateOrder(schema checkout.OrderInputSchema) error {
 		return err
 	}
 
+	// Create a single row for this session of shopping cart.
 	err = tx.CreateOrder(schema.OrderRow)
 	if err != nil {
 		sugar.Error(err)
@@ -26,6 +28,7 @@ func (env Env) CreateOrder(schema checkout.OrderInputSchema) error {
 		return err
 	}
 
+	// Save each cart items
 	for _, v := range schema.CartItems {
 		err := tx.SaveCartItem(v)
 		if err != nil {
@@ -35,7 +38,8 @@ func (env Env) CreateOrder(schema checkout.OrderInputSchema) error {
 		}
 	}
 
-	err = tx.SaveLicenceQueue(schema.Queue)
+	// Create transactions for each copy of licence.
+	err = tx.SaveLicenceTxnList(schema.Transactions)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -147,17 +151,17 @@ func (env Env) RetrieveOrder(r admin.AccessRight) (checkout.Order, error) {
 	return ord, nil
 }
 
-func (env Env) RetrieveGroupedQueue(orderID string, priceID string) (checkout.GroupedQueues, error) {
-	var q = make([]checkout.LicenceQueue, 0)
+func (env Env) RetrieveGroupedQueue(orderID string, priceID string) (checkout.GroupedLicenceTxn, error) {
+	var q = make([]checkout.LicenceTransaction, 0)
 	err := env.DBs.Read.Select(
 		&q,
-		checkout.StmtListLicenceQueue,
+		checkout.StmtListLicenceTxn,
 		orderID,
 		priceID,
 	)
 	if err != nil {
-		return checkout.GroupedQueues{}, err
+		return checkout.GroupedLicenceTxn{}, err
 	}
 
-	return checkout.NewGroupedQueues(priceID, q), nil
+	return checkout.NewGroupedTxn(priceID, q), nil
 }

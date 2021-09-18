@@ -108,8 +108,9 @@ func (env Env) GrantLicence(r admin.AccessRight, to licence.Assignee) (licence.G
 		sugar.Error(err)
 		return licence.GrantResult{}, err
 	}
+
 	// Retrieve the licence to be granted.
-	lic, err := tx.LockBaseLicence(r)
+	lic, err := tx.LockLicence(r)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -136,27 +137,28 @@ func (env Env) GrantLicence(r admin.AccessRight, to licence.Assignee) (licence.G
 	}
 
 	// Retrieve membership for this user.
-	mmb, err := tx.RetrieveMember(to.FtcID.String)
+	mmb, err := tx.LockMember(to.FtcID.String)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
 		return licence.GrantResult{}, err
 	}
 
-	// TODO: Ensure membership could use a licence.
+	// TODO: if
+	result, err := licence.GrantLicence(licence.GrantParams{
+		CurLic:    lic,
+		CurInv:    inv,
+		To:        to,
+		CurMember: mmb,
+	})
 
-	// Update invitation.
-	acceptedInv := inv.Accepted()
-	// Update licence.
-	grantedLic := lic.Granted(to, acceptedInv)
-	// Create/update membership based on licence.
-	result := licence.NewGrantResult(licence.ExpandedLicence{
-		Licence:  grantedLic,
-		Assignee: licence.AssigneeJSON{Assignee: to},
-	}, mmb)
+	if err != nil {
+		_ = tx.Rollback()
+		return licence.GrantResult{}, err
+	}
 
 	// Update invitation
-	err = tx.UpdateInvitationStatus(acceptedInv)
+	err = tx.UpdateInvitationStatus(result.LicenceVersion.PostChange.LatestInvitation.Invitation)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -164,30 +166,21 @@ func (env Env) GrantLicence(r admin.AccessRight, to licence.Assignee) (licence.G
 	}
 
 	// Update licence
-	err = tx.UpdateLicenceStatus(grantedLic)
+	err = tx.UpdateLicenceStatus(result.LicenceVersion.PostChange.Licence)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
 		return licence.GrantResult{}, err
 	}
 
-	// Insert a new row if the current membership is empty.
-	if mmb.IsZero() {
-		err := tx.CreateMember(result.Membership)
-		if err != nil {
-			sugar.Error(err)
-			_ = tx.Rollback()
-			return licence.GrantResult{}, err
-		}
-	} else {
-		// Update current membership based on
-		// licence.
-		err := tx.UpdateMember(result.Membership)
-		if err != nil {
-			sugar.Error(err)
-			_ = tx.Rollback()
-			return licence.GrantResult{}, err
-		}
+	// Upsert a new row if the current membership is empty.
+	// Is current membership is zero, do insert;
+	// otherwise update.
+	err = tx.UpsertMember(result.MembershipVersion.PostChange.Membership, mmb.IsZero())
+	if err != nil {
+		sugar.Error(err)
+		_ = tx.Rollback()
+		return licence.GrantResult{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -198,11 +191,54 @@ func (env Env) GrantLicence(r admin.AccessRight, to licence.Assignee) (licence.G
 	return result, nil
 }
 
+func (env Env) RevokeReplacedLicence(mv reader.MembershipVersioned, teamID string) (licence.GrantResult, error) {
+	defer env.logger.Sync()
+	sugar := env.logger.Sugar()
+
+	tx, err := env.beginTx()
+	if err != nil {
+		sugar.Error(err)
+		return licence.GrantResult{}, err
+	}
+
+	lic, err := tx.LockLicence(admin.AccessRight{
+		RowID:  mv.AnteChange.B2BLicenceID.String,
+		TeamID: teamID,
+	})
+
+	if err != nil {
+		sugar.Error(err)
+		_ = tx.Rollback()
+		return licence.GrantResult{}, err
+	}
+
+	result := licence.GrantResult{
+		LicenceVersion: lic.Revoked().
+			Versioned(licence.VersionActionRevoke).
+			WithPriorVersion(lic).
+			WithMembershipVersioned(mv.ID),
+		MemberModified: licence.MemberModified{},
+	}
+
+	err = tx.UpdateLicenceStatus(result.LicenceVersion.PostChange.Licence)
+	if err != nil {
+		return licence.GrantResult{}, err
+	}
+
+	_ = tx.Commit()
+
+	return result, nil
+}
+
 // RevokeLicence revokes a licence granted to a reader.
 // For a licence waiting for its invitation accepted,
 // use RevokeInvitation instead of this one.
 // After licence revoked, send email both to admin and
 // ex-owner to notify this event.
+// There 2 cases when revoking:
+// * User is using the licence and not expired, clean the assignee field and set membership to a past time.
+// * User is using the licence but expired, simply clean the assignee field.
+// * User changed to other payment method, simply clean the assignee field.
 func (env Env) RevokeLicence(r admin.AccessRight) (licence.RevokeResult, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
@@ -213,7 +249,7 @@ func (env Env) RevokeLicence(r admin.AccessRight) (licence.RevokeResult, error) 
 		return licence.RevokeResult{}, err
 	}
 
-	lic, err := tx.LockBaseLicence(r)
+	lic, err := tx.LockLicence(r)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -226,29 +262,28 @@ func (env Env) RevokeLicence(r admin.AccessRight) (licence.RevokeResult, error) 
 		return licence.RevokeResult{}, errors.New("nothing to revoke")
 	}
 
-	mmb, err := tx.RetrieveMember(lic.AssigneeID.String)
+	mmb, err := tx.LockMember(lic.AssigneeID.String)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
 		return licence.RevokeResult{}, err
 	}
-	sugar.Infof("Membership to revoke: %v", mmb)
-	if !lic.IsGrantedTo(mmb) {
+	sugar.Infof("AnteChange to revoke: %v", mmb)
+
+	result, err := licence.RevokeLicence(lic, mmb)
+	if err != nil {
 		_ = tx.Rollback()
-		return licence.RevokeResult{}, errors.New("reader's membership is not generated from b2b licence")
+		return licence.RevokeResult{}, err
 	}
 
-	updatedLic := lic.Revoked()
-	updatedMmb := licence.RevokeLicence(mmb)
-
-	err = tx.UpdateLicenceStatus(updatedLic)
+	err = tx.UpdateLicenceStatus(result.LicenceVersion.PostChange.Licence)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
 		return licence.RevokeResult{}, nil
 	}
 
-	err = tx.UpdateMember(updatedMmb)
+	err = tx.UpdateMember(result.MembershipVersioned.PostChange.Membership)
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -260,12 +295,5 @@ func (env Env) RevokeLicence(r admin.AccessRight) (licence.RevokeResult, error) 
 		return licence.RevokeResult{}, err
 	}
 
-	return licence.RevokeResult{
-		Licence: licence.ExpandedLicence{
-			Licence:  updatedLic,
-			Assignee: licence.AssigneeJSON{},
-		},
-		Membership: updatedMmb,
-		Snapshot:   mmb.Archive(reader.B2BArchiver(reader.ArchiveActionRevoke)),
-	}, nil
+	return result, nil
 }
