@@ -1,7 +1,7 @@
 package subsrepo
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/txrepo"
+	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	api2 "github.com/FTChinese/ftacademy/internal/repository/api"
@@ -94,9 +94,9 @@ func TestEnv_FindAssignee(t *testing.T) {
 func TestEnv_RetrieveMembership(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
-	m := reader.MockMembership("")
+	m := mock.NewPersona().MemberBuilderFTC().Build()
 
-	txrepo.MockNewRepo().MustCreateMember(m)
+	mock.NewRepo().InsertMembership(m)
 
 	type args struct {
 		compoundID string
@@ -132,11 +132,11 @@ func TestEnv_RetrieveMembership(t *testing.T) {
 }
 
 func TestEnv_ArchiveMembership(t *testing.T) {
-	m := reader.MockMembership("")
+	m := mock.NewPersona().MemberBuilderFTC().Build()
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
 
 	type args struct {
-		m reader.MemberSnapshot
+		m reader.MembershipVersioned
 	}
 	tests := []struct {
 		name    string
@@ -144,9 +144,9 @@ func TestEnv_ArchiveMembership(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Archive membership",
+			name: "Version membership",
 			args: args{
-				m: m.Archive(reader.B2BArchiver(reader.ArchiveActionGrant)),
+				m: m.Version(reader.B2BArchiver(reader.ArchiveActionGrant)),
 			},
 			wantErr: false,
 		},

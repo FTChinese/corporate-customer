@@ -1,14 +1,10 @@
 package subsrepo
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/txrepo"
+	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
-	"github.com/FTChinese/ftacademy/internal/pkg/reader"
-	api2 "github.com/FTChinese/ftacademy/internal/repository/api"
 	"github.com/FTChinese/ftacademy/pkg/db"
-	"github.com/FTChinese/ftacademy/pkg/faker"
-	"github.com/FTChinese/ftacademy/pkg/price"
 	gorest "github.com/FTChinese/go-rest"
 	"go.uber.org/zap/zaptest"
 	"reflect"
@@ -18,8 +14,12 @@ import (
 func TestEnv_LoadLicence(t *testing.T) {
 
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	lic := licence.MockLicence(price.MockPriceStdYear)
-	txrepo.MockNewRepo().MustCreateLicence(lic.Licence)
+	lic := mock.NewAdmin().
+		StdLicenceBuilder().
+		SetPersona(mock.NewPersona()).
+		BuildExpanded()
+
+	mock.NewRepo().InsertLicence(lic.Licence)
 
 	type args struct {
 		r admin.AccessRight
@@ -59,8 +59,12 @@ func TestEnv_LoadLicence(t *testing.T) {
 
 func TestEnv_listLicences(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	lic := licence.MockLicence(price.MockPriceStdYear)
-	txrepo.MockNewRepo().MustCreateLicence(lic.Licence)
+	lic := mock.NewAdmin().
+		StdLicenceBuilder().
+		SetPersona(mock.NewPersona()).
+		BuildExpanded()
+
+	mock.NewRepo().InsertLicence(lic.Licence)
 
 	type args struct {
 		teamID string
@@ -98,8 +102,12 @@ func TestEnv_listLicences(t *testing.T) {
 
 func TestEnv_countLicences(t *testing.T) {
 	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-	lic := licence.MockLicence(price.MockPriceStdYear)
-	txrepo.MockNewRepo().MustCreateLicence(lic.Licence)
+	lic := mock.NewAdmin().
+		StdLicenceBuilder().
+		SetPersona(mock.NewPersona()).
+		BuildExpanded()
+
+	mock.NewRepo().InsertLicence(lic.Licence)
 
 	type args struct {
 		teamID string
@@ -130,102 +138,6 @@ func TestEnv_countLicences(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("countLicences() got = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func TestEnv_GrantLicence(t *testing.T) {
-
-	a := api2.MockNewClient().MustCreateAssignee()
-
-	mockRepo := txrepo.MockNewRepo()
-	mockRepo.MustCreateMember(reader.MockMembership(a.FtcID.String))
-	lic := mockRepo.MustCreateInvitedLicence(a)
-
-	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-
-	type args struct {
-		r  admin.AccessRight
-		to licence.Assignee
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    licence.GrantResult
-		wantErr bool
-	}{
-		{
-			name: "Grant licence",
-			args: args{
-				r: admin.AccessRight{
-					RowID:  lic.ID,
-					TeamID: lic.TeamID,
-				},
-				to: a,
-			},
-			want:    licence.GrantResult{},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := env.GrantLicence(tt.args.r, tt.args.to)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GrantLicence() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			//if !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("GrantLicence() got = %v, want %v", got, tt.want)
-			//}
-
-			t.Logf("%s", faker.MustMarshalIndent(got))
-		})
-	}
-}
-
-func TestEnv_RevokeLicence(t *testing.T) {
-	a := api2.MockNewClient().MustCreateAssignee()
-
-	mockRepo := txrepo.MockNewRepo()
-
-	lic := mockRepo.MustCreateGrantedLicence(a)
-
-	env := NewEnv(db.MockMySQL(), zaptest.NewLogger(t))
-
-	type args struct {
-		r admin.AccessRight
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    licence.RevokeResult
-		wantErr bool
-	}{
-		{
-			name: "Revoke licence",
-			args: args{
-				r: admin.AccessRight{
-					RowID:  lic.ID,
-					TeamID: lic.TeamID,
-				},
-			},
-			want:    licence.RevokeResult{},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := env.RevokeLicence(tt.args.r)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RevokeLicence() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			//if !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("RevokeLicence() got = %v, want %v", got, tt.want)
-			//}
-			t.Logf("%s", faker.MustMarshalIndent(got))
 		})
 	}
 }
