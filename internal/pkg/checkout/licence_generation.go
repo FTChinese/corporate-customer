@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/ftacademy/pkg/price"
+	"github.com/FTChinese/ftacademy/pkg/subs"
 	"github.com/FTChinese/go-rest/enum"
 )
 
@@ -81,7 +82,7 @@ func GenerateLicence(params LicenceGenParams) (LicenceGenerated, error) {
 	// We should also record that this licence is automatically revoked due to renewal inconsistency.
 	mm, err := newLic.Grant(params.Assignee, params.CurMember)
 	if err != nil {
-		if errors.Is(err, reader.ErrGrantForbidden) {
+		if errors.Is(err, subs.ErrOverrideAutoRenewForbidden) {
 			return LicenceGenerated{
 				Transaction: finalizedTxn,
 				LicenceVersion: licVer.

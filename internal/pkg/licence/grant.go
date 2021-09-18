@@ -94,7 +94,7 @@ type GrantParams struct {
 }
 
 // GrantLicence grants a licence to an assignee.
-// Return a GrantResult instance or reader.ErrGrantForbidden.
+// Return a GrantResult instance or subs.ErrOverrideAutoRenewForbidden.
 func GrantLicence(params GrantParams) (GrantResult, error) {
 	grantedLic := params.CurLic.
 		WithGranted(params.To, params.CurInv.Accepted())
