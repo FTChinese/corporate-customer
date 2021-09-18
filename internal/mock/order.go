@@ -3,32 +3,54 @@
 package mock
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
-	"github.com/FTChinese/ftacademy/internal/pkg/licence"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
+	"github.com/FTChinese/ftacademy/pkg/faker"
+	"github.com/FTChinese/ftacademy/pkg/price"
+	"github.com/FTChinese/go-rest/enum"
+	"github.com/brianvoe/gofakeit/v5"
+	"github.com/guregu/null"
 )
 
-// ShoppingCart builds a mocking shopping cart for the admin.
-func (a Admin) ShoppingCart(items ...checkout.OrderItem) checkout.ShoppingCart {
-	b := checkout.NewCartBuilder()
-	for _, v := range items {
-		b.AddN(v.Price, v.NewCopies)
+func OrderPaid() checkout.OrderPaid {
+	faker.SeedGoFake()
 
-		for i := 0; i < v.RenewalCopies; i++ {
-			b.AddRenewal(a.ExistingExpLicence(v.Price, licence.Assignee{}))
-		}
-	}
-
-	return b.Build()
-}
-
-func (a Admin) OrderByItems(items ...checkout.OrderItem) checkout.Order {
-	return a.Order(a.ShoppingCart(items...))
-}
-
-func (a Admin) Order(cart checkout.ShoppingCart) checkout.Order {
-	return checkout.NewOrder(cart, a.PassportClaims())
-}
-
-func (a Admin) OrderSchema(cart checkout.ShoppingCart) checkout.OrderInputSchema {
-	return checkout.NewOrderInputSchema(cart, a.PassportClaims())
+	return checkout.NewOrderPaid(
+		pkg.OrderID(),
+		input.OrderPaidParams{
+			PaymentParams: input.PaymentParams{
+				AmountPaid:    10*(price.MockPriceStdYear.UnitAmount-50) + 10*(price.MockPriceStdYear.UnitAmount-30) + 5*(price.MockPricePrm.UnitAmount-200) + 5*(price.MockPricePrm.UnitAmount-300),
+				ApprovedBy:    gofakeit.Username(),
+				Description:   null.StringFrom(gofakeit.Sentence(10)),
+				PaymentMethod: pkg.PaymentMethodBank,
+				TransactionID: null.StringFrom(pkg.TxnID()),
+			},
+			Offers: []input.PaymentOfferParams{
+				{
+					Copies:          10,
+					Kind:            enum.OrderKindCreate,
+					Price:           price.MockPriceStdYear,
+					PriceOffPerCopy: 50,
+				},
+				{
+					Copies:          10,
+					Kind:            enum.OrderKindRenew,
+					Price:           price.MockPriceStdYear,
+					PriceOffPerCopy: 30,
+				},
+				{
+					Copies:          5,
+					Kind:            enum.OrderKindCreate,
+					Price:           price.MockPricePrm,
+					PriceOffPerCopy: 200,
+				},
+				{
+					Copies:          5,
+					Kind:            enum.OrderKindRenew,
+					Price:           price.MockPricePrm,
+					PriceOffPerCopy: 300,
+				},
+			},
+		})
 }

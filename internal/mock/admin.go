@@ -3,6 +3,7 @@
 package mock
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/faker"
@@ -22,7 +23,7 @@ func NewAdmin() Admin {
 		Account: admin.Account{
 			BaseAccount: admin.BaseAccount{
 				ID:          uuid.New().String(),
-				TeamID:      null.String{},
+				TeamID:      null.StringFrom(pkg.TeamID()),
 				Email:       faker.GenEmail(),
 				DisplayName: null.String{},
 				Active:      true,

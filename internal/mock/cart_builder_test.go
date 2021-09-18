@@ -1,17 +1,22 @@
-package checkout
+package mock
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
 	"github.com/FTChinese/ftacademy/pkg/price"
 	"reflect"
 	"testing"
 )
 
-func TestCartBuilder_Add(t *testing.T) {
+func TestCartBuilder_AddNewN(t *testing.T) {
+	adm := NewAdmin()
+
 	type fields struct {
-		store map[string]CartItem
+		admin Admin
+		store map[string]checkout.CartItem
 	}
 	type args struct {
 		p price.Price
+		n int
 	}
 	tests := []struct {
 		name   string
@@ -20,18 +25,21 @@ func TestCartBuilder_Add(t *testing.T) {
 		want   CartBuilder
 	}{
 		{
-			name: "Add a new subscription",
+			name: "Add n new items",
 			fields: fields{
-				store: map[string]CartItem{},
+				admin: adm,
+				store: map[string]checkout.CartItem{},
 			},
 			args: args{
 				p: price.MockPriceStdYear,
+				n: 5,
 			},
 			want: CartBuilder{
-				store: map[string]CartItem{
+				admin: adm,
+				store: map[string]checkout.CartItem{
 					price.MockPriceStdYear.ID: {
 						Price:     price.MockPriceStdYear,
-						NewCopies: 1,
+						NewCopies: 5,
 						Renewals:  nil,
 					},
 				},
@@ -41,10 +49,11 @@ func TestCartBuilder_Add(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := CartBuilder{
+				admin: tt.fields.admin,
 				store: tt.fields.store,
 			}
-			if got := b.Add(tt.args.p); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Add() = %v, want %v", got, tt.want)
+			if got := b.AddNewN(tt.args.p, tt.args.n); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("AddNewN() = %v, want %v", got, tt.want)
 			}
 		})
 	}
