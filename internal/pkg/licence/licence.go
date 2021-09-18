@@ -3,7 +3,7 @@ package licence
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
-	"github.com/FTChinese/ftacademy/internal/pkg/reader"
+	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/dt"
 	"github.com/FTChinese/ftacademy/pkg/price"
 	"github.com/FTChinese/go-rest/chrono"
@@ -29,17 +29,18 @@ type Licence struct {
 	Status                Status         `json:"status" db:"lic_status"`
 	CurrentPeriodStartUTC chrono.Time    `json:"currentPeriodStartUtc" db:"current_period_start_utc"`
 	CurrentPeriodEndUTC   chrono.Time    `json:"currentPeriodEndUtc" db:"current_period_end_utc"`
-	StartDateUTC          chrono.Time    `json:"startDateUtc" db:"start_date_utc"`
+	StartDateUTC          chrono.Time    `json:"startDateUtc" db:"start_date_utc"` // Initial start time of licence become effective for the first time. Might be different from CreatedUTC.
 	TrialStartUTC         chrono.Date    `json:"trialStartUtc" db:"trial_start_utc"`
 	TrialEndUTC           chrono.Date    `json:"trialEndUtc" db:"trial_end_utc"`
-	LatestOrderID         null.String    `json:"latestOrderId" db:"latest_order_id"`
+	HintGrantMismatch     bool           `json:"hintGrantMismatch" db:"hint_grant_mismatch"` // Indicates possible mismatch between the licence and the granted membership. It could happen upon renewal, or in a periodic verification.
+	LatestTransactionID   null.String    `json:"latestTransactionId" db:"latest_transaction_id"`
 	LatestPrice           price.Price    `json:"latestPrice" db:"latest_price"`
 	LatestInvitation      InvitationJSON `json:"latestInvitation" db:"latest_invitation"` // A redundant field that should be synced with the invitation row. I created this field since I don't know how to retrieve both licence and invitation row in SQL's flat structure, specially used when retrieve a list of such rows.
-	AssigneeID            null.String    `json:"-" db:"assignee_id"`
+	AssigneeID            null.String    `json:"assigneeId" db:"assignee_id"`
 	admin.RowTime
 }
 
-func NewLicence(p price.Price, orderID string, creator admin.Creator) Licence {
+func NewLicence(p price.Price, txnID string, creator admin.Creator) Licence {
 
 	// TODO: pass as parameter
 	now := time.Now()
@@ -53,16 +54,36 @@ func NewLicence(p price.Price, orderID string, creator admin.Creator) Licence {
 		Creator:               creator,
 		CurrentPeriodStartUTC: chrono.TimeUTCFrom(period.Start),
 		CurrentPeriodEndUTC:   chrono.TimeUTCFrom(period.End),
+		HintGrantMismatch:     false,
 		StartDateUTC:          chrono.TimeUTCFrom(now),
 		TrialStartUTC:         chrono.Date{},
 		TrialEndUTC:           chrono.Date{},
-		LatestOrderID:         null.StringFrom(orderID),
+		LatestTransactionID:   null.StringFrom(txnID),
 		LatestPrice:           p,
 		Status:                LicStatusAvailable,
 		LatestInvitation:      InvitationJSON{},
 		AssigneeID:            null.String{},
 		RowTime:               admin.NewRowTime(),
 	}
+}
+
+func (l Licence) Renewed(p price.Price, txnID string) Licence {
+	now := time.Now()
+
+	startTime := l.RenewalStartTime()
+	period := dt.NewTimeRange(startTime).WithCycle(p.Cycle)
+
+	l.CurrentPeriodStartUTC = chrono.TimeUTCFrom(period.Start)
+	l.CurrentPeriodEndUTC = chrono.TimeUTCFrom(period.End)
+	l.LatestPrice = p
+	l.LatestTransactionID = null.StringFrom(txnID)
+	l.UpdatedUTC = chrono.TimeUTCFrom(now)
+
+	return l
+}
+
+func (l Licence) IsZero() bool {
+	return l.ID == ""
 }
 
 func (l Licence) RenewalStartTime() time.Time {
@@ -87,13 +108,20 @@ func (l Licence) IsAvailable() bool {
 	return l.Status != LicStatusGranted && l.AssigneeID.IsZero()
 }
 
-// WithInvitation syncs a licence's latest_invitation when a new invitation is create for it.
-func (l Licence) WithInvitation(inv Invitation) Licence {
+// CreateInvitation builds a new invitation for this licence.
+func (l Licence) CreateInvitation(params input.InvitationParams, claims admin.PassportClaims) (Licence, error) {
+	inv, err := NewInvitation(params, claims)
+	if err != nil {
+		return Licence{}, err
+	}
+
+	l.HintGrantMismatch = false
 	l.Status = LicStatusInvited
 	l.LatestInvitation = InvitationJSON{inv}
-	l.AssigneeID = null.String{}
+	l.AssigneeID = null.String{} // Only exists after accepted.
 	l.UpdatedUTC = chrono.TimeNow()
-	return l
+
+	return l, nil
 }
 
 // IsInvitationRevocable ensures that the licence could
@@ -110,64 +138,11 @@ func (l Licence) IsInvitationRevocable() bool {
 // This is used after invitation is sent but before it is
 // accepted.
 func (l Licence) WithInvitationRevoked() Licence {
+	l.HintGrantMismatch = false
 	l.Status = LicStatusAvailable
 	l.LatestInvitation = InvitationJSON{}
 	l.AssigneeID = null.String{}
 	l.UpdatedUTC = chrono.TimeUTCNow()
-
-	return l
-}
-
-// Granted links a licence to a ftc reader.
-func (l Licence) Granted(a Assignee, inv Invitation) Licence {
-	l.Status = LicStatusGranted
-	l.LatestInvitation = InvitationJSON{inv}
-	l.AssigneeID = a.FtcID
-	l.UpdatedUTC = chrono.TimeUTCNow()
-
-	return l
-}
-
-// IsGranted tests whether a licence is granted to any reader.
-func (l Licence) IsGranted() bool {
-	return l.Status == LicStatusGranted && l.AssigneeID.Valid
-}
-
-// IsGrantedTo checks if a licence is granted to the
-// specified membership.
-func (l Licence) IsGrantedTo(m reader.Membership) bool {
-	if !m.IsB2B() {
-		return false
-	}
-
-	return l.ID == m.B2BLicenceID.String
-}
-
-func (l Licence) IsRevocable() bool {
-	return l.Status == LicStatusGranted && l.AssigneeID.Valid
-}
-
-// Revoked unlink a user from a licence.
-func (l Licence) Revoked() Licence {
-	l.Status = LicStatusAvailable
-	l.LatestInvitation = InvitationJSON{}
-	l.AssigneeID = null.String{}
-	l.UpdatedUTC = chrono.TimeUTCNow()
-
-	return l
-}
-
-func (l Licence) Renewed(p price.Price, orderID string) Licence {
-	now := time.Now()
-
-	startTime := l.RenewalStartTime()
-	period := dt.NewTimeRange(startTime).WithCycle(p.Cycle)
-
-	l.CurrentPeriodStartUTC = chrono.TimeUTCFrom(period.Start)
-	l.CurrentPeriodEndUTC = chrono.TimeUTCFrom(period.End)
-	l.LatestPrice = p
-	l.LatestOrderID = null.StringFrom(orderID)
-	l.UpdatedUTC = chrono.TimeUTCFrom(now)
 
 	return l
 }
