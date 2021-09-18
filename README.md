@@ -63,3 +63,11 @@ In the above 2 cases, to ensure data integrity, always **reset** the linked lice
 When a licence is renewed after expired, the licence user will be renewed if it is not touched after expiration. If the user, however, changed subscription via alipay/wechat either by a purchase out of its own pocket or previous addon, the licence should already have been reset and does not have a membership linked to it now. In such case we are safe to update the licence only.
 
 There's special case under the above case if data integrity is broken: user's payment method is changed from b2b to alipay/wechat, but the licence still contain assignee_id pointing to this membership. In such case licence renewal should never change its linked user's membership. Shall we simply reset licence to clean state?
+
+### Priorities of various payment source
+
+From highest to lowest:
+
+* IAP/Stripe
+* B2B
+* Alipay/Wechat
