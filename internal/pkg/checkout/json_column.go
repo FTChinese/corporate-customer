@@ -8,13 +8,13 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 )
 
-// LicenceJSON is used to implement sql.Valuer interface
+// ExpandedLicenceJSON is used to implement sql.Valuer interface
 // so that we could save it directly as JSON.
-type LicenceJSON struct {
+type ExpandedLicenceJSON struct {
 	licence.ExpandedLicence
 }
 
-func (l LicenceJSON) Value() (driver.Value, error) {
+func (l ExpandedLicenceJSON) Value() (driver.Value, error) {
 	// Return NULL for zero value.
 	if l.ID == "" {
 		return nil, nil
@@ -28,15 +28,15 @@ func (l LicenceJSON) Value() (driver.Value, error) {
 	return string(b), nil
 }
 
-func (l *LicenceJSON) Scan(src interface{}) error {
+func (l *ExpandedLicenceJSON) Scan(src interface{}) error {
 	if src == nil {
-		*l = LicenceJSON{}
+		*l = ExpandedLicenceJSON{}
 		return nil
 	}
 
 	switch s := src.(type) {
 	case []byte:
-		var tmp LicenceJSON
+		var tmp ExpandedLicenceJSON
 		err := json.Unmarshal(s, &tmp)
 		if err != nil {
 			return err
@@ -45,7 +45,7 @@ func (l *LicenceJSON) Scan(src interface{}) error {
 		return nil
 
 	default:
-		return errors.New("incompatible type to scan to LicenceJSON")
+		return errors.New("incompatible type to scan to ExpandedLicenceJSON")
 	}
 }
 
@@ -54,6 +54,10 @@ func (l *LicenceJSON) Scan(src interface{}) error {
 type ExpLicenceListJSON []licence.ExpandedLicence
 
 func (l ExpLicenceListJSON) Value() (driver.Value, error) {
+	if len(l) == 0 {
+		return nil, nil
+	}
+
 	b, err := json.Marshal(l)
 	if err != nil {
 		return nil, err
