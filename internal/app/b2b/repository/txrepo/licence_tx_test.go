@@ -1,19 +1,20 @@
 package txrepo
 
 import (
+	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/db"
-	"github.com/FTChinese/ftacademy/pkg/price"
+	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/jmoiron/sqlx"
-	"reflect"
 	"testing"
 )
 
-func TestTxRepo_RetrieveBaseLicence(t *testing.T) {
-	lic := licence.MockLicence(price.MockPriceStdYear)
+func TestTxRepo_LockLicence(t *testing.T) {
+	adm := mock.NewAdmin()
+	lic := adm.StdLicenceBuilder().Build()
 
-	MockNewRepo().MustCreateLicence(lic.Licence)
+	mock.NewRepo().InsertLicence(lic)
 
 	type fields struct {
 		Tx *sqlx.Tx
@@ -29,17 +30,17 @@ func TestTxRepo_RetrieveBaseLicence(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Retrieve a licence",
+			name: "Lock licence",
 			fields: fields{
-				Tx: db.MockMySQL().Write.MustBegin(),
+				Tx: db.MockTx(),
 			},
 			args: args{
 				r: admin.AccessRight{
 					RowID:  lic.ID,
-					TeamID: lic.TeamID,
+					TeamID: adm.TeamID.String,
 				},
 			},
-			want:    lic.Licence,
+			want:    licence.Licence{},
 			wantErr: false,
 		},
 	}
@@ -48,25 +49,28 @@ func TestTxRepo_RetrieveBaseLicence(t *testing.T) {
 			tx := TxRepo{
 				Tx: tt.fields.Tx,
 			}
-			got, err := tx.LockBaseLicence(tt.args.r)
+			got, err := tx.LockLicence(tt.args.r)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("LockBaseLicence() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("LockLicence() error = %v, wantErr %v", err, tt.wantErr)
 				_ = tx.Rollback()
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("LockBaseLicence() got = %v, \nwant %v", got, tt.want)
-			}
-
+			//if !reflect.DeepEqual(got, tt.want) {
+			//	t.Errorf("LockLicence() got = %v, want %v", got, tt.want)
+			//}
 			_ = tx.Commit()
+			t.Logf("%s", faker.MustMarshalIndent(got))
 		})
 	}
 }
 
 func TestTxRepo_UpdateLicenceStatus(t *testing.T) {
-	lic := licence.MockLicence(price.MockPriceStdYear)
+	lic := mock.NewAdmin().
+		StdLicenceBuilder().
+		SetPersona(mock.NewPersona()).
+		Build()
 
-	MockNewRepo().MustCreateLicence(lic.Licence)
+	mock.NewRepo().InsertLicence(lic.Revoked())
 
 	type fields struct {
 		Tx *sqlx.Tx
@@ -81,42 +85,12 @@ func TestTxRepo_UpdateLicenceStatus(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "ExpandedLicence with invitation",
+			name: "Update licence status",
 			fields: fields{
-				Tx: db.MockMySQL().Write.MustBegin(),
+				Tx: db.MockTx(),
 			},
 			args: args{
-				lic: lic.WithInvitation(licence.MockInvitation(lic)),
-			},
-			wantErr: false,
-		},
-		{
-			name: "ExpandedLicence invitation revoked",
-			fields: fields{
-				Tx: db.MockMySQL().Write.MustBegin(),
-			},
-			args: args{
-				lic: lic.WithInvitationRevoked(),
-			},
-			wantErr: false,
-		},
-		{
-			name: "ExpandedLicence granted",
-			fields: fields{
-				Tx: db.MockMySQL().Write.MustBegin(),
-			},
-			args: args{
-				lic: lic.Granted(licence.MockAssignee(), licence.MockInvitation(lic)),
-			},
-			wantErr: false,
-		},
-		{
-			name: "ExpandedLicence revoked",
-			fields: fields{
-				Tx: db.MockMySQL().Write.MustBegin(),
-			},
-			args: args{
-				lic: lic.Revoked(),
+				lic: lic,
 			},
 			wantErr: false,
 		},
@@ -129,7 +103,6 @@ func TestTxRepo_UpdateLicenceStatus(t *testing.T) {
 			if err := tx.UpdateLicenceStatus(tt.args.lic); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateLicenceStatus() error = %v, wantErr %v", err, tt.wantErr)
 				_ = tx.Rollback()
-				return
 			}
 
 			_ = tx.Commit()
@@ -138,6 +111,11 @@ func TestTxRepo_UpdateLicenceStatus(t *testing.T) {
 }
 
 func TestTxRepo_CreateInvitation(t *testing.T) {
+	lic := mock.NewAdmin().
+		StdLicenceBuilder().
+		SetPersona(mock.NewPersona()).
+		Build()
+
 	type fields struct {
 		Tx *sqlx.Tx
 	}
@@ -153,10 +131,10 @@ func TestTxRepo_CreateInvitation(t *testing.T) {
 		{
 			name: "Create invitation",
 			fields: fields{
-				Tx: db.MockMySQL().Write.MustBegin(),
+				Tx: db.MockTx(),
 			},
 			args: args{
-				inv: licence.MockInvitation(licence.MockLicence(price.MockPriceStdYear)),
+				inv: lic.LatestInvitation.Invitation,
 			},
 			wantErr: false,
 		},
@@ -167,7 +145,7 @@ func TestTxRepo_CreateInvitation(t *testing.T) {
 				Tx: tt.fields.Tx,
 			}
 			if err := tx.CreateInvitation(tt.args.inv); (err != nil) != tt.wantErr {
-				t.Errorf("MustCreateInvitation() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("CreateInvitation() error = %v, wantErr %v", err, tt.wantErr)
 				_ = tx.Rollback()
 			}
 
@@ -177,9 +155,14 @@ func TestTxRepo_CreateInvitation(t *testing.T) {
 }
 
 func TestTxRepo_RetrieveInvitation(t *testing.T) {
-	inv := licence.MockInvitation(licence.MockLicence(price.MockPriceStdYear))
+	lic := mock.NewAdmin().
+		StdLicenceBuilder().
+		SetPersona(mock.NewPersona()).
+		Build()
 
-	MockNewRepo().MustCreateInvitation(inv)
+	inv := lic.LatestInvitation.Invitation
+
+	mock.NewRepo().InsertInvitation(inv)
 
 	type fields struct {
 		Tx *sqlx.Tx
@@ -195,15 +178,17 @@ func TestTxRepo_RetrieveInvitation(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:   "Retrieve invitation",
-			fields: fields{Tx: db.MockMySQL().Read.MustBegin()},
+			name: "Retrieve invitation",
+			fields: fields{
+				Tx: db.MockTx(),
+			},
 			args: args{
 				r: admin.AccessRight{
 					RowID:  inv.ID,
 					TeamID: inv.TeamID,
 				},
 			},
-			want:    inv,
+			want:    licence.Invitation{},
 			wantErr: false,
 		},
 	}
@@ -218,20 +203,25 @@ func TestTxRepo_RetrieveInvitation(t *testing.T) {
 				_ = tx.Rollback()
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RetrieveInvitation() got = %v, \nwant %v", got, tt.want)
-				_ = tx.Rollback()
-			}
-
+			//if !reflect.DeepEqual(got, tt.want) {
+			//	t.Errorf("RetrieveInvitation() got = %v, want %v", got, tt.want)
+			//}
 			_ = tx.Commit()
+
+			t.Logf("%s", faker.MustMarshalIndent(got))
 		})
 	}
 }
 
 func TestTxRepo_UpdateInvitationStatus(t *testing.T) {
-	inv := licence.MockInvitation(licence.MockLicence(price.MockPriceStdYear))
+	lic := mock.NewAdmin().
+		StdLicenceBuilder().
+		SetPersona(mock.NewPersona()).
+		Build()
 
-	MockNewRepo().MustCreateInvitation(inv)
+	inv := lic.LatestInvitation.Invitation
+
+	mock.NewRepo().InsertInvitation(inv)
 
 	type fields struct {
 		Tx *sqlx.Tx
@@ -246,9 +236,9 @@ func TestTxRepo_UpdateInvitationStatus(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Update invitation",
+			name: "Update invitation status",
 			fields: fields{
-				Tx: db.MockMySQL().Write.MustBegin(),
+				Tx: db.MockTx(),
 			},
 			args: args{
 				inv: inv.Accepted(),

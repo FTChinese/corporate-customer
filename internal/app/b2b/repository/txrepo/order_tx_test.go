@@ -4,7 +4,6 @@ import (
 	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
-	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/FTChinese/ftacademy/pkg/price"
@@ -33,18 +32,13 @@ func TestTxRepo_CreateOrder(t *testing.T) {
 				Tx: db.MockTx(),
 			},
 			args: args{
-				order: adm.OrderByItems(
-					checkout.OrderItem{
-						Price:         price.MockPriceStdYear,
-						NewCopies:     5,
-						RenewalCopies: 3,
-					},
-					checkout.OrderItem{
-						Price:         price.MockPricePrm,
-						NewCopies:     2,
-						RenewalCopies: 0,
-					},
-				),
+				order: adm.CartBuilder().
+					AddNewStandardN(10).
+					AddRenewalStandardN(10).
+					AddNewPremiumN(5).
+					AddRenewalPremiumN(5).
+					BuildOrderSchema().
+					OrderRow,
 			},
 			wantErr: false,
 		},
@@ -70,6 +64,9 @@ func TestTxRepo_CreateOrder(t *testing.T) {
 }
 
 func TestTxRepo_SaveCartItem(t *testing.T) {
+
+	adm := mock.NewAdmin()
+
 	type fields struct {
 		Tx *sqlx.Tx
 	}
@@ -92,10 +89,10 @@ func TestTxRepo_SaveCartItem(t *testing.T) {
 					Price:     price.MockPriceStdYear,
 					NewCopies: 5,
 					Renewals: checkout.ExpLicenceListJSON{
-						licence.NewLicBuilder(price.MockPriceStdYear).Build(),
-						licence.NewLicBuilder(price.MockPriceStdYear).Build(),
+						adm.StdLicenceBuilder().BuildExpanded(),
+						adm.StdLicenceBuilder().BuildExpanded(),
 					},
-				}.Schema(pkg.OrderID()),
+				}.Schema(pkg.OrderID(), mock.NewAdmin().Creator()),
 			},
 			wantErr: false,
 		},
@@ -116,12 +113,15 @@ func TestTxRepo_SaveCartItem(t *testing.T) {
 	}
 }
 
-func TestTxRepo_SaveLicenceQueue(t *testing.T) {
+func TestTxRepo_SaveLicenceTxnList(t *testing.T) {
+
+	adm := mock.NewAdmin()
+
 	type fields struct {
 		Tx *sqlx.Tx
 	}
 	type args struct {
-		q checkout.BulkLicenceQueue
+		list checkout.BulkLicenceTxn
 	}
 	tests := []struct {
 		name    string
@@ -135,12 +135,14 @@ func TestTxRepo_SaveLicenceQueue(t *testing.T) {
 				Tx: db.MockTx(),
 			},
 			args: args{
-				q: checkout.NewCartBuilder().
-					AddStandardN(5).
-					AddRenewal(licence.NewLicBuilder(price.MockPriceStdYear).Build()).
-					AddPremiumN(2).
-					Build().
-					LicenceQueue(pkg.OrderID()),
+				list: checkout.NewOrderSchemaBuilder(
+					adm.CartBuilder().
+						AddNewStandardN(5).
+						AddRenewalStandardN(5).
+						AddNewPremiumN(2).
+						Build(),
+					adm.PassportClaims(),
+				).TransactionList(),
 			},
 			wantErr: false,
 		},
@@ -150,8 +152,8 @@ func TestTxRepo_SaveLicenceQueue(t *testing.T) {
 			tx := TxRepo{
 				Tx: tt.fields.Tx,
 			}
-			if err := tx.SaveLicenceQueue(tt.args.q); (err != nil) != tt.wantErr {
-				t.Errorf("SaveLicenceQueue() error = %v, wantErr %v", err, tt.wantErr)
+			if err := tx.SaveLicenceTxnList(tt.args.list); (err != nil) != tt.wantErr {
+				t.Errorf("SaveLicenceTxnList() error = %v, wantErr %v", err, tt.wantErr)
 				_ = tx.Rollback()
 				return
 			}

@@ -1,9 +1,12 @@
 package txrepo
 
 import (
+	"github.com/FTChinese/ftacademy/internal/mock"
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"reflect"
 	"testing"
@@ -49,10 +52,11 @@ func TestTxRepo_CreateMember(t *testing.T) {
 	}
 }
 
-func TestTxRepo_RetrieveMember(t *testing.T) {
-	m := reader.MockMembership("")
+func TestTxRepo_LockMember(t *testing.T) {
 
-	MockNewRepo().MustCreateMember(m)
+	m := mock.NewPersona().MemberBuilderFTC().Build()
+
+	mock.NewRepo().InsertMembership(m)
 
 	type fields struct {
 		Tx *sqlx.Tx
@@ -83,14 +87,14 @@ func TestTxRepo_RetrieveMember(t *testing.T) {
 			tx := TxRepo{
 				Tx: tt.fields.Tx,
 			}
-			got, err := tx.RetrieveMember(tt.args.compoundID)
+			got, err := tx.LockMember(tt.args.compoundID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RetrieveMember() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("LockMember() error = %v, wantErr %v", err, tt.wantErr)
 				_ = tx.Rollback()
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RetrieveMember() got = %v, want %v", got, tt.want)
+				t.Errorf("LockMember() got = %v, want %v", got, tt.want)
 				_ = tx.Rollback()
 				return
 			}
@@ -100,8 +104,9 @@ func TestTxRepo_RetrieveMember(t *testing.T) {
 }
 
 func TestTxRepo_UpdateMember(t *testing.T) {
-	m := reader.MockMembership("")
-	MockNewRepo().MustCreateMember(m)
+	m := mock.NewPersona().MemberBuilderFTC().Build()
+
+	mock.NewRepo().InsertMembership(m)
 
 	m.ExpireDate = chrono.DateUTCFrom(time.Now().AddDate(0, 0, -1))
 	type fields struct {
@@ -134,7 +139,11 @@ func TestTxRepo_UpdateMember(t *testing.T) {
 			}
 			if err := tx.UpdateMember(tt.args.m); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateMember() error = %v, wantErr %v", err, tt.wantErr)
+				_ = tx.Rollback()
+				return
 			}
+
+			_ = tx.Commit()
 		})
 	}
 }
@@ -158,7 +167,9 @@ func TestTxRepo_SaveInvoice(t *testing.T) {
 				Tx: db.MockMySQL().Write.MustBegin(),
 			},
 			args: args{
-				inv: reader.MockMembership("").CarryOverInvoice(),
+				inv: reader.MockMembership("").
+					CarryOverInvoice().
+					WithLicTxID(null.StringFrom(pkg.TxnID())),
 			},
 			wantErr: false,
 		},
@@ -170,7 +181,11 @@ func TestTxRepo_SaveInvoice(t *testing.T) {
 			}
 			if err := tx.SaveInvoice(tt.args.inv); (err != nil) != tt.wantErr {
 				t.Errorf("SaveInvoice() error = %v, wantErr %v", err, tt.wantErr)
+				_ = tx.Rollback()
+				return
 			}
+
+			_ = tx.Commit()
 		})
 	}
 }
