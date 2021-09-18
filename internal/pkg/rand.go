@@ -10,6 +10,10 @@ func OrderID() string {
 	return "ord_" + rand.String(12)
 }
 
+func TxnID() string {
+	return "txn_" + rand.String(12)
+}
+
 func LicenceID() string {
 	return "lic_" + rand.String(12)
 }
