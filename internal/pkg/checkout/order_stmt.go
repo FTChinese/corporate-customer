@@ -25,7 +25,7 @@ SELECT o.id AS order_id,
 	o.created_utc AS created_utc,
 	o.item_count AS item_count,
 	o.item_list AS item_list,
-	o.current_status AS current_status,
+	o.current_status AS current_status
 `
 
 // BuildStmtOrder retrieve a row from order table
