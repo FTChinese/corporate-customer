@@ -91,5 +91,8 @@ func (a Admin) TeamParams() input.TeamParams {
 }
 
 func (a Admin) Team() admin.Team {
-	return admin.NewTeam(a.ID, a.TeamParams())
+	t := admin.NewTeam(a.ID, a.TeamParams())
+	t.ID = a.TeamID.String
+
+	return t
 }
