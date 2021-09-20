@@ -37,7 +37,7 @@ func (ci CartItem) Schema(orderID string, creator admin.Creator) CartItemSchema 
 // CartItemSchema is used to save/retrieve CartItem into
 // table order_item
 type CartItemSchema struct {
-	OrderID string `json:"order_d" db:"order_id"`
+	OrderID string `json:"orderId" db:"order_id"`
 	CartItem
 	admin.Creator
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`

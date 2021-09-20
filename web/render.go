@@ -4,7 +4,7 @@ import (
 	"embed"
 	"errors"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/flosch/pongo2"
+	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"io"
