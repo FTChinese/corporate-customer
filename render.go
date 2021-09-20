@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/FTChinese/ftacademy/web"
 	rice "github.com/GeertJohan/go.rice"
-	"github.com/flosch/pongo2"
+	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"io"
