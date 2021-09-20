@@ -1,0 +1,21 @@
+version: '3'
+
+vars:
+  APP_NAME: ftacademy
+  EXEC: ./build{{OS}}/{{ARCH}}/ftacademy{{exeExt}}
+
+tasks:
+  build:
+    cmds:
+      - go build -o {{.EXEC}} {{.LDFLAGS}} -tags production -v .
+    vars:
+      GIT_VERSION:
+        sh: git describe --tags
+      GIT_COMMIT:
+        sh: git log --max-count=1 --pretty=format:%aI_%h
+      LDFLAGS: -ldflags "-w -s -X main.version={{.GIT_VERSION}} -X main.build={{now | date "2006-01-02T15:04:05Z07:00"}} -X main.commit={{.GIT_COMMIT}}"
+
+  run:
+    # Taskfile cannot handle things starting with template engine tag. Wrap in quotes.
+    cmds:
+      - "{{.EXEC}}"
