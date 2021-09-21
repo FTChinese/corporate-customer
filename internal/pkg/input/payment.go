@@ -12,7 +12,7 @@ type PaymentParams struct {
 	ApprovedBy    string            `json:"approvedBy" db:"approved_by"`
 	Description   null.String       `json:"description" db:"description"`
 	PaymentMethod pkg.PaymentMethod `json:"paymentMethod" db:"payment_method"`
-	TransactionID null.String       `json:"transactionId" db:"transaction_id"`
+	TransactionID null.String       `json:"transactionId" db:"transaction_id"` // Payment provider's transaction id, if any,
 }
 
 type PaymentOfferParams struct {
