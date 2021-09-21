@@ -9,7 +9,7 @@ import (
 
 // FindAssignee tries to find a user by email.
 // If user it not found, it is not taken as error and
-// an zero value of Assignee is returned.
+// a zero value of Assignee is returned.
 func (env Env) FindAssignee(email string) (licence.Assignee, error) {
 	var a licence.Assignee
 	err := env.DBs.Read.Get(&a, licence.StmtAssigneeByEmail, email)
@@ -28,11 +28,15 @@ func (env Env) RetrieveMembership(compoundID string) (reader.Membership, error) 
 
 	err := env.DBs.Read.Get(
 		&m,
-		reader.StmtLockMember,
+		reader.StmtSelectMember,
 		compoundID,
 	)
 
 	if err != nil && err != sql.ErrNoRows {
+		if err == sql.ErrNoRows {
+			return reader.Membership{}, nil
+		}
+
 		return m, err
 	}
 
