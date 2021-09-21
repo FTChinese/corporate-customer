@@ -16,7 +16,7 @@ type Client struct {
 func NewSubsAPIClient(prod bool) Client {
 	return Client{
 		key:     config.MustSubsAPIKey().Pick(prod),
-		baseURL: config.MustSubsAPIv2BaseURL().Pick(prod),
+		baseURL: config.MustSubsAPIv3BaseURL().Pick(prod),
 	}
 }
 
