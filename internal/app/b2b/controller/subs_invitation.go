@@ -1,17 +1,45 @@
 package controller
 
 import (
+	"database/sql"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subsrepo"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/letter"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
+	"github.com/FTChinese/ftacademy/pkg/validator"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 )
+
+// FindMembership searches if an email has membership.
+func (router SubsRouter) FindMembership(c echo.Context) error {
+	email := strings.TrimSpace(c.QueryParam("email"))
+	ve := validator.New("email").Email().Validate(email)
+	if ve != nil {
+		return render.NewUnprocessable(ve)
+	}
+
+	a, err := router.repo.FindAssignee(email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusOK, reader.Membership{})
+		}
+
+		return render.NewDBError(err)
+	}
+
+	m, err := router.repo.RetrieveMembership(a.FtcID.String)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, m)
+}
 
 // CreateInvitation creates an invitation for a licence and send it to a user.
 // Input:
