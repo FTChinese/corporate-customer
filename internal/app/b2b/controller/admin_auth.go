@@ -4,6 +4,7 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/letter"
+	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -30,6 +31,9 @@ func (router AdminRouter) SignUp(c echo.Context) error {
 
 	err := router.repo.SignUp(adminAccount)
 	if err != nil {
+		if db.IsAlreadyExists(err) {
+			return render.NewUnprocessable(render.NewVEAlreadyExists("email"))
+		}
 		sugar.Error(err)
 		return render.NewDBError(err)
 	}
