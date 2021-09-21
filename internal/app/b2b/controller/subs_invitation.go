@@ -19,7 +19,7 @@ import (
 // description: string,
 // licenceId: string
 // Returns a licence.ExpandedLicence instance with its LatestInvitation
-// field populate with the invitation create here.
+// field populated with the invitation created here.
 func (router SubsRouter) CreateInvitation(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
