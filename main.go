@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/controller"
-	"github.com/FTChinese/ftacademy/internal/repository/api"
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
@@ -53,12 +53,12 @@ func main() {
 	pm := postman.New(config.MustGetHanqiConn())
 
 	appKey := config.MustGetAppKey("web_app.b2b")
-	jwtGuard := controller.NewJWTGuard(appKey.GetJWTKey())
+	b2bGuard := controller.NewJWTGuard(appKey.GetJWTKey())
 	oauthGuard := controller.NewOAuthGuard(myDBs)
 
 	apiClient := api.NewSubsAPIClient(isProduction)
 
-	adminRouter := controller.NewAdminRouter(myDBs, pm, jwtGuard, logger)
+	adminRouter := controller.NewAdminRouter(myDBs, pm, b2bGuard, logger)
 	subsRouter := controller.NewSubsRouter(myDBs, pm, logger)
 	productRouter := controller.NewProductRouter(apiClient, logger)
 	readerRouter := controller.NewReaderRouter(apiClient)
@@ -91,6 +91,14 @@ func main() {
 
 	apiGroup := e.Group("/api")
 
+	// --------------------------
+	// Paywall section is public.
+	// --------------------------
+	apiGroup.GET("/paywall/", productRouter.Paywall)
+
+	// -------------------------------------------------
+	// B2B section is restricted to corporate only.
+	// ------------------------------------------------
 	b2bAPIGroup := apiGroup.Group("/b2b")
 
 	b2bAuthGroup := b2bAPIGroup.Group("/auth")
@@ -115,7 +123,7 @@ func main() {
 		}
 	}
 
-	b2bAccountGroup := b2bAPIGroup.Group("/account", jwtGuard.RequireLoggedIn)
+	b2bAccountGroup := b2bAPIGroup.Group("/account", b2bGuard.RequireLoggedIn)
 	{
 		//b2bAccountGroup.GET("/", accountRouter.Account)
 		b2bAccountGroup.GET("/jwt/", adminRouter.RefreshJWT)
@@ -124,19 +132,20 @@ func main() {
 		b2bAccountGroup.PATCH("/password/", adminRouter.ChangePassword)
 	}
 
-	b2bTeamGroup := b2bAPIGroup.Group("/team", jwtGuard.RequireLoggedIn)
+	b2bTeamGroup := b2bAPIGroup.Group("/team", b2bGuard.RequireLoggedIn)
 	{
 		b2bTeamGroup.GET("/", adminRouter.LoadTeam)
 		b2bTeamGroup.POST("/", adminRouter.CreateTeam)
 		b2bTeamGroup.PATCH("/", adminRouter.UpdateTeam)
 	}
 
-	productGroup := b2bAPIGroup.Group("/paywall", jwtGuard.RequireLoggedIn)
+	b2bSearchGroup := b2bAPIGroup.Group("/search", b2bGuard.RequireLoggedIn)
 	{
-		productGroup.GET("/", productRouter.Paywall)
+		// ?email=<string>
+		b2bSearchGroup.GET("/membership/", subsRouter.FindMembership)
 	}
 
-	orderGroup := b2bAPIGroup.Group("/orders", jwtGuard.RequireTeamSet)
+	orderGroup := b2bAPIGroup.Group("/orders", b2bGuard.RequireTeamSet)
 	{
 		// List orders
 		orderGroup.GET("/", subsRouter.ListOrders)
@@ -145,7 +154,7 @@ func main() {
 		orderGroup.GET("/:id/", subsRouter.LoadOrder)
 	}
 
-	b2bLicenceGroup := b2bAPIGroup.Group("/licences", jwtGuard.RequireTeamSet)
+	b2bLicenceGroup := b2bAPIGroup.Group("/licences", b2bGuard.RequireTeamSet)
 	{
 		// List licences
 		b2bLicenceGroup.GET("/", subsRouter.ListLicence)
@@ -154,7 +163,7 @@ func main() {
 		b2bLicenceGroup.POST("/:id/revoke/", subsRouter.RevokeLicence)
 	}
 
-	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", jwtGuard.RequireTeamSet)
+	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", b2bGuard.RequireTeamSet)
 	{
 		// List invitations
 		b2bInvitationGroup.GET("/", subsRouter.ListInvitations)
@@ -181,6 +190,9 @@ func main() {
 		b2bGrantGroup.POST("/grant/", subsRouter.GrantLicence)
 	}
 
+	// ---------------------------------------------
+	// Reader section is restricted to FTC user only.
+	// ---------------------------------------------
 	readerAPIGroup := apiGroup.Group("/reader")
 	readerAuthGroup := readerAPIGroup.Group("/auth")
 	{
