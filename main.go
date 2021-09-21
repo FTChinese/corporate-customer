@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/ftacademy/internal/app/b2b/controller"
-	api2 "github.com/FTChinese/ftacademy/internal/repository/api"
+	"github.com/FTChinese/ftacademy/internal/repository/api"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
@@ -56,7 +56,7 @@ func main() {
 	jwtGuard := controller.NewJWTGuard(appKey.GetJWTKey())
 	oauthGuard := controller.NewOAuthGuard(myDBs)
 
-	apiClient := api2.NewSubsAPIClient(isProduction)
+	apiClient := api.NewSubsAPIClient(isProduction)
 
 	adminRouter := controller.NewAdminRouter(myDBs, pm, jwtGuard, logger)
 	subsRouter := controller.NewSubsRouter(myDBs, pm, logger)
