@@ -1,10 +1,10 @@
 package subsrepo
 
 import (
+	api2 "github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
 	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
-	api2 "github.com/FTChinese/ftacademy/internal/repository/api"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"go.uber.org/zap/zaptest"

@@ -1,9 +1,9 @@
 package controller
 
 import (
+	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
-	"github.com/FTChinese/ftacademy/internal/repository/api"
 	"github.com/FTChinese/ftacademy/pkg/fetch"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
