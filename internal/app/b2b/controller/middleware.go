@@ -15,17 +15,17 @@ import (
 
 const claimsCtxKey = "claims"
 
-type JWTGuard struct {
+type B2BJWTGuard struct {
 	signingKey []byte
 }
 
-func NewJWTGuard(key []byte) JWTGuard {
-	return JWTGuard{
+func NewJWTGuard(key []byte) B2BJWTGuard {
+	return B2BJWTGuard{
 		signingKey: key,
 	}
 }
 
-func (g JWTGuard) getPassportClaims(req *http.Request) (admin.PassportClaims, error) {
+func (g B2BJWTGuard) getPassportClaims(req *http.Request) (admin.PassportClaims, error) {
 	ss, err := oauth.GetBearerAuth(req.Header)
 	if err != nil {
 		log.Printf("Error parsing Authorization header: %v", err)
@@ -41,7 +41,7 @@ func (g JWTGuard) getPassportClaims(req *http.Request) (admin.PassportClaims, er
 	return claims, nil
 }
 
-func (g JWTGuard) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
+func (g B2BJWTGuard) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		claims, err := g.getPassportClaims(c.Request())
@@ -55,7 +55,7 @@ func (g JWTGuard) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (g JWTGuard) RequireTeamSet(next echo.HandlerFunc) echo.HandlerFunc {
+func (g B2BJWTGuard) RequireTeamSet(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		claims, err := g.getPassportClaims(c.Request())
