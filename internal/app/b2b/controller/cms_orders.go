@@ -61,6 +61,9 @@ func (router CMSRouter) LoadOrder(c echo.Context) error {
 //		priceOffPerCopy: number;
 // }]
 func (router CMSRouter) ConfirmPayment(c echo.Context) error {
+	defer router.logger.Sync()
+	sugar := router.logger.Sugar()
+
 	orderID := c.Param("id")
 
 	var params input.OrderPaidParams
@@ -68,33 +71,48 @@ func (router CMSRouter) ConfirmPayment(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
+	if ve := params.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
+	}
+
 	// Retrieve order.
+	sugar.Infof("Retrieving order to confirm: %s", orderID)
 	order, err := router.repo.LoadOrder(orderID)
 	if err != nil {
+		sugar.Error(err)
 		return render.NewDBError(err)
 	}
 
 	if order.IsFinal() {
+		sugar.Infof("Order %s already finalized", orderID)
 		return render.NewBadRequest("Order already paid")
 	}
 
+	// TODO: verify params against this order.
+
 	// Update order status
+	sugar.Infof("Update order %s status ", orderID)
 	order = order.ChangeStatus(checkout.StatusProcessing)
 	err = router.repo.UpdateOrderStatus(order)
 	if err != nil {
+		sugar.Error(err)
 		return render.NewDBError(err)
 	}
 
 	// Save payment
+	// It will throw duplicate error if you try to confirm the
+	// same order twice.
 	payResult := checkout.NewOrderPaid(order.ID, params)
 	err = router.repo.SavePaymentResult(payResult)
 	if err != nil {
+		sugar.Error(err)
 		return render.NewDBError(err)
 	}
 
 	// TODO: run without blocking.
 	err = router.repo.ConfirmPayment(order)
 	if err != nil {
+		sugar.Error(err)
 		return render.NewDBError(err)
 	}
 

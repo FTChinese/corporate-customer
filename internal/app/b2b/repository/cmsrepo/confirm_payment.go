@@ -244,11 +244,14 @@ func (env Env) ConfirmPayment(order checkout.Order) error {
 			break
 		}
 
+		sugar.Infof("------------------\nStart procession transaction %s", pq.TxnID)
 		go func(p checkout.PriceOfLicenceTxn) {
+			sugar.Infof("----- Start processing transaction %s -----", p.TxnID)
+
 			queLog.IncTotal()
 			_, err := env.buildLicence(p)
 			if err != nil {
-				sugar.Error(err)
+				sugar.Errorf("Error after processing %s, %s", p.TxnID, err)
 				queLog.IncFailure()
 				// Save the error.
 				e := env.SavePaymentError(checkout.NewPaymentError(p.TxnID, err))
@@ -256,9 +259,11 @@ func (env Env) ConfirmPayment(order checkout.Order) error {
 					sugar.Error(e)
 				}
 			} else {
+				sugar.Infof("Transaction %s processed successfully", p.TxnID)
 				queLog.IncSuccess()
 				// TODO: send email to renewed membership.
 			}
+			sugar.Infof("----- Finished processing transaction %s -----", p.TxnID)
 		}(pq)
 	}
 
@@ -271,15 +276,17 @@ func (env Env) ConfirmPayment(order checkout.Order) error {
 		return nil
 	}
 
+	sugar.Infof("Finished processing order %s", order.ID)
+
 	queLog.EndUTC = chrono.TimeNow()
+
+	sugar.Infof("Order queue finished %v", queLog)
 
 	// Save stats of processing
 	err := env.saveProcessingStats(queLog)
 	if err != nil {
 		sugar.Error(err)
 	}
-
-	sugar.Infof("Order queue finished %v", queLog)
 
 	// Update order status
 	err = env.UpdateOrderStatus(order.ChangeStatus(checkout.StatusPaid))

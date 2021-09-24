@@ -1,6 +1,7 @@
 package cmsrepo
 
 import (
+	"context"
 	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
 	"github.com/FTChinese/ftacademy/pkg/db"
@@ -90,4 +91,41 @@ func TestEnv_buildLicence(t *testing.T) {
 			t.Logf("%s", faker.MustMarshalIndent(got))
 		})
 	}
+}
+
+func getNumber(to int) <-chan int {
+	ch := make(chan int)
+
+	go func() {
+		defer close(ch)
+
+		for i := 0; i < to; i++ {
+			ch <- i
+		}
+	}()
+
+	return ch
+}
+
+func TestSemaphore(t *testing.T) {
+	t.Logf("Max workers: %d", maxWorkers)
+	intCh := getNumber(1000)
+	ctx := context.Background()
+	for i := range intCh {
+		if err := sem.Acquire(ctx, 1); err != nil {
+			t.Error(err)
+			break
+		}
+
+		go func(n int) {
+			t.Logf("Handle %d", n)
+		}(i)
+	}
+
+	if err := sem.Acquire(ctx, int64(maxWorkers)); err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log("Finished")
 }
