@@ -5,6 +5,7 @@ package mock
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/FTChinese/ftacademy/pkg/price"
@@ -17,14 +18,14 @@ func OrderPaid() checkout.OrderPaid {
 	faker.SeedGoFake()
 
 	return checkout.NewOrderPaid(
-		pkg.OrderID(),
+		ids.OrderID(),
 		input.OrderPaidParams{
 			PaymentParams: input.PaymentParams{
 				AmountPaid:    10*(price.MockPriceStdYear.UnitAmount-50) + 10*(price.MockPriceStdYear.UnitAmount-30) + 5*(price.MockPricePrm.UnitAmount-200) + 5*(price.MockPricePrm.UnitAmount-300),
 				ApprovedBy:    gofakeit.Username(),
 				Description:   null.StringFrom(gofakeit.Sentence(10)),
 				PaymentMethod: pkg.PaymentMethodBank,
-				TransactionID: null.StringFrom(pkg.TxnID()),
+				TransactionID: null.StringFrom(ids.TxnID()),
 			},
 			Offers: []input.PaymentOfferParams{
 				{

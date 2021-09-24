@@ -3,7 +3,7 @@
 package mock
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
@@ -18,7 +18,7 @@ import (
 func (a Admin) NewLicBuilder(p price.Price) LicenceBuilder {
 	return LicenceBuilder{
 		price:   p,
-		txnID:   pkg.TxnID(),
+		txnID:   ids.TxnID(),
 		admin:   a,
 		persona: Persona{},
 	}

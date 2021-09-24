@@ -3,6 +3,7 @@
 package mock
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
