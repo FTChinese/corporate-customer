@@ -1,5 +1,7 @@
 package subs
 
+// Kind represents the kind of action when granting licence.
+// TODO: change to GrantKind might be more proper.
 type Kind int
 
 const (
