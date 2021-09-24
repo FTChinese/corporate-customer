@@ -201,12 +201,14 @@ func main() {
 		// Reader verification.
 	}
 
+	//-------------------------------------------------
 	// The following is used by internal system.
 	// It is not used by any customer-side client.
-	// Instead it is a restful API used by superyard
+	// Instead, it is a restful API used by superyard
 	// to forward request since I do not want to repeat
 	// identical data type definition and manipulation
 	// inside another Golang app.
+	// -----------------------------------------------
 	cmsGroup := apiGroup.Group("/cms", oauthGuard.RequireToken)
 	{
 		// List teams
@@ -227,7 +229,7 @@ func main() {
 		// * team details
 		cmsGroup.GET("/orders/:id/", cmsRouter.LoadOrder)
 		// Order payment confirmed.
-		cmsGroup.POST("/order/:id/", cmsRouter.ConfirmPayment)
+		cmsGroup.POST("/orders/:id/", cmsRouter.ConfirmPayment)
 	}
 
 	e.Logger.Fatal(e.Start(":4000"))
