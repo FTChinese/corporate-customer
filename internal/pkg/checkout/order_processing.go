@@ -6,7 +6,7 @@ import (
 )
 
 const StmtSaveProcessingStats = `
-INSERT INTO b2b.order_processing_stats
+INSERT INTO b2b.order_processing_log
 SET order_id = :order_id,
 	total_counter = :total_counter,
 	success_counter = :success_counter,
