@@ -22,7 +22,6 @@ func TestRepo_CreateGrantedLicence(t *testing.T) {
 
 	granted := NewAdmin().StdLicenceBuilder().SetPersona(NewPersona()).BuildGranted()
 
-	t.Logf("Assignee %v", granted.SignUp)
 	t.Logf("Licence %v", granted.ExpLicence)
 	t.Logf("AnteChange %v", granted.Membership)
 
