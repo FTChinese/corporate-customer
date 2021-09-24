@@ -3,7 +3,9 @@ package input
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/pkg/price"
+	"github.com/FTChinese/ftacademy/pkg/validator"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 )
 
@@ -13,6 +15,18 @@ type PaymentParams struct {
 	Description   null.String       `json:"description" db:"description"`
 	PaymentMethod pkg.PaymentMethod `json:"paymentMethod" db:"payment_method"`
 	TransactionID null.String       `json:"transactionId" db:"transaction_id"` // Payment provider's transaction id, if any,
+}
+
+func (p PaymentParams) Validate() *render.ValidationError {
+	if p.AmountPaid <= 0 {
+		return &render.ValidationError{
+			Message: "Paid amount could not be zero",
+			Field:   "amountPaid",
+			Code:    render.CodeInvalid,
+		}
+	}
+
+	return validator.New("transactionId").Required().Validate(p.TransactionID.String)
 }
 
 type PaymentOfferParams struct {
@@ -25,4 +39,21 @@ type PaymentOfferParams struct {
 type OrderPaidParams struct {
 	PaymentParams
 	Offers []PaymentOfferParams `json:"offers"`
+}
+
+func (p OrderPaidParams) Validate() *render.ValidationError {
+	ve := p.PaymentParams.Validate()
+	if ve != nil {
+		return ve
+	}
+
+	if len(p.Offers) == 0 {
+		return &render.ValidationError{
+			Message: "Missing offers field",
+			Field:   "offers",
+			Code:    render.CodeMissingField,
+		}
+	}
+
+	return nil
 }
