@@ -20,7 +20,7 @@ import (
 
 type ReaderAccount struct {
 	licence.Assignee
-	Password string `db:"password"`
+	Password string `json:"password" db:"password"`
 }
 
 type Persona struct {
@@ -85,12 +85,13 @@ func (p Persona) MemberBuilder(k enum.AccountKind) MemberBuilder {
 		unionID:      p.unionID,
 		price:        price.MockPriceStdYear,
 		payMethod:    enum.PayMethodAli,
-		expiration:   time.Now().AddDate(0, 1, 0),
+		expiration:   time.Now().AddDate(0, 7, 0),
 		subsStatus:   0,
 		autoRenewal:  false,
 		addOn:        addon.AddOn{},
 		iapTxID:      "",
 		stripeSubsID: "",
+		b2bLicID:     "",
 	}
 }
 
@@ -111,6 +112,7 @@ type MemberBuilder struct {
 	addOn        addon.AddOn
 	iapTxID      string
 	stripeSubsID string
+	b2bLicID     string
 }
 
 func (b MemberBuilder) WithAccountKind(k enum.AccountKind) MemberBuilder {
@@ -140,6 +142,8 @@ func (b MemberBuilder) WithPrice(p price.Price) MemberBuilder {
 	return b
 }
 
+// WithPayMethod sets payment method.
+// Deprecated.
 func (b MemberBuilder) WithPayMethod(m enum.PayMethod) MemberBuilder {
 	b.payMethod = m
 	if m == enum.PayMethodStripe || m == enum.PayMethodApple {
@@ -149,13 +153,55 @@ func (b MemberBuilder) WithPayMethod(m enum.PayMethod) MemberBuilder {
 	return b
 }
 
+func (b MemberBuilder) WithStripe(subsID string) MemberBuilder {
+	if subsID == "" {
+		subsID = faker.GenStripeSubID()
+	}
+
+	b.stripeSubsID = subsID
+	return b.WithPayMethod(enum.PayMethodStripe)
+}
+
+func (b MemberBuilder) WithApple(txID string) MemberBuilder {
+	if txID == "" {
+		txID = faker.GenAppleSubID()
+	}
+
+	b.iapTxID = txID
+	b.autoRenewal = true
+	return b.WithPayMethod(enum.PayMethodApple)
+}
+
+func (b MemberBuilder) WithB2B(licID string) MemberBuilder {
+	if licID == "" {
+		licID = ids.LicenceID()
+	}
+
+	b.b2bLicID = licID
+	b.autoRenewal = true
+	b.subsStatus = enum.SubsStatusActive
+	return b.WithPayMethod(enum.PayMethodB2B)
+}
+
 func (b MemberBuilder) WithExpiration(t time.Time) MemberBuilder {
 	b.expiration = t
 	return b
 }
 
+// WithAutoRenewal turn auto renew on/off
+// Deprecated.
 func (b MemberBuilder) WithAutoRenewal(t bool) MemberBuilder {
 	b.autoRenewal = t
+	return b
+}
+
+func (b MemberBuilder) WithAutoRenewOn() MemberBuilder {
+	b.autoRenewal = true
+	return b
+}
+
+func (b MemberBuilder) WithAutoRenewOff() MemberBuilder {
+	b.autoRenewal = false
 	return b
 }
 
@@ -175,22 +221,22 @@ func (b MemberBuilder) WithIapID(id string) MemberBuilder {
 }
 
 func (b MemberBuilder) Build() reader.Membership {
-	var ids reader.UserIDs
+	var userIDs reader.UserIDs
 	switch b.accountKind {
 	case enum.AccountKindFtc:
-		ids = reader.UserIDs{
+		userIDs = reader.UserIDs{
 			CompoundID: b.ftcID,
 			FtcID:      null.StringFrom(b.ftcID),
 			UnionID:    null.String{},
 		}
 	case enum.AccountKindWx:
-		ids = reader.UserIDs{
+		userIDs = reader.UserIDs{
 			CompoundID: b.unionID,
 			FtcID:      null.String{},
 			UnionID:    null.StringFrom(b.unionID),
 		}
 	case enum.AccountKindLinked:
-		ids = reader.UserIDs{
+		userIDs = reader.UserIDs{
 			CompoundID: b.ftcID,
 			FtcID:      null.StringFrom(b.ftcID),
 			UnionID:    null.StringFrom(b.unionID),
@@ -198,7 +244,7 @@ func (b MemberBuilder) Build() reader.Membership {
 	}
 
 	m := reader.Membership{
-		UserIDs:       ids,
+		UserIDs:       userIDs,
 		Edition:       b.price.Edition,
 		LegacyTier:    null.Int{},
 		LegacyExpire:  null.Int{},
@@ -219,14 +265,14 @@ func (b MemberBuilder) Build() reader.Membership {
 		m.FtcPlanID = null.StringFrom(b.price.ID)
 
 	case enum.PayMethodStripe:
-		m.StripeSubsID = null.StringFrom(faker.GenStripeSubID())
 		m.StripePlanID = null.StringFrom(faker.GenStripePlanID())
+		m.StripeSubsID = null.StringFrom(b.stripeSubsID)
 
 	case enum.PayMethodApple:
-		if b.iapTxID == "" {
-			b.iapTxID = faker.GenAppleSubID()
-		}
 		m.AppleSubsID = null.StringFrom(b.iapTxID)
+
+	case enum.PayMethodB2B:
+		m.B2BLicenceID = null.StringFrom(b.b2bLicID)
 	}
 
 	return m.Sync()
