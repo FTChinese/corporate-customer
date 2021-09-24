@@ -1,8 +1,8 @@
 package checkout
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/go-rest/chrono"
 )
@@ -38,7 +38,7 @@ type OrderSchemaBuilder struct {
 
 func NewOrderSchemaBuilder(cart ShoppingCart, pp admin.PassportClaims) OrderSchemaBuilder {
 	return OrderSchemaBuilder{
-		orderID: pkg.OrderID(),
+		orderID: ids.OrderID(),
 		cart:    cart,
 		creator: admin.Creator{
 			AdminID: pp.AdminID,

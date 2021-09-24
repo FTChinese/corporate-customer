@@ -2,8 +2,8 @@ package checkout
 
 import (
 	"errors"
-	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/price"
 	"github.com/FTChinese/ftacademy/pkg/sq"
@@ -38,7 +38,7 @@ func NewLicenceTransaction(
 	}
 
 	return LicenceTransaction{
-		ID:             pkg.TxnID(),
+		ID:             ids.TxnID(),
 		Kind:           k,
 		LicenceToRenew: ExpandedLicenceJSON{currLic},
 		OrderID:        orderID,

@@ -2,8 +2,8 @@ package cmsrepo
 
 import (
 	"github.com/FTChinese/ftacademy/internal/mock"
-	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/brianvoe/gofakeit/v5"
@@ -113,7 +113,7 @@ func TestEnv_SavePaymentError(t *testing.T) {
 			name: "Save payment error",
 			args: args{
 				pe: checkout.PaymentError{
-					TxnID:      pkg.TxnID(),
+					TxnID:      ids.TxnID(),
 					Message:    gofakeit.Sentence(20),
 					CreatedUTC: chrono.TimeNow(),
 				},

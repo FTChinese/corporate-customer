@@ -2,8 +2,8 @@ package txrepo
 
 import (
 	"github.com/FTChinese/ftacademy/internal/mock"
-	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
@@ -220,7 +220,7 @@ func TestTxRepo_RenewLicence(t *testing.T) {
 
 	mock.NewRepo().InsertLicence(lic)
 
-	lic = lic.Renewed(price.MockPriceStdYear, pkg.OrderID())
+	lic = lic.Renewed(price.MockPriceStdYear, ids.OrderID())
 
 	type fields struct {
 		Tx *sqlx.Tx

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/go-rest/chrono"
@@ -39,7 +40,7 @@ func NewInvitation(params input.InvitationParams, p admin.PassportClaims) (Invit
 	}
 
 	return Invitation{
-		ID: pkg.InvitationID(),
+		ID: ids.InvitationID(),
 		Creator: admin.Creator{
 			AdminID: p.AdminID,
 			TeamID:  p.TeamID.String,

@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/go-rest/chrono"
 )
@@ -19,7 +19,7 @@ type Team struct {
 
 func NewTeam(adminID string, params input.TeamParams) Team {
 	return Team{
-		ID:         pkg.TeamID(),
+		ID:         ids.TeamID(),
 		AdminID:    adminID,
 		TeamParams: params,
 		CreatedUTC: chrono.TimeNow(),

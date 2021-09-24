@@ -2,8 +2,8 @@ package txrepo
 
 import (
 	"github.com/FTChinese/ftacademy/internal/mock"
-	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/checkout"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/FTChinese/ftacademy/pkg/price"
@@ -92,7 +92,7 @@ func TestTxRepo_SaveCartItem(t *testing.T) {
 						adm.StdLicenceBuilder().BuildExpanded(),
 						adm.StdLicenceBuilder().BuildExpanded(),
 					},
-				}.Schema(pkg.OrderID(), mock.NewAdmin().Creator()),
+				}.Schema(ids.OrderID(), mock.NewAdmin().Creator()),
 			},
 			wantErr: false,
 		},

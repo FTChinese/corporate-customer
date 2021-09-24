@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
 )
@@ -143,7 +143,7 @@ func (m Membership) Version(by Archiver) MembershipVersioned {
 	}
 
 	return MembershipVersioned{
-		ID:               pkg.SnapshotID(),
+		ID:               ids.SnapshotID(),
 		AnteChange:       MembershipJSON{}, // Optional. Only exists if exists prior to the latest one.
 		CreatedBy:        null.StringFrom(by.String()),
 		CreatedUTC:       chrono.TimeNow(),

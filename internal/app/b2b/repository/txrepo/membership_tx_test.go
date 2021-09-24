@@ -2,7 +2,7 @@ package txrepo
 
 import (
 	"github.com/FTChinese/ftacademy/internal/mock"
-	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/go-rest/chrono"
@@ -169,7 +169,7 @@ func TestTxRepo_SaveInvoice(t *testing.T) {
 			args: args{
 				inv: reader.MockMembership("").
 					CarryOverInvoice().
-					WithLicTxID(null.StringFrom(pkg.TxnID())),
+					WithLicTxID(null.StringFrom(ids.TxnID())),
 			},
 			wantErr: false,
 		},

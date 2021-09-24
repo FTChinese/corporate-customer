@@ -2,7 +2,7 @@ package repository
 
 import (
 	"github.com/FTChinese/ftacademy/internal/mock"
-	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/price"
@@ -41,7 +41,7 @@ func TestSharedRepo_SaveVersionedLicence(t *testing.T) {
 			name: "Save renewed licence",
 			args: args{
 				s: licToRenew.
-					Renewed(price.MockPriceStdYear, pkg.TxnID()).
+					Renewed(price.MockPriceStdYear, ids.TxnID()).
 					Versioned(licence.VersionActionRenew).
 					WithPriorVersion(licToRenew).
 					WithMismatched(p.MemberBuilderFTC().

@@ -1,7 +1,7 @@
 package reader
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/pkg/addon"
 	"github.com/FTChinese/ftacademy/pkg/dt"
 	"github.com/FTChinese/go-rest/chrono"
@@ -29,7 +29,7 @@ func (m Membership) CarriedOverAddOn() addon.AddOn {
 // or switch from one-time purchase to subscription mode.
 func (m Membership) CarryOverInvoice() Invoice {
 	return Invoice{
-		ID:         pkg.InvoiceID(),
+		ID:         ids.InvoiceID(),
 		CompoundID: m.CompoundID,
 		Edition:    m.Edition,
 		YearMonthDay: dt.YearMonthDay{

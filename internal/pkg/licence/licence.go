@@ -3,6 +3,7 @@ package licence
 import (
 	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/pkg/ids"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/pkg/dt"
 	"github.com/FTChinese/ftacademy/pkg/price"
@@ -49,7 +50,7 @@ func NewLicence(p price.Price, txnID string, creator admin.Creator) Licence {
 		WithCycle(p.Cycle)
 
 	return Licence{
-		ID:                    pkg.LicenceID(),
+		ID:                    ids.LicenceID(),
 		Edition:               p.Edition,
 		Creator:               creator,
 		CurrentPeriodStartUTC: chrono.TimeUTCFrom(period.Start),
