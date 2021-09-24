@@ -29,8 +29,8 @@ const (
 var statusNames = [...]string{
 	"",
 	"pending_payment",
-	"paid",
 	"processing",
+	"paid",
 	"cancelled",
 }
 
