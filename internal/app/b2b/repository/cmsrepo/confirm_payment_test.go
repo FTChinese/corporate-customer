@@ -119,6 +119,7 @@ func TestSemaphore(t *testing.T) {
 
 		go func(n int) {
 			t.Logf("Handle %d", n)
+			sem.Release(1)
 		}(i)
 	}
 

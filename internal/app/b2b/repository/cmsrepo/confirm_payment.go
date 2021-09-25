@@ -264,6 +264,7 @@ func (env Env) ConfirmPayment(order checkout.Order) error {
 				// TODO: send email to renewed membership.
 			}
 			sugar.Infof("----- Finished processing transaction %s -----", p.TxnID)
+			sem.Release(1)
 		}(pq)
 	}
 
