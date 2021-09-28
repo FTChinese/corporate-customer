@@ -211,6 +211,7 @@ func main() {
 	// -----------------------------------------------
 	cmsGroup := apiGroup.Group("/cms", oauthGuard.RequireToken)
 	{
+		cmsGroup.GET("/profile/:id/", cmsRouter.LoadingAdminProfile)
 		// List teams
 		//cmsGroup.GET("/teams/",)
 		// Show team detail

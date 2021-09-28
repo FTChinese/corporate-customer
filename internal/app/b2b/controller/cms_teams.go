@@ -22,3 +22,18 @@ func (router CMSRouter) LoadTeam(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, t)
 }
+
+func (router CMSRouter) LoadingAdminProfile(c echo.Context) error {
+	defer router.logger.Sync()
+	sugar := router.logger.Sugar()
+
+	adminID := c.Param("id")
+
+	profile, err := router.repo.LoadB2BAdminProfile(adminID)
+	if err != nil {
+		sugar.Error(err)
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, profile)
+}
