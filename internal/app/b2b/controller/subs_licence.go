@@ -104,7 +104,7 @@ func (router SubsRouter) GrantLicence(c echo.Context) error {
 		// TODO: send email to this user.
 
 		// Find the admin by licence creator id.
-		profile, err := router.repo.AdminProfile(result.LicenceVersion.PostChange.AdminID)
+		profile, err := router.repo.LoadB2BAdminProfile(result.LicenceVersion.PostChange.AdminID)
 		if err != nil {
 			sugar.Infof("Error retreiving admin profile %s of licence %s", result.LicenceVersion.PostChange.AdminID, result.LicenceVersion.PostChange.ID)
 			sugar.Error(err)

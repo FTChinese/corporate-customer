@@ -31,7 +31,7 @@ func (router SubsRouter) CreateOrders(c echo.Context) error {
 	}
 
 	go func() {
-		profile, err := router.repo.AdminProfile(claims.AdminID)
+		profile, err := router.repo.LoadB2BAdminProfile(claims.AdminID)
 		if err != nil {
 			sugar.Error(err)
 			return

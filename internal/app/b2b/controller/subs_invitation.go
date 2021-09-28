@@ -102,7 +102,7 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 			return
 		}
 		// Find admin so that we could tell user who send the invitation.
-		adminProfile, err := router.repo.AdminProfile(claims.AdminID)
+		adminProfile, err := router.repo.LoadB2BAdminProfile(claims.AdminID)
 		if err != nil {
 			sugar.Error(err)
 			return
