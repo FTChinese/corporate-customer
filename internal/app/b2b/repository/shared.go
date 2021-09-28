@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/ftacademy/pkg/db"
@@ -15,6 +16,16 @@ func NewSharedRepo(dbs db.ReadWriteMyDBs) SharedRepo {
 	return SharedRepo{
 		DBs: dbs,
 	}
+}
+
+func (r SharedRepo) LoadB2BAdminProfile(id string) (admin.Profile, error) {
+	var p admin.Profile
+	err := r.DBs.Read.Get(&p, admin.StmtProfile, id)
+	if err != nil {
+		return admin.Profile{}, err
+	}
+
+	return p, nil
 }
 
 func (r SharedRepo) RetrieveAssignee(id string) (licence.Assignee, error) {
