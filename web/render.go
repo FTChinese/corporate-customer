@@ -12,7 +12,9 @@ import (
 	"time"
 )
 
-//go:embed template/*
+// The embed files' path starts with `template/xxx`
+
+//go:embed template
 var templates embed.FS
 
 type Footer struct {
@@ -42,8 +44,8 @@ func NewRenderer(conf Config) (Renderer, error) {
 		}, nil
 	}
 
-	log.Info("Production environment using rice template loader")
-	loader := NewEmbedFTTemplateLoader(templates)
+	log.Info("Production environment embed.FS template loader")
+	loader := NewEmbedFSTemplateLoader(templates)
 	set := pongo2.NewSet("rice", loader)
 	set.Debug = false
 
@@ -104,7 +106,7 @@ type EmbedFSTemplateLoader struct {
 	f embed.FS
 }
 
-func NewEmbedFTTemplateLoader(f embed.FS) EmbedFSTemplateLoader {
+func NewEmbedFSTemplateLoader(f embed.FS) EmbedFSTemplateLoader {
 	return EmbedFSTemplateLoader{
 		f: f,
 	}
@@ -114,8 +116,11 @@ func (loader EmbedFSTemplateLoader) Abs(base, name string) string {
 	return name
 }
 
+// Get a template file. The path is relative to `template`, such as `b2b/home.html`.
+// Since go embed.FS starts from the `template` level,
+// you have to prefix the path with `template/`
 func (loader EmbedFSTemplateLoader) Get(path string) (io.Reader, error) {
-	return loader.f.Open(path)
+	return loader.f.Open("template/" + path)
 }
 
 // ErrorHandler implements echo's HTTPErrorHandler.
