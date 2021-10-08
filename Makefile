@@ -36,7 +36,7 @@ build :
 	$(compile_default_exec)
 
 .PHONY: devconfig
-devconfig :
+devconfig : outdir
 	rsync $(local_config_file) $(build_dir)/$(config_file_name)
 
 .PHONY: run
@@ -60,9 +60,9 @@ install-go:
 	/data/opt/server/jenkins/jenkins/.gvm/bin/gvm use $(go_version)
 
 .PHONY: config
-config :
+config : outdir
 	# Download configuration file
-	rsync -v tk11:/home/node/config/$(config_file_name) ./$(build_dir)/
+	rsync -v tk11:/home/node/config/$(config_file_name) ./$(build_dir)/(config_file_name)
 	ls ./$(build_dir)
 
 .PHONY: publish
@@ -78,5 +78,9 @@ restart :
 .PHONY: clean
 clean :
 	go clean -x
-	rm build/*
+	rm -r build/*
 
+
+.PHONY: outdir
+outdir :
+	mkdir -p ./$(build_dir)
