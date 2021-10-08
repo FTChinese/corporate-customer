@@ -24,6 +24,8 @@ compile_linux_x86 := GOOS=linux GOARCH=amd64 go build -o $(linux_x86_exec) $(ldf
 linux_arm_exec := $(build_dir)/linux/arm/$(app_name)
 compile_linux_arm := GOOS=linux GOARM=7 GOARCH=arm go build -o $(linux_arm_exec) $(ldflags) -tags production -v $(src_dir)
 
+server_dir := /data/node/go/bin
+
 .PHONY: build
 build :
 	which go
@@ -67,8 +69,10 @@ config : outdir
 
 .PHONY: publish
 publish :
-	ssh ucloud "rm -f /home/node/go/bin/$(app_name).bak"
-	rsync -v ./$(default_exec) ucloud:/home/node/go/bin/$(app_name).bak
+	# Remove the .bak file
+	ssh ucloud "rm -f $(server_dir)/$(app_name).bak"
+	# Sync binary to the xxx.bak file
+	rsync -v ./$(default_exec) ucloud:$(server_dir)/$(app_name).bak
 
 .PHONY: restart
 restart :
