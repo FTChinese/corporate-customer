@@ -15,12 +15,7 @@ pipeline {
             }
     
             steps {
-                sh 'printenv'
-                echo 'Download config file'
                 sh 'make config'
-                echo 'Install go'
-                sh 'make install-go'
-                echo 'Build ftacademy app'
                 sh 'make build'
                 archiveArtifacts artifacts: 'build/**/*', fingerprint: true
             }
@@ -32,9 +27,7 @@ pipeline {
                 }
             }
             steps {
-                echo 'publish binary'
                 sh 'make publish'
-                echo 'restart app'
                 sh 'make restart'
             }
         }
