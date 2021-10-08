@@ -76,7 +76,8 @@ publish :
 
 .PHONY: restart
 restart :
-	ssh ucloud "cd /home/node/go/bin/ && \mv $(app_name).bak $(app_name)"
+	# Rename xxx.bak to app name
+	ssh ucloud "cd $(server_dir)/ && \mv $(app_name).bak $(app_name)"
 	ssh ucloud supervisorctl restart $(app_name)
 
 .PHONY: clean
