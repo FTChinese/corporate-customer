@@ -15,7 +15,6 @@ pipeline {
 //             }
     
             steps {
-                sh 'rm build'
                 sh 'make config'
                 sh 'make build'
                 archiveArtifacts artifacts: 'build/**/*', fingerprint: true
