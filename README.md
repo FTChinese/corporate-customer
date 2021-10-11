@@ -71,3 +71,45 @@ From highest to lowest:
 * IAP/Stripe
 * B2B
 * Alipay/Wechat
+
+## API
+
+### AJAX
+
+* GET /api/paywall
+* POST /api/b2b/auth/login
+* POST /api/b2b/auth/signup
+* GET /api/b2b/auth/verify/:token
+* POST /api/b2b/auth/password-reset
+* POST /api/b2b/auth/password-reset/letter
+* GET /api/b2b/auth/password-reset/token/:token
+* GET /api/b2b/account/jwt
+* POST /api/b2b/account/request-verification
+* PATCH /api/b2b/account/display-name
+* PATCH /api/b2b/account/password
+* GET /api/b2b/team
+* POST /api/b2b/team
+* PATCH /api/b2b/team
+* GET /api/b2b/search/membership?email=<string>
+* GET /api/b2b/orders
+* POST /api/b2b/orders
+* GET /api/b2b/orders/:id
+* GET /api/b2b/licences
+* GET /api/b2b/licences/:id
+* POST /api/b2b/licences/:id/revoke
+* GET /api/b2b/invitations
+* POST /api/b2b/invitations
+* POST /api/b2b/invitations/:id/revoke
+* GET /api/b2b/licence/invitation/verification/:token
+* POST /api/b2b/licence/grant
+* POST /api/reader/signup
+* POST /api/reader/verification/:token
+
+### Restful API
+
+Used by another backend app "superyard".
+
+* GET /api/cms/profile/:id
+* GET /api/cms/teams/:id
+* GET /api/cms/orders/:id
+* POST /api/cms/orders/:id
