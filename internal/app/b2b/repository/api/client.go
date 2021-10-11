@@ -57,6 +57,8 @@ func (c Client) VerifySignup(token string) (*http.Response, error) {
 func (c Client) Paywall() (*http.Response, error) {
 	url := c.baseURL + "/paywall"
 
+	log.Printf("Fetching data from %s", url)
+
 	resp, errs := fetch.New().Get(url).SetBearerAuth(c.key).End()
 
 	if errs != nil {
