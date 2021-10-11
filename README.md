@@ -102,8 +102,8 @@ From highest to lowest:
 * POST /api/b2b/invitations/:id/revoke
 * GET /api/b2b/licence/invitation/verification/:token
 * POST /api/b2b/licence/grant
-* POST /api/reader/signup
-* POST /api/reader/verification/:token
+* POST /api/reader/auth/signup
+* POST /api/reader/auth/verification/:token
 
 ### Restful API
 
