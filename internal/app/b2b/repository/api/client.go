@@ -16,8 +16,8 @@ type Client struct {
 func NewSubsAPIClient(prod bool) Client {
 	log.Printf("Client for subscription api running in production: %t", prod)
 	return Client{
-		key:     config.MustSubsAPIKey().Pick(false),
-		baseURL: config.MustSubsAPIv3BaseURL().Pick(false),
+		key:     config.MustSubsAPIKey().Pick(prod),        // Pick the correct api access token
+		baseURL: config.MustSubsAPIv3BaseURL().Pick(false), // Always use localhost.
 	}
 }
 
