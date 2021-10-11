@@ -1,3 +1,4 @@
+//go:build !production
 // +build !production
 
 package mock
@@ -178,8 +179,6 @@ func (b MemberBuilder) WithB2B(licID string) MemberBuilder {
 	}
 
 	b.b2bLicID = licID
-	b.autoRenewal = true
-	b.subsStatus = enum.SubsStatusActive
 	return b.WithPayMethod(enum.PayMethodB2B)
 }
 
@@ -265,8 +264,8 @@ func (b MemberBuilder) Build() reader.Membership {
 		m.FtcPlanID = null.StringFrom(b.price.ID)
 
 	case enum.PayMethodStripe:
-		m.StripePlanID = null.StringFrom(faker.GenStripePlanID())
 		m.StripeSubsID = null.StringFrom(b.stripeSubsID)
+		m.StripePlanID = null.StringFrom(faker.GenStripePlanID())
 
 	case enum.PayMethodApple:
 		m.AppleSubsID = null.StringFrom(b.iapTxID)
