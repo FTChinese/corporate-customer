@@ -52,16 +52,18 @@ func main() {
 
 	pm := postman.New(config.MustGetHanqiConn())
 
-	appKey := config.MustGetAppKey("web_app.b2b")
-	b2bGuard := controller.NewJWTGuard(appKey.GetJWTKey())
+	b2bAppKey := config.MustGetB2BAppKey()
+	readerAppKey := config.MustGetReaderAppKey()
+
+	//b2bGuard := controller.NewJWTGuard(b2bAppKey.GetJWTKey())
 	oauthGuard := controller.NewOAuthGuard(myDBs)
 
 	apiClient := api.NewSubsAPIClient(isProduction)
 
-	adminRouter := controller.NewAdminRouter(myDBs, pm, b2bGuard, logger)
+	adminRouter := controller.NewAdminRouter(myDBs, pm, b2bAppKey, logger)
 	subsRouter := controller.NewSubsRouter(myDBs, pm, logger)
 	productRouter := controller.NewProductRouter(apiClient, logger)
-	readerRouter := controller.NewReaderRouter(apiClient)
+	readerRouter := controller.NewReaderRouter(apiClient, readerAppKey, version)
 	cmsRouter := controller.NewCMSRouter(myDBs, pm, logger)
 
 	e := echo.New()
@@ -123,7 +125,7 @@ func main() {
 		}
 	}
 
-	b2bAccountGroup := b2bAPIGroup.Group("/account", b2bGuard.RequireLoggedIn)
+	b2bAccountGroup := b2bAPIGroup.Group("/account", adminRouter.RequireLoggedIn)
 	{
 		//b2bAccountGroup.GET("/", accountRouter.Account)
 		b2bAccountGroup.GET("/jwt/", adminRouter.RefreshJWT)
@@ -132,20 +134,20 @@ func main() {
 		b2bAccountGroup.PATCH("/password/", adminRouter.ChangePassword)
 	}
 
-	b2bTeamGroup := b2bAPIGroup.Group("/team", b2bGuard.RequireLoggedIn)
+	b2bTeamGroup := b2bAPIGroup.Group("/team", adminRouter.RequireLoggedIn)
 	{
 		b2bTeamGroup.GET("/", adminRouter.LoadTeam)
 		b2bTeamGroup.POST("/", adminRouter.CreateTeam)
 		b2bTeamGroup.PATCH("/", adminRouter.UpdateTeam)
 	}
 
-	b2bSearchGroup := b2bAPIGroup.Group("/search", b2bGuard.RequireLoggedIn)
+	b2bSearchGroup := b2bAPIGroup.Group("/search", adminRouter.RequireLoggedIn)
 	{
 		// ?email=<string>
 		b2bSearchGroup.GET("/membership/", subsRouter.FindMembership)
 	}
 
-	orderGroup := b2bAPIGroup.Group("/orders", b2bGuard.RequireTeamSet)
+	orderGroup := b2bAPIGroup.Group("/orders", adminRouter.RequireTeamSet)
 	{
 		// List orders
 		orderGroup.GET("/", subsRouter.ListOrders)
@@ -154,7 +156,7 @@ func main() {
 		orderGroup.GET("/:id/", subsRouter.LoadOrder)
 	}
 
-	b2bLicenceGroup := b2bAPIGroup.Group("/licences", b2bGuard.RequireTeamSet)
+	b2bLicenceGroup := b2bAPIGroup.Group("/licences", adminRouter.RequireTeamSet)
 	{
 		// List licences
 		b2bLicenceGroup.GET("/", subsRouter.ListLicence)
@@ -163,7 +165,7 @@ func main() {
 		b2bLicenceGroup.POST("/:id/revoke/", subsRouter.RevokeLicence)
 	}
 
-	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", b2bGuard.RequireTeamSet)
+	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", adminRouter.RequireTeamSet)
 	{
 		// List invitations
 		b2bInvitationGroup.GET("/", subsRouter.ListInvitations)
@@ -196,9 +198,46 @@ func main() {
 	readerAPIGroup := apiGroup.Group("/reader")
 	readerAuthGroup := readerAPIGroup.Group("/auth")
 	{
-		readerAuthGroup.POST("/signup/", readerRouter.SignUp)
+		readerAuthGroup.POST("/signup/", readerRouter.EmailSignUp)
 		readerAuthGroup.POST("/verification/:token", readerRouter.VerifyEmail)
-		// Reader verification.
+	}
+	emailAuthGroup := readerAuthGroup.Group("/email")
+	{
+		emailAuthGroup.GET("/exists/", readerRouter.EmailExists)
+		emailAuthGroup.POST("/login/", readerRouter.EmailLogin)
+		emailAuthGroup.POST("/signup/", readerRouter.EmailSignUp)
+		emailAuthGroup.POST("/verification/:token/", readerRouter.VerifyEmail)
+	}
+	mobileAuthGroup := readerAuthGroup.Group("/mobile")
+	{
+		mobileAuthGroup.PUT("/verification/", readerRouter.RequestMobileLoginSMS)
+		mobileAuthGroup.POST("/verification/", readerRouter.VerifyMobileLoginSMS)
+		mobileAuthGroup.POST("/link/", readerRouter.MobileLinkExistingEmail)
+		mobileAuthGroup.POST("/signup/", readerRouter.MobileSignUp)
+	}
+	passwordResetGroup := readerAuthGroup.Group("/password-reset")
+	{
+		passwordResetGroup.POST("/", readerRouter.ResetPassword)
+		passwordResetGroup.POST("/letter", readerRouter.RequestPwResetLetter)
+		passwordResetGroup.GET("/tokens/:token", readerRouter.VerifyPwResetToken)
+	}
+
+	readerAccountGroup := readerAPIGroup.Group("/account", readerRouter.RequireLoggedIn)
+	{
+		readerAccountGroup.GET("/", readerRouter.LoadAccount)
+		//readerAccountGroup.GET("/email/", readerRouter.UpdateEmail)
+		//readerAccountGroup.POST("/request-verification/", readerRouter.RequestVerification)
+		//readerAccountGroup.PATCH("/name/", readerRouter.UpdateName)
+		//readerAccountGroup.PATCH("/password/", readerRouter.UpdatePassword)
+		//readerAccountGroup.PATCH("/mobile/", readerRouter.UpdateMobile)
+		//readerAccountGroup.PUT("/mobile/verification", readerRouter.SMSToModifyMobile)
+		//readerAccountGroup.GET("/address/", readerRouter.LoadAddress)
+		//readerAccountGroup.PATCH("/address/", readerRouter.UpdateAddress)
+		//readerAccountGroup.GET("/profile/", readerRouter.LoadProfile)
+		//readerAccountGroup.PATCH("/profile/", readerRouter.UpdateProfile)
+		//	readerAccountGroup.POST("/wx/signup/", readerRouter.WxSignUp)
+		//	readerAccountGroup.POST("/wx/link/", readerRouter.LinkWechat)
+		//	readerAccountGroup.POST("/wx/unlink", readerRouter.UnlinkWx)
 	}
 
 	//-------------------------------------------------
