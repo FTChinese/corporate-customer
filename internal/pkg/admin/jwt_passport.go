@@ -12,7 +12,7 @@ func NewStandardClaims(expiresAt int64) jwt.StandardClaims {
 	return jwt.StandardClaims{
 		ExpiresAt: expiresAt,
 		IssuedAt:  time.Now().Unix(),
-		Issuer:    "cn.facademy.b2b",
+		Issuer:    "cn.ftacademy.b2b",
 	}
 }
 
