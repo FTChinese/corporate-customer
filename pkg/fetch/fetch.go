@@ -94,18 +94,9 @@ func (f *Fetch) SetBearerAuth(key string) *Fetch {
 	return f
 }
 
-func (f *Fetch) SetBasicAuth(username, password string) *Fetch {
-	f.basicAuth = BasicAuth{
-		Username: strings.TrimSpace(username),
-		Password: strings.TrimSpace(password),
-	}
-
-	return f
-}
-
-func (f *Fetch) AcceptLang(v string) *Fetch {
-	f.Header.Set("Accept-Language", v)
-
+// WithHeader overrides existing Header
+func (f *Fetch) WithHeader(h http.Header) *Fetch {
+	f.Header = h
 	return f
 }
 
@@ -123,9 +114,43 @@ func (f *Fetch) SetHeaderMap(h map[string]string) *Fetch {
 	return f
 }
 
+func (f *Fetch) SetBasicAuth(username, password string) *Fetch {
+	f.basicAuth = BasicAuth{
+		Username: strings.TrimSpace(username),
+		Password: strings.TrimSpace(password),
+	}
+
+	return f
+}
+
+func (f *Fetch) SetFtcID(id string) *Fetch {
+	return f.SetHeader("X-User-Id", id)
+}
+
+func (f *Fetch) SetUnionID(id string) *Fetch {
+	return f.SetHeader("X-Union-Id", id)
+}
+
+func (f *Fetch) AcceptLang(v string) *Fetch {
+	f.Header.Set("Accept-Language", v)
+
+	return f
+}
+
 func (f *Fetch) Send(body io.Reader) *Fetch {
 	f.body = body
 	return f
+}
+
+func (f *Fetch) StreamJSON(body io.Reader) *Fetch {
+	f.Header.Add("Content-Type", ContentJSON)
+	f.body = body
+
+	return f
+}
+
+func (f *Fetch) SendJSONBlob(b []byte) *Fetch {
+	return f.StreamJSON(bytes.NewReader(b))
 }
 
 func (f *Fetch) SendJSON(v interface{}) *Fetch {
@@ -136,15 +161,12 @@ func (f *Fetch) SendJSON(v interface{}) *Fetch {
 		return f
 	}
 
-	f.Header.Add("Content-Type", ContentJSON)
-	f.body = bytes.NewReader(d)
-
-	return f
+	return f.StreamJSON(bytes.NewReader(d))
 }
 
 // End perform the actual HTTP call.
 // To get the response body for further processing
-// you can use `ioutil.ReadAll(resp.body)`
+// you can use ioutil.ReadAll
 // or directly forward raw io to client using
 // echo's Stream() method.
 func (f *Fetch) End() (*http.Response, []error) {
@@ -173,34 +195,40 @@ func (f *Fetch) End() (*http.Response, []error) {
 	return resp, nil
 }
 
-func (f *Fetch) EndBytes() (*http.Response, []byte, []error) {
+// EndBlob reads response body and returns as a slice of bytes
+func (f *Fetch) EndBlob() (Response, []error) {
 	resp, errs := f.End()
 	if errs != nil {
-		return resp, nil, f.Errors
+		return Response{}, f.Errors
 	}
 
+	defer resp.Body.Close()
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		f.Errors = append(f.Errors, err)
-		return resp, nil, f.Errors
+		return Response{}, f.Errors
 	}
 
-	return resp, b, nil
+	return Response{
+		Status:     resp.Status,
+		StatusCode: resp.StatusCode,
+		Body:       b,
+	}, nil
 }
 
-func (f *Fetch) EndJSON(v interface{}) []error {
-	resp, errs := f.End()
+// EndJSON decodes response body to the specified data structure.
+// It also returned the original response body as bytes.
+func (f *Fetch) EndJSON(v interface{}) (Response, []error) {
+	resp, errs := f.EndBlob()
 	if errs != nil {
-		return f.Errors
+		return Response{}, f.Errors
 	}
 
-	dec := json.NewDecoder(resp.Body)
-
-	err := dec.Decode(v)
+	err := json.Unmarshal(resp.Body, v)
 	if err != nil {
 		f.Errors = append(f.Errors, err)
-		return f.Errors
+		return Response{}, f.Errors
 	}
 
-	return nil
+	return resp, nil
 }
