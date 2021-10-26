@@ -1,8 +1,10 @@
+//go:build !production
 // +build !production
 
 package faker
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -16,6 +18,15 @@ func MustMarshalIndent(v interface{}) []byte {
 	}
 
 	return b
+}
+
+func MustMarshalToReader(v interface{}) io.Reader {
+	b, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+
+	return bytes.NewReader(b)
 }
 
 func MustReadBody(body io.Reader) string {
