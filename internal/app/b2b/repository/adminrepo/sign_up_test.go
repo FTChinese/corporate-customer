@@ -31,7 +31,7 @@ func TestEnv_SignUp(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if err := env.SignUp(tt.args.a); (err != nil) != tt.wantErr {
-				t.Errorf("SignUp() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("EmailSignUp() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
