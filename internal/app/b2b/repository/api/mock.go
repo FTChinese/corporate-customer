@@ -9,7 +9,7 @@ import (
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/pkg/faker"
 	"github.com/brianvoe/gofakeit/v5"
-	"io/ioutil"
+	"net/http"
 )
 
 func MockNewClient() Client {
@@ -19,23 +19,20 @@ func MockNewClient() Client {
 
 func (c Client) MustCreateAssignee() licence.Assignee {
 	faker.SeedGoFake()
-	resp, err := c.ReaderSignup(input.SignupParams{
+
+	resp, err := c.EmailSignUp(faker.MustMarshalIndent(input.SignupParams{
 		Credentials: input.Credentials{
 			Email:    gofakeit.Email(),
 			Password: faker.SimplePassword(),
 		},
-	})
-	if err != nil {
-		panic(err)
-	}
+	}), http.Header{})
 
-	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
 
 	var a licence.Assignee
-	if err := json.Unmarshal(b, &a); err != nil {
+	if err := json.Unmarshal(resp.Body, &a); err != nil {
 		panic(err)
 	}
 
