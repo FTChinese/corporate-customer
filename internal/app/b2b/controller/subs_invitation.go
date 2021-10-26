@@ -52,7 +52,7 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	var params input.InvitationParams
 	if err := c.Bind(&params); err != nil {
@@ -135,7 +135,7 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 // Admin should revoke a licence for this purpose.
 func (router SubsRouter) RevokeInvitation(c echo.Context) error {
 	invID := c.Param("id") // the invitation id
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	result, err := router.repo.RevokeInvitation(invID, claims.TeamID.String)
 	// TODO: handle different errors
@@ -149,7 +149,7 @@ func (router SubsRouter) RevokeInvitation(c echo.Context) error {
 // ListInvitations shows all invitations
 // Query: ?page=1&per_page=10
 func (router SubsRouter) ListInvitations(c echo.Context) error {
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	var page gorest.Pagination
 	if err := c.Bind(&page); err != nil {

@@ -16,7 +16,7 @@ func (router SubsRouter) CreateOrders(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	var cart checkout.ShoppingCart
 	if err := c.Bind(&cart); err != nil {
@@ -53,7 +53,7 @@ func (router SubsRouter) CreateOrders(c echo.Context) error {
 }
 
 func (router SubsRouter) ListOrders(c echo.Context) error {
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	var page gorest.Pagination
 	if err := c.Bind(&page); err != nil {
@@ -72,7 +72,7 @@ func (router SubsRouter) ListOrders(c echo.Context) error {
 }
 
 func (router SubsRouter) LoadOrder(c echo.Context) error {
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	id := c.Param("id")
 

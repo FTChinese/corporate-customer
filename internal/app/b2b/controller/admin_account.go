@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -10,14 +9,14 @@ import (
 
 // RefreshJWT updates jwt token.
 func (router AdminRouter) RefreshJWT(c echo.Context) error {
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	baseAccount, err := router.repo.BaseAccountByID(claims.AdminID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	bearer, err := admin.NewPassport(baseAccount, router.guard.signingKey)
+	bearer, err := router.guard.CreatePassport(baseAccount)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -35,7 +34,7 @@ func (router AdminRouter) RequestVerification(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 	var params input.ReqEmailVrfParams
 	if err := c.Bind(&params); err != nil {
 		return render.NewBadRequest(err.Error())
@@ -64,7 +63,7 @@ func (router AdminRouter) RequestVerification(c echo.Context) error {
 // 400 - If request body cannot be parsed.
 // Client should refresh JWT after success.
 func (router AdminRouter) ChangeName(c echo.Context) error {
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	var params input.NameUpdateParams
 	if err := c.Bind(&params); err != nil {
@@ -107,7 +106,7 @@ func (router AdminRouter) ChangeName(c echo.Context) error {
 // 500 - DB error.
 // 204 - Success.
 func (router AdminRouter) ChangePassword(c echo.Context) error {
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	var params input.PasswordUpdateParams
 	if err := c.Bind(&params); err != nil {

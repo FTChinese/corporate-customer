@@ -14,7 +14,7 @@ import (
 func (router SubsRouter) LoadLicence(c echo.Context) error {
 	licID := c.Param("licID")
 	// TODO: ensure teamId actually exist before hitting this endpoint.
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	lic, err := router.repo.LoadLicence(admin.AccessRight{
 		RowID:  licID,
@@ -28,7 +28,7 @@ func (router SubsRouter) LoadLicence(c echo.Context) error {
 }
 
 func (router SubsRouter) ListLicence(c echo.Context) error {
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	var page gorest.Pagination
 	if err := c.Bind(&page); err != nil {
@@ -135,7 +135,7 @@ func (router SubsRouter) RevokeLicence(c echo.Context) error {
 
 	id := c.Param("id")
 
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	result, err := router.repo.RevokeLicence(admin.AccessRight{
 		RowID:  id,

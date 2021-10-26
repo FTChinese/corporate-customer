@@ -18,7 +18,7 @@ func (router AdminRouter) CreateTeam(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	var params input.TeamParams
 	if err := c.Bind(&params); err != nil {
@@ -44,7 +44,7 @@ func (router AdminRouter) LoadTeam(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	t, err := router.repo.LoadTeam(claims.TeamID.String, claims.AdminID)
 	if err != nil {
@@ -62,7 +62,7 @@ func (router AdminRouter) UpdateTeam(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	claims := getPassportClaims(c)
+	claims := getAdminClaims(c)
 
 	var newVal input.TeamParams
 	if err := c.Bind(&newVal); err != nil {
