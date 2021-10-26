@@ -42,3 +42,11 @@ func MustGetAppKey(name string) AppKey {
 
 	return k
 }
+
+func MustGetB2BAppKey() AppKey {
+	return MustGetAppKey("web_app.b2b")
+}
+
+func MustGetReaderAppKey() AppKey {
+	return MustGetAppKey("web_app.next_reader")
+}
