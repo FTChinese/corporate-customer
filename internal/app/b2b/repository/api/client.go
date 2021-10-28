@@ -8,7 +8,7 @@ import (
 const (
 	pathBaseEmailAuth        = "/auth/email"
 	pathBaseMobileAuth       = "/auth/mobile"
-	pathBasePwReset          = "/password-reset"
+	pathBasePwReset          = "/auth/password-reset"
 	pathBaseAccount          = "/account"
 	pathEmailExists          = pathBaseEmailAuth + "/exists"
 	pathEmailLogin           = pathBaseEmailAuth + "/login"
