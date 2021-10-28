@@ -89,7 +89,7 @@ func (router ReaderRouter) EmailSignUp(c echo.Context) error {
 }
 
 func (router ReaderRouter) VerifyEmail(c echo.Context) error {
-	token := c.QueryParam("token")
+	token := c.Param("token")
 
 	resp, err := router.apiClient.VerifyEmail(token)
 	if err != nil {
