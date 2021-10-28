@@ -218,8 +218,8 @@ func main() {
 	passwordResetGroup := readerAuthGroup.Group("/password-reset")
 	{
 		passwordResetGroup.POST("/", readerRouter.ResetPassword)
-		passwordResetGroup.POST("/letter", readerRouter.RequestPwResetLetter)
-		passwordResetGroup.GET("/tokens/:token", readerRouter.VerifyPwResetToken)
+		passwordResetGroup.POST("/letter/", readerRouter.RequestPwResetLetter)
+		passwordResetGroup.GET("/tokens/:token/", readerRouter.VerifyPwResetToken)
 	}
 
 	readerAccountGroup := readerAPIGroup.Group("/account", readerRouter.RequireLoggedIn)
