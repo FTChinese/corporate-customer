@@ -10,14 +10,22 @@ import (
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
 	"github.com/FTChinese/ftacademy/web"
+	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"os"
+	"time"
 )
 
 //go:embed build/api.toml
 var tomlConfig string
+
+//go:embed client_version_b2b
+var clientVersionB2B string
+
+//go:embed client_version_reader
+var clientVersionReader string
 
 var (
 	isProduction bool
@@ -88,7 +96,28 @@ func main() {
 		c.Response().Header().Add("Cache-Control", "must-revalidate")
 		c.Response().Header().Add("Pragma", "no-cache")
 
-		return c.Render(http.StatusOK, "b2b/home.html", nil)
+		return c.Render(http.StatusOK, "b2b/home.html", pongo2.Context{
+			"footer": web.Footer{
+				Year:          time.Now().Year(),
+				ClientVersion: clientVersionB2B,
+				ServerVersion: version,
+			},
+		})
+	})
+
+	e.GET("/reader/*", func(c echo.Context) error {
+		c.Response().Header().Add("Cache-Control", "no-cache")
+		c.Response().Header().Add("Cache-Control", "no-store")
+		c.Response().Header().Add("Cache-Control", "must-revalidate")
+		c.Response().Header().Add("Pragma", "no-cache")
+
+		return c.Render(http.StatusOK, "reader/home.html", pongo2.Context{
+			"footer": web.Footer{
+				Year:          time.Now().Year(),
+				ClientVersion: clientVersionReader,
+				ServerVersion: version,
+			},
+		})
 	})
 
 	apiGroup := e.Group("/api")
