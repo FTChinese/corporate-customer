@@ -9,17 +9,12 @@ import (
 	"github.com/labstack/gommon/log"
 	"io"
 	"net/http"
-	"time"
 )
 
 // The embed files' path starts with `template/xxx`
 
 //go:embed template
 var templates embed.FS
-
-type Footer struct {
-	Year int
-}
 
 type Config struct {
 	Debug   bool
@@ -96,8 +91,6 @@ func (r Renderer) Render(w io.Writer, name string, data interface{}, e echo.Cont
 	if err != nil {
 		return err
 	}
-
-	ctx["footer"] = Footer{Year: time.Now().Year()}
 
 	return t.ExecuteWriter(ctx, w)
 }
