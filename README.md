@@ -1,15 +1,6 @@
 ## Development
 
-Make sure you have a configuration file under you home directory: `~/config/api.toml`. It should have an entry for DB connection:
-
-```toml
-[mysql]
-    [mysql.dev]
-    host = "" # string, you db ip
-    port = 123 # number, you db port
-    user = "" # string, your db user name
-    pass = "" # string, your db password
-```
+To build the binary, `./build/api.toml` file must exist. This file will be embedded into the resulting binary using go 1.16 embed package. Make sure your have go above 1.16.
 
 ### Go get
 
@@ -19,21 +10,13 @@ Linux/Max: `export GOPROXY=https://goproxy.io`
 
 For windows, open your terminal `$Env:GOPROXY=https://goproxy.io`
 
-### Front-end Assets
-
-Run command: `cd client && npm install && npm run build`
-
 ### Run
 
 `make build && make run`
 
 You can use Windows Subsystem Linux to run Makefile. Or install [this tool](https://taskfile.dev/#/installation) to use the Taskfile.yml: `task build && task run`
 
-## Deployment
-
-The HTML files in `templates` are compiled to go binary using [go.rice](https://github.com/GeertJohan/go.rice). Install it to your machine and then run `rice embed-go`. It will generate `rice-box.go` file. After that you can run `make linux`.
-
-## Licence Rules
+## B2B Licence Rules
 
 Ideally a licence user should have a clean account without membership and this account is dedicated to b2b licence. However, reality does not always go that way. We should follow these rules to add b2b to existing subscription:
 
@@ -74,9 +57,21 @@ From highest to lowest:
 
 ## API
 
+The API consists of 2 parts based on request validation methods：
+
+* Handle AJAX request using Json Web Token;
+* Handle restful request using authorization key.
+
 ### AJAX
 
-* GET /api/paywall
+The AJAX part is divided into multiple sections based on features.
+
+#### Paywall
+
+* GET `/api/paywall` Output paywall data.
+
+#### B2B Section
+
 * POST /api/b2b/auth/login
 * POST /api/b2b/auth/signup
 * GET /api/b2b/auth/verify/:token
@@ -102,8 +97,36 @@ From highest to lowest:
 * POST /api/b2b/invitations/:id/revoke
 * GET /api/b2b/licence/invitation/verification/:token
 * POST /api/b2b/licence/grant
-* POST /api/reader/auth/signup
-* POST /api/reader/auth/verification/:token
+
+#### Reader Section
+
+This section simply forwards requests for subscription-api.
+
+* GET `/api/reader/auth/email/exists` Check if an email is signed up.
+* POSt `/api/reader/auth/email/login` Login using email.
+* POST `/api/reader/auth/email/signup` Create a new email account. It also goes here when a new mobile is trying to create a new email account and link to it.
+* POST `/api/reader/auth/email/verification/:token` Verify email.
+* PUT `/api/reader/auth/mobile/verification` Send user a SMS.
+* POST `/api/reader/auth/mobile/verication` Verify the SMS in the above step.
+* POST `/api/reader/auth/mobile/link` A new mobile links to existing email account
+* POST `/api/reader/auth/mobile/signup` Create a new mobile-only account.
+* POST `/api/reader/password-reset` Reset password.
+* POST `/api/reader/password-reset/letter` Send a password-reset letter to user.
+* GET `/api/reader/password-reset/tokens/:token` Verify a password reset letter.
+* GET `/api/reader/account` Get user account, either ftc or wechat.
+* PATCH `/api/reader/account/email` Change email for ftc account.
+* POST `/api/reader/account/email/request-verification` Re-send a verification email.
+* PATCH `/api/reader/account/name` Change username
+* PATCH `/api/reader/account/password` Change password
+* PATCH `/api/reader/account/mobile` Switch mobile
+* PUT `/api/reader/account/mobile/verification` Send an SMS before permitting mobile switch.
+* GET `/api/reader/account/address` Load address.
+* PATCH `/api/reader/account/address` Update address
+* GET `/api/reader/account/profile` Load profile
+* PATCH `/api/reader/account/profile` Update profile
+* POST `/api/reader/account/wx/signup` A wechat-login user creates a new email account and link to it.
+* POST `/api/reader/account/wx/link` A wechat-login user links to existing email account.
+* POST `/api/reader/account/wx/unlink` A wechat-login user, with email account linked, unlinks the email account.
 
 ### Restful API
 
