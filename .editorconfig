@@ -9,6 +9,10 @@ insert_final_newline = false
 max_line_length = 120
 tab_width = 4
 
+# Tab indentation (no size specified)
+[Makefile]
+indent_style = tab
+
 [{*.yml,*.yaml}]
 indent_size = 2
 
