@@ -63,6 +63,13 @@ func (f *Fetch) Put(url string) *Fetch {
 	return f
 }
 
+func (f *Fetch) Patch(url string) *Fetch {
+	f.method = "PATCH"
+	f.url = url
+
+	return f
+}
+
 func (f *Fetch) SetParam(key, value string) *Fetch {
 	f.Query.Set(key, value)
 
