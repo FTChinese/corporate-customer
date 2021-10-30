@@ -9,7 +9,6 @@ const (
 	pathBaseEmailAuth        = "/auth/email"
 	pathBaseMobileAuth       = "/auth/mobile"
 	pathBasePwReset          = "/auth/password-reset"
-	pathBaseAccount          = "/account"
 	pathEmailExists          = pathBaseEmailAuth + "/exists"
 	pathEmailLogin           = pathBaseEmailAuth + "/login"
 	pathEmailSignUp          = pathBaseEmailAuth + "/signup"
@@ -19,17 +18,32 @@ const (
 	pathMobileSignUp         = pathBaseMobileAuth + "/signup"
 	pathPwResetRequestLetter = pathBasePwReset + "/letter"
 	pathPwResetVerifyToken   = pathBasePwReset + "/tokens/"
-	pathEmail                = pathBaseAccount + "/email"
-	pathRequestVrfEmail      = pathBaseAccount + "/email/request-verification"
-	pathUserName             = pathBaseAccount + "/password"
-	pathMobile               = pathBaseAccount + "/mobile"
-	pathSMSNewMobile         = pathBaseAccount + "/mobile/verification"
-	pathAddress              = pathBaseAccount + "/address"
-	pathProfile              = pathBaseAccount + "/profile"
-	pathWxAccount            = pathBaseAccount + "/wx"
-	pathWxSignUp             = pathBaseAccount + "/wx/signup"
-	pathWxLink               = pathBaseAccount + "/wx/link"
-	pathWxUnlink             = pathBaseAccount + "/wx/unlink"
+)
+
+const (
+	pathBaseAccount     = "/account"
+	pathEmail           = pathBaseAccount + "/email"
+	pathRequestVrfEmail = pathBaseAccount + "/email/request-verification"
+	pathUserName        = pathBaseAccount + "/name"
+	pathPassword        = pathBaseAccount + "/password"
+	pathMobile          = pathBaseAccount + "/mobile"
+	pathMobileUpdateSMS = pathBaseAccount + "/mobile/verification"
+	pathAddress         = pathBaseAccount + "/address"
+	pathProfile         = pathBaseAccount + "/profile"
+	pathWxAccount       = pathBaseAccount + "/wx"
+	pathWxSignUp        = pathBaseAccount + "/wx/signup"
+	pathWxLink          = pathBaseAccount + "/wx/link"
+	pathWxUnlink        = pathBaseAccount + "/wx/unlink"
+)
+
+const (
+	pathBaseWxPay     = "/wxpay"
+	pathBaseAliPay    = "/alipay"
+	pathWxPayDesktop  = pathBaseWxPay + "/desktop"
+	pathWxPayMobile   = pathBaseWxPay + "/mobile" // Mobile browser
+	pathWxPayJsApi    = pathBaseWxPay + "/jsapi"  // wechat in-house browser.
+	pathAliPayDesktop = pathBaseAliPay + "/desktop"
+	pathAliPayMobile  = pathBaseAliPay + "/mobile"
 )
 
 type Client struct {
