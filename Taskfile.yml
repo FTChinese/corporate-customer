@@ -1,9 +1,5 @@
 version: '3'
 
-vars:
-  APP_NAME: ftacademy
-  EXEC: ./build{{OS}}/{{ARCH}}/ftacademy{{exeExt}}
-
 tasks:
   build:
     cmds:
