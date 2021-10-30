@@ -4,10 +4,8 @@ go 1.16
 
 require (
 	github.com/FTChinese/go-rest v0.9.1
-	github.com/GeertJohan/go.rice v1.0.2
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/brianvoe/gofakeit/v5 v5.11.2
-	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/flosch/pongo2/v4 v4.0.2
 	github.com/go-mail/mail v2.3.1+incompatible
 	github.com/go-sql-driver/mysql v1.6.0
