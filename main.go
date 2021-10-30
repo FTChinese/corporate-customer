@@ -226,10 +226,7 @@ func main() {
 	// ---------------------------------------------
 	readerAPIGroup := apiGroup.Group("/reader")
 	readerAuthGroup := readerAPIGroup.Group("/auth")
-	{
-		readerAuthGroup.POST("/signup/", readerRouter.EmailSignUp)
-		readerAuthGroup.POST("/verification/:token", readerRouter.VerifyEmail)
-	}
+
 	emailAuthGroup := readerAuthGroup.Group("/email")
 	{
 		emailAuthGroup.GET("/exists/", readerRouter.EmailExists)
@@ -254,7 +251,7 @@ func main() {
 	readerAccountGroup := readerAPIGroup.Group("/account", readerRouter.RequireLoggedIn)
 	{
 		readerAccountGroup.GET("/", readerRouter.LoadAccount)
-		//readerAccountGroup.GET("/email/", readerRouter.UpdateEmail)
+		//readerAccountGroup.PATCH("/email/", readerRouter.UpdateEmail)
 		//readerAccountGroup.POST("/request-verification/", readerRouter.RequestVerification)
 		//readerAccountGroup.PATCH("/name/", readerRouter.UpdateName)
 		//readerAccountGroup.PATCH("/password/", readerRouter.UpdatePassword)
