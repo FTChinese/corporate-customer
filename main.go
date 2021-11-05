@@ -247,6 +247,12 @@ func main() {
 		passwordResetGroup.POST("/letter/", readerRouter.RequestPwResetLetter)
 		passwordResetGroup.GET("/tokens/:token/", readerRouter.VerifyPwResetToken)
 	}
+	wxAuthGroup := readerAuthGroup.Group("/wx")
+	{
+		wxAuthGroup.GET("/code", readerRouter.WxRequestCode)
+		wxAuthGroup.POST("/login", readerRouter.WxLogin)
+		wxAuthGroup.POST("/refresh", readerRouter.WxRefresh)
+	}
 
 	readerAccountGroup := readerAPIGroup.Group("/account", readerRouter.RequireLoggedIn)
 	{
