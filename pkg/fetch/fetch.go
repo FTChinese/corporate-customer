@@ -95,12 +95,6 @@ func (f *Fetch) SetQuery(q url.Values) *Fetch {
 	return f
 }
 
-func (f *Fetch) SetBearerAuth(key string) *Fetch {
-	f.Header.Set("Authorization", "Bearer "+key)
-
-	return f
-}
-
 // WithHeader overrides existing Header
 func (f *Fetch) WithHeader(h http.Header) *Fetch {
 	f.Header = h
@@ -117,6 +111,12 @@ func (f *Fetch) SetHeaderMap(h map[string]string) *Fetch {
 	for k, v := range h {
 		f.Header.Set(k, v)
 	}
+
+	return f
+}
+
+func (f *Fetch) SetBearerAuth(key string) *Fetch {
+	f.Header.Set("Authorization", "Bearer "+key)
 
 	return f
 }
