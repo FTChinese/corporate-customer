@@ -49,42 +49,180 @@ func (router ReaderRouter) LoadAccountWithJWT(c echo.Context) error {
 	return router.handlePassport(c, resp)
 }
 
-//func (router ReaderRouter) UpdateEmail(c echo.Context) error {
-//
-//}
-//
-//func (router ReaderRouter) RequestVerification(c echo.Context) error {
-//
-//}
+func (router ReaderRouter) UpdateEmail(c echo.Context) error {
+	claims := getReaderClaims(c)
 
-//func (router ReaderRouter) UpdateName(c echo.Context) error {
-//
-//}
-//
-//func (router ReaderRouter) UpdatePassword(c echo.Context) error {
-//
-//}
-//
-//func (router ReaderRouter) SMSToModifyMobile(c echo.Context) error {
-//
-//}
-//
-//func (router ReaderRouter) UpdateMobile(c echo.Context) error {
-//
-//}
-//
-//func (router ReaderRouter) LoadAddress(c echo.Context) error {
-//
-//}
-//
-//func (router ReaderRouter) UpdateAddress(c echo.Context) error {
-//
-//}
-//
-//func (router ReaderRouter) LoadProfile(c echo.Context) error {
-//
-//}
-//
-//func (router ReaderRouter) UpdateProfile(c echo.Context) error {
-//
-//}
+	defer c.Request().Body.Close()
+
+	resp, err := router.apiClient.
+		UpdateEmail(claims.FtcID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) RequestVerification(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	resp, err := router.apiClient.RequestEmailVerification(claims.FtcID)
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) UpdateName(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	defer c.Request().Body.Close()
+	resp, err := router.apiClient.
+		UpdateName(claims.FtcID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) UpdatePassword(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	defer c.Request().Body.Close()
+	resp, err := router.apiClient.
+		UpdatePassword(claims.FtcID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) RequestMobileUpdateSMS(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	defer c.Request().Body.Close()
+	resp, err := router.apiClient.
+		RequestMobileUpdateSMS(claims.FtcID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) UpdateMobile(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	defer c.Request().Body.Close()
+	resp, err := router.apiClient.
+		UpdateMobile(claims.FtcID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) LoadAddress(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	resp, err := router.apiClient.
+		LoadAddress(claims.FtcID)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) UpdateAddress(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	defer c.Request().Body.Close()
+	resp, err := router.apiClient.
+		UpdateAddress(claims.FtcID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) LoadProfile(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	resp, err := router.apiClient.
+		LoadProfile(claims.FtcID)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) UpdateProfile(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	defer c.Request().Body.Close()
+	resp, err := router.apiClient.
+		UpdateProfile(claims.FtcID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) WxSignUp(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	defer c.Request().Body.Close()
+	resp, err := router.apiClient.
+		WxSignUp(claims.FtcID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) WxLink(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	defer c.Request().Body.Close()
+	resp, err := router.apiClient.
+		WxLink(claims.FtcID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) WxUnlink(c echo.Context) error {
+	claims := getReaderClaims(c)
+
+	defer c.Request().Body.Close()
+	resp, err := router.apiClient.
+		WxUnlink(claims.FtcID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}

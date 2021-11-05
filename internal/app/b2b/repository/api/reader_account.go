@@ -61,6 +61,7 @@ func (c Client) UpdateEmail(id string, body io.Reader) (*http.Response, error) {
 	return resp, nil
 }
 
+// RequestEmailVerification sends a verification letter to user's email.
 func (c Client) RequestEmailVerification(id string) (*http.Response, error) {
 	url := c.baseURL + pathRequestVrfEmail
 
