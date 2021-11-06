@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/ftacademy/pkg/fetch"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
@@ -9,7 +8,7 @@ import (
 )
 
 func (router ReaderRouter) WxRequestCode(c echo.Context) error {
-	sess, err := reader.NewWxOAuthSession(router.wxApp.AppID)
+	sess, err := router.apiClient.WxOAuthSession(router.wxApp.AppID)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
@@ -28,7 +27,7 @@ func (router ReaderRouter) WxLogin(c echo.Context) error {
 		header)
 
 	if err != nil {
-		render.NewInternalError(err.Error())
+		return render.NewInternalError(err.Error())
 	}
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
@@ -45,7 +44,7 @@ func (router ReaderRouter) WxRefresh(c echo.Context) error {
 		header)
 
 	if err != nil {
-		render.NewInternalError(err.Error())
+		return render.NewInternalError(err.Error())
 	}
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
