@@ -13,7 +13,7 @@ func (c Client) LoadAccountByFtcID(id string) (fetch.Response, error) {
 		New().
 		Get(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		EndBlob()
 
 	if errs != nil {
@@ -30,7 +30,7 @@ func (c Client) LoadAccountByUnionID(id string) (fetch.Response, error) {
 		New().
 		Get(url).
 		SetBearerAuth(c.key).
-		SetUnionID(id).
+		SetHeader(keyUnionID, id).
 		EndBlob()
 
 	if errs != nil {
@@ -50,7 +50,7 @@ func (c Client) UpdateEmail(id string, body io.Reader) (*http.Response, error) {
 		New().
 		Patch(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		StreamJSON(body).
 		End()
 
@@ -69,7 +69,7 @@ func (c Client) RequestEmailVerification(id string) (*http.Response, error) {
 		New().
 		Post(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		End()
 
 	if errs != nil {
@@ -88,7 +88,7 @@ func (c Client) UpdateName(id string, body io.Reader) (*http.Response, error) {
 		New().
 		Patch(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		StreamJSON(body).
 		End()
 
@@ -109,7 +109,7 @@ func (c Client) UpdatePassword(id string, body io.Reader) (*http.Response, error
 		New().
 		Patch(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		StreamJSON(body).
 		End()
 
@@ -129,7 +129,7 @@ func (c Client) RequestMobileUpdateSMS(id string, body io.Reader) (*http.Respons
 		New().
 		Put(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		StreamJSON(body).
 		End()
 
@@ -150,7 +150,7 @@ func (c Client) UpdateMobile(id string, body io.Reader) (*http.Response, error) 
 		New().
 		Patch(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		StreamJSON(body).
 		End()
 
@@ -168,7 +168,7 @@ func (c Client) LoadAddress(id string) (*http.Response, error) {
 		New().
 		Get(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		End()
 
 	if errs != nil {
@@ -192,7 +192,7 @@ func (c Client) UpdateAddress(id string, body io.Reader) (*http.Response, error)
 		New().
 		Patch(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		StreamJSON(body).
 		End()
 
@@ -210,7 +210,7 @@ func (c Client) LoadProfile(id string) (*http.Response, error) {
 		New().
 		Get(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		End()
 
 	if errs != nil {
@@ -232,7 +232,7 @@ func (c Client) UpdateProfile(id string, body io.Reader) (*http.Response, error)
 		New().
 		Patch(url).
 		SetBearerAuth(c.key).
-		SetFtcID(id).
+		SetHeader(keyFtcID, id).
 		StreamJSON(body).
 		End()
 
@@ -257,7 +257,7 @@ func (c Client) WxSignUp(unionID string, body io.Reader) (*http.Response, error)
 		New().
 		Post(url).
 		SetBearerAuth(c.key).
-		SetUnionID(unionID).
+		SetHeader(keyUnionID, unionID).
 		StreamJSON(body).
 		End()
 
@@ -279,7 +279,7 @@ func (c Client) WxLink(unionID string, body io.Reader) (*http.Response, error) {
 		New().
 		Post(url).
 		SetBearerAuth(c.key).
-		SetUnionID(unionID).
+		SetHeader(keyUnionID, unionID).
 		StreamJSON(body).
 		End()
 
@@ -302,7 +302,7 @@ func (c Client) WxUnlink(unionID string, body io.Reader) (*http.Response, error)
 		New().
 		Post(url).
 		SetBearerAuth(c.key).
-		SetUnionID(unionID).
+		SetHeader(keyUnionID, unionID).
 		StreamJSON(body).
 		End()
 

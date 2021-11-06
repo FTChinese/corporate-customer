@@ -7,7 +7,7 @@ import (
 )
 
 func (c Client) ResetPassword(body io.Reader) (*http.Response, error) {
-	url := c.baseURL + pathBasePwReset
+	url := c.baseURL + basePathPwReset
 
 	resp, errs := fetch.New().
 		Post(url).
