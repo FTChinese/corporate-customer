@@ -69,7 +69,7 @@ func (router ReaderRouter) VerifyMobileLoginSMS(c echo.Context) error {
 // * password: string;
 // * mobile: string;
 func (router ReaderRouter) MobileLinkExistingEmail(c echo.Context) error {
-	header := collectClientHeader(c, router.version)
+	header := router.collectClientHeader(c)
 
 	log.Printf("Real IP: %v", header)
 
@@ -87,7 +87,7 @@ func (router ReaderRouter) MobileLinkExistingEmail(c echo.Context) error {
 // * mobile: string;
 func (router ReaderRouter) MobileSignUp(c echo.Context) error {
 
-	header := collectClientHeader(c, router.version)
+	header := router.collectClientHeader(c)
 
 	log.Printf("Real IP: %v", header)
 

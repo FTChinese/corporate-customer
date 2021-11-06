@@ -48,7 +48,7 @@ func (router ReaderRouter) handlePassport(c echo.Context, resp fetch.Response) e
 // * X-User-Agent: retrieved from Context.Request[User-Agent]
 func (router ReaderRouter) EmailLogin(c echo.Context) error {
 
-	header := collectClientHeader(c, router.version)
+	header := router.collectClientHeader(c)
 
 	log.Printf("Real IP: %v", header)
 
@@ -76,7 +76,7 @@ func (router ReaderRouter) EmailSignUp(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 
-	header := collectClientHeader(c, router.version)
+	header := router.collectClientHeader(c)
 
 	log.Printf("Real IP: %v", header)
 
