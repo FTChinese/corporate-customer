@@ -6,18 +6,21 @@ import (
 )
 
 const (
-	pathBaseEmailAuth        = "/auth/email"
-	pathBaseMobileAuth       = "/auth/mobile"
-	pathBasePwReset          = "/auth/password-reset"
-	pathEmailExists          = pathBaseEmailAuth + "/exists"
-	pathEmailLogin           = pathBaseEmailAuth + "/login"
-	pathEmailSignUp          = pathBaseEmailAuth + "/signup"
-	pathEmailVerification    = pathBaseEmailAuth + "/verification/"
-	pathMobileRequestSMS     = pathBaseMobileAuth + "/verification"
-	pathMobileLinkEmail      = pathBaseMobileAuth + "/link"
-	pathMobileSignUp         = pathBaseMobileAuth + "/signup"
-	pathPwResetRequestLetter = pathBasePwReset + "/letter"
-	pathPwResetVerifyToken   = pathBasePwReset + "/tokens/"
+	basePathEmailAuth        = "/auth/email"
+	basePathMobileAuth       = "/auth/mobile"
+	basePathPwReset          = "/auth/password-reset"
+	basePathWxAuth           = "/auth/wx"
+	pathEmailExists          = basePathEmailAuth + "/exists"
+	pathEmailLogin           = basePathEmailAuth + "/login"
+	pathEmailSignUp          = basePathEmailAuth + "/signup"
+	pathEmailVerification    = basePathEmailAuth + "/verification/"
+	pathMobileRequestSMS     = basePathMobileAuth + "/verification"
+	pathMobileLinkEmail      = basePathMobileAuth + "/link"
+	pathMobileSignUp         = basePathMobileAuth + "/signup"
+	pathPwResetRequestLetter = basePathPwReset + "/letter"
+	pathPwResetVerifyToken   = basePathPwReset + "/tokens/"
+	pathWxLogin              = basePathWxAuth + "/login"
+	pathWxRefresh            = basePathWxAuth + "/refresh"
 )
 
 const (
