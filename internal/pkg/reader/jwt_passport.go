@@ -22,20 +22,6 @@ type PassportClaims struct {
 	jwt.StandardClaims
 }
 
-func (c PassportClaims) APIHeaders() map[string]string {
-	var h = map[string]string{}
-
-	if c.FtcID != "" {
-		h["X-User-Id"] = c.FtcID
-	}
-
-	if c.UnionID.Valid {
-		h["X-Union-Id"] = c.UnionID.String
-	}
-
-	return h
-}
-
 type Passport struct {
 	Account
 	ExpiresAt int64  `json:"expiresAt"`
