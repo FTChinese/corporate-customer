@@ -21,9 +21,13 @@ type AdminRouter struct {
 }
 
 // NewAdminRouter creates a new instance of AdminRouter.
-func NewAdminRouter(dbs db.ReadWriteMyDBs, p postman.Postman, appKey config.AppKey, logger *zap.Logger) AdminRouter {
+func NewAdminRouter(dbs db.ReadWriteMyDBs, p postman.Postman, logger *zap.Logger) AdminRouter {
 	return AdminRouter{
-		guard:  admin.NewJWTGuard(appKey.GetJWTKey()),
+		guard: admin.NewJWTGuard(
+			config.
+				MustGetB2BAppKey().
+				GetJWTKey(),
+		),
 		repo:   adminrepo.NewEnv(dbs, logger),
 		post:   p,
 		logger: logger,
