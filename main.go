@@ -60,18 +60,15 @@ func main() {
 
 	pm := postman.New(config.MustGetHanqiConn())
 
-	b2bAppKey := config.MustGetB2BAppKey()
-	readerAppKey := config.MustGetReaderAppKey()
-
 	//b2bGuard := controller.NewJWTGuard(b2bAppKey.GetJWTKey())
 	oauthGuard := controller.NewOAuthGuard(myDBs)
 
 	apiClient := api.NewSubsAPIClient(isProduction)
 
-	adminRouter := controller.NewAdminRouter(myDBs, pm, b2bAppKey, logger)
+	adminRouter := controller.NewAdminRouter(myDBs, pm, logger)
 	subsRouter := controller.NewSubsRouter(myDBs, pm, logger)
 	productRouter := controller.NewProductRouter(apiClient, logger)
-	readerRouter := controller.NewReaderRouter(apiClient, readerAppKey, version)
+	readerRouter := controller.NewReaderRouter(apiClient, version)
 	cmsRouter := controller.NewCMSRouter(myDBs, pm, logger)
 
 	e := echo.New()
@@ -249,9 +246,9 @@ func main() {
 	}
 	wxAuthGroup := readerAuthGroup.Group("/wx")
 	{
-		wxAuthGroup.GET("/code", readerRouter.WxRequestCode)
-		wxAuthGroup.POST("/login", readerRouter.WxLogin)
-		wxAuthGroup.POST("/refresh", readerRouter.WxRefresh)
+		wxAuthGroup.GET("/code/", readerRouter.WxRequestCode)
+		wxAuthGroup.POST("/login/", readerRouter.WxLogin)
+		wxAuthGroup.POST("/refresh/", readerRouter.WxRefresh)
 	}
 
 	readerAccountGroup := readerAPIGroup.Group("/account", readerRouter.RequireLoggedIn)
