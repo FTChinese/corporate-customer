@@ -20,7 +20,7 @@ func MockNewClient() Client {
 func (c Client) MustCreateAssignee() licence.Assignee {
 	faker.SeedGoFake()
 
-	resp, err := c.EmailSignUp(faker.MustMarshalIndent(input.SignupParams{
+	resp, err := c.EmailSignUp(faker.MustMarshalToReader(input.SignupParams{
 		Credentials: input.Credentials{
 			Email:    gofakeit.Email(),
 			Password: faker.SimplePassword(),
