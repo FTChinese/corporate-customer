@@ -1,4 +1,4 @@
-package reader
+package api
 
 import (
 	"net/url"
@@ -6,23 +6,16 @@ import (
 )
 
 func TestWxOAuthCodeParams_EncodeQuery(t *testing.T) {
-	type fields struct {
-		AppID        string
-		RedirectURI  string
-		ResponseType string
-		Scope        string
-		State        string
-		Fragment     string
-	}
+
 	tests := []struct {
 		name    string
-		fields  wxOAuthCodeParams
+		fields  WxOAuthCodeRequest
 		want    string
 		wantErr bool
 	}{
 		{
 			name:    "Encode query",
-			fields:  newWxOAuthCodeParams("anything"),
+			fields:  NewWxOAuthCodeRequest("anything", "http://callback.example"),
 			want:    "",
 			wantErr: false,
 		},
@@ -30,13 +23,13 @@ func TestWxOAuthCodeParams_EncodeQuery(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := tt.fields
-			got, err := p.encodeQuery()
+			got, err := p.EncodeQuery()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("encodeQuery() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("EncodeQuery() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			//if got != tt.want {
-			//	t.Errorf("encodeQuery() got = %v, want %v", got, tt.want)
+			//	t.Errorf("EncodeQuery() got = %v, want %v", got, tt.want)
 			//}
 
 			t.Logf("%s", got)
@@ -44,16 +37,16 @@ func TestWxOAuthCodeParams_EncodeQuery(t *testing.T) {
 	}
 }
 
-func TestWxOAuthCodeParams_URL(t *testing.T) {
+func TestWxOAuthCodeParams_Build(t *testing.T) {
 	tests := []struct {
 		name    string
-		fields  wxOAuthCodeParams
+		fields  WxOAuthCodeRequest
 		want    *url.URL
 		wantErr bool
 	}{
 		{
 			name:    "Oauth url",
-			fields:  newWxOAuthCodeParams("whatever"),
+			fields:  NewWxOAuthCodeRequest("whatever", "http://callback.example"),
 			want:    nil,
 			wantErr: false,
 		},
@@ -61,7 +54,7 @@ func TestWxOAuthCodeParams_URL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := tt.fields
-			got, err := p.url()
+			got, err := p.Build()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("URL() error = %v, wantErr %v", err, tt.wantErr)
 				return
