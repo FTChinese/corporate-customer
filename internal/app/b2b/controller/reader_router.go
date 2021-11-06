@@ -7,20 +7,36 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"log"
+	"net/http"
 )
 
 type ReaderRouter struct {
 	guard     reader.JWTGuard
 	apiClient api.Client
+	wxApp     config.WechatApp
 	version   string
 }
 
-func NewReaderRouter(client api.Client, appKey config.AppKey, version string) ReaderRouter {
+func NewReaderRouter(client api.Client, version string) ReaderRouter {
 	return ReaderRouter{
-		guard:     reader.NewJWTGuard(appKey.GetJWTKey()),
+		guard: reader.NewJWTGuard(
+			config.
+				MustGetReaderAppKey().
+				GetJWTKey(),
+		),
 		apiClient: client,
+		wxApp:     config.MustWxWebApp(),
 		version:   version,
 	}
+}
+
+func (router ReaderRouter) collectClientHeader(c echo.Context) http.Header {
+	return api.NewHeaderBuilder().
+		WithPlatformWeb().
+		WithClientVersion(router.version).
+		WithUserIP(c.RealIP()).
+		WithUserAgent(c.Request().UserAgent()).
+		Build()
 }
 
 func (router ReaderRouter) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
