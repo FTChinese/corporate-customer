@@ -25,20 +25,20 @@ func (a BasicAuth) IsZero() bool {
 type Fetch struct {
 	method    string
 	url       string
-	Query     url.Values
+	query     url.Values
 	body      io.Reader
-	Header    http.Header
-	Errors    []error
+	header    http.Header
 	basicAuth BasicAuth
+	Errors    []error
 }
 
 func New() *Fetch {
 	return &Fetch{
 		method: "GET",
 		url:    "",
-		Query:  url.Values{},
+		query:  url.Values{},
 		body:   nil,
-		Header: http.Header{},
+		header: http.Header{},
 	}
 }
 
@@ -70,53 +70,54 @@ func (f *Fetch) Patch(url string) *Fetch {
 	return f
 }
 
-func (f *Fetch) SetParam(key, value string) *Fetch {
-	f.Query.Set(key, value)
+func (f *Fetch) SetQuery(key, value string) *Fetch {
+	f.query.Set(key, value)
 
 	return f
 }
 
-func (f *Fetch) SetParamMap(kv map[string]string) *Fetch {
+func (f *Fetch) SetQueryN(kv map[string]string) *Fetch {
 	for k, v := range kv {
-		f.Query.Set(k, v)
+		f.query.Set(k, v)
 	}
 
 	return f
 }
 
-func (f *Fetch) AddQueryParam(key, value string) *Fetch {
-	f.Query.Add(key, value)
+func (f *Fetch) AddQuery(key, value string) *Fetch {
+	f.query.Add(key, value)
 	return f
 }
 
-func (f *Fetch) SetQuery(q url.Values) *Fetch {
-	f.Query = q
+// WithQuery set and overrides current query parameters.
+func (f *Fetch) WithQuery(q url.Values) *Fetch {
+	f.query = q
 
 	return f
 }
 
 // WithHeader overrides existing Header
 func (f *Fetch) WithHeader(h http.Header) *Fetch {
-	f.Header = h
+	f.header = h
 	return f
 }
 
 func (f *Fetch) SetHeader(k, v string) *Fetch {
-	f.Header.Set(k, v)
+	f.header.Set(k, v)
 
 	return f
 }
 
-func (f *Fetch) SetHeaderMap(h map[string]string) *Fetch {
+func (f *Fetch) SetHeaderN(h map[string]string) *Fetch {
 	for k, v := range h {
-		f.Header.Set(k, v)
+		f.header.Set(k, v)
 	}
 
 	return f
 }
 
 func (f *Fetch) SetBearerAuth(key string) *Fetch {
-	f.Header.Set("Authorization", "Bearer "+key)
+	f.header.Set("Authorization", "Bearer "+key)
 
 	return f
 }
@@ -130,16 +131,8 @@ func (f *Fetch) SetBasicAuth(username, password string) *Fetch {
 	return f
 }
 
-func (f *Fetch) SetFtcID(id string) *Fetch {
-	return f.SetHeader("X-User-Id", id)
-}
-
-func (f *Fetch) SetUnionID(id string) *Fetch {
-	return f.SetHeader("X-Union-Id", id)
-}
-
 func (f *Fetch) AcceptLang(v string) *Fetch {
-	f.Header.Set("Accept-Language", v)
+	f.header.Set("Accept-Language", v)
 
 	return f
 }
@@ -150,7 +143,7 @@ func (f *Fetch) Send(body io.Reader) *Fetch {
 }
 
 func (f *Fetch) StreamJSON(body io.Reader) *Fetch {
-	f.Header.Add("Content-Type", ContentJSON)
+	f.header.Add("Content-Type", ContentJSON)
 	f.body = body
 
 	return f
@@ -181,8 +174,8 @@ func (f *Fetch) End() (*http.Response, []error) {
 		return nil, f.Errors
 	}
 
-	if len(f.Query) != 0 {
-		f.url = fmt.Sprintf("%s?%s", f.url, f.Query.Encode())
+	if len(f.query) != 0 {
+		f.url = fmt.Sprintf("%s?%s", f.url, f.query.Encode())
 	}
 
 	req, err := http.NewRequest(f.method, f.url, f.body)
@@ -191,7 +184,7 @@ func (f *Fetch) End() (*http.Response, []error) {
 		return nil, f.Errors
 	}
 
-	req.Header = f.Header
+	req.Header = f.header
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
