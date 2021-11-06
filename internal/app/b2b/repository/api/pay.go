@@ -31,8 +31,8 @@ func (c Client) WxPayDesktop(ids reader.PassportClaims, body io.Reader) (*http.R
 	resp, errs := fetch.
 		New().
 		Post(url).
+		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
-		SetHeaderMap(ids.APIHeaders()).
 		StreamJSON(body).
 		End()
 
@@ -52,8 +52,8 @@ func (c Client) WxPayMobile(ids reader.PassportClaims, body io.Reader) (*http.Re
 	resp, errs := fetch.
 		New().
 		Post(url).
+		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
-		SetHeaderMap(ids.APIHeaders()).
 		StreamJSON(body).
 		End()
 
@@ -74,8 +74,8 @@ func (c Client) WxPayJsApi(ids reader.PassportClaims, body io.Reader) (*http.Res
 	resp, errs := fetch.
 		New().
 		Post(url).
+		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
-		SetHeaderMap(ids.APIHeaders()).
 		StreamJSON(body).
 		End()
 
@@ -95,8 +95,8 @@ func (c Client) AliPayDesktop(ids reader.PassportClaims, body io.Reader) (*http.
 	resp, errs := fetch.
 		New().
 		Post(url).
+		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
-		SetHeaderMap(ids.APIHeaders()).
 		StreamJSON(body).
 		End()
 
@@ -116,8 +116,8 @@ func (c Client) AliPayMobile(ids reader.PassportClaims, body io.Reader) (*http.R
 	resp, errs := fetch.
 		New().
 		Post(url).
+		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
-		SetHeaderMap(ids.APIHeaders()).
 		StreamJSON(body).
 		End()
 
