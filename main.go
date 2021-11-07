@@ -254,6 +254,7 @@ func main() {
 	readerAccountGroup := readerAPIGroup.Group("/account", readerRouter.RequireLoggedIn)
 	{
 		readerAccountGroup.GET("/", readerRouter.LoadAccount)
+		readerAccountGroup.GET("/jwt", readerRouter.LoadAccountWithJWT)
 		readerAccountGroup.PATCH("/email/", readerRouter.UpdateEmail)
 		readerAccountGroup.POST("/request-verification/", readerRouter.RequestVerification)
 		readerAccountGroup.PATCH("/name/", readerRouter.UpdateName)
