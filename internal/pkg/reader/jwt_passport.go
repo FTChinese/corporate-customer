@@ -2,6 +2,7 @@ package reader
 
 import (
 	"errors"
+	"github.com/FTChinese/go-rest/enum"
 	"github.com/golang-jwt/jwt"
 	"github.com/guregu/null"
 	"log"
@@ -17,8 +18,9 @@ func NewStandardClaims(expiresAt int64) jwt.StandardClaims {
 }
 
 type PassportClaims struct {
-	FtcID   string      `json:"fid"`
-	UnionID null.String `json:"wid"`
+	FtcID       string           `json:"fid"`
+	UnionID     null.String      `json:"wid"`
+	LoginMethod enum.LoginMethod `json:"mtd"`
 	jwt.StandardClaims
 }
 
@@ -32,6 +34,7 @@ func NewPassport(a Account, signingKey []byte) (Passport, error) {
 	claims := PassportClaims{
 		FtcID:          a.FtcID,
 		UnionID:        a.UnionID,
+		LoginMethod:    a.LoginMethod,
 		StandardClaims: NewStandardClaims(time.Now().Unix() + 86400*7),
 	}
 
