@@ -250,7 +250,7 @@ func (c Client) UpdateProfile(id string, body io.Reader) (*http.Response, error)
 // * sourceUrl: string;
 //
 // The footprint.Client headers are required.
-func (c Client) WxSignUp(unionID string, body io.Reader) (*http.Response, error) {
+func (c Client) WxSignUp(unionID string, body io.Reader) (fetch.Response, error) {
 	url := c.baseURL + pathWxSignUp
 
 	resp, errs := fetch.
@@ -259,10 +259,10 @@ func (c Client) WxSignUp(unionID string, body io.Reader) (*http.Response, error)
 		SetBearerAuth(c.key).
 		SetHeader(keyUnionID, unionID).
 		StreamJSON(body).
-		End()
+		EndBlob()
 
 	if errs != nil {
-		return nil, errs[0]
+		return fetch.Response{}, errs[0]
 	}
 
 	return resp, nil
