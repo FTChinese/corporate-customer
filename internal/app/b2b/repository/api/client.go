@@ -75,7 +75,7 @@ func NewSubsAPIClient(prod bool) Client {
 	}
 }
 
-func (c Client) WxOAuthSession(appID string) (WxOAuthSession, error) {
+func (c Client) WxOAuthSession(appID string) (WxOAuthCodeSession, error) {
 	midwayBaseURL := c.wxRedirectBaseURLs[c.isProd]
 	cbURL := midwayBaseURL + pathWxCallback
 

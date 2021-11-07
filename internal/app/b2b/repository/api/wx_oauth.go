@@ -69,23 +69,23 @@ func (p WxOAuthCodeRequest) Build() (string, error) {
 	return p.CodeRequestURL.String(), nil
 }
 
-// WxOAuthSession contains the data for a session of Wechat OAuth.
+// WxOAuthCodeSession contains the data for a session of Wechat OAuth.
 // You should save it on the client side so that you could perform
 // verification after OAuth redirect.
-type WxOAuthSession struct {
+type WxOAuthCodeSession struct {
 	State      string `json:"state"`     // The state contains the URL that you should verify after redirect.
 	ExpiresAt  int64  `json:"expiresAt"` // Expires in 5 minutes from now.
 	RedirectTo string `json:"redirectTo"`
 }
 
-func NewWxOAuthSession(params WxOAuthCodeRequest) (WxOAuthSession, error) {
+func NewWxOAuthSession(params WxOAuthCodeRequest) (WxOAuthCodeSession, error) {
 
 	redirectTo, err := params.Build()
 	if err != nil {
-		return WxOAuthSession{}, err
+		return WxOAuthCodeSession{}, err
 	}
 
-	return WxOAuthSession{
+	return WxOAuthCodeSession{
 		State:      params.State,
 		ExpiresAt:  time.Now().Unix() + 5*60,
 		RedirectTo: redirectTo,

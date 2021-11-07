@@ -15,7 +15,7 @@ func TestClient_WxOAuthSession(t *testing.T) {
 		name    string
 		fields  Client
 		args    args
-		want    WxOAuthSession
+		want    WxOAuthCodeSession
 		wantErr bool
 	}{
 		{
@@ -24,7 +24,7 @@ func TestClient_WxOAuthSession(t *testing.T) {
 			args: args{
 				appID: "app123456",
 			},
-			want:    WxOAuthSession{},
+			want:    WxOAuthCodeSession{},
 			wantErr: false,
 		},
 	}
@@ -33,11 +33,11 @@ func TestClient_WxOAuthSession(t *testing.T) {
 			c := tt.fields
 			got, err := c.WxOAuthSession(tt.args.appID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("WxOAuthSession() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("WxOAuthCodeSession() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			//if !reflect.DeepEqual(got, tt.want) {
-			//    t.Errorf("WxOAuthSession() got = %v, want %v", got, tt.want)
+			//    t.Errorf("WxOAuthCodeSession() got = %v, want %v", got, tt.want)
 			//}
 
 			t.Logf("%s", faker.MustMarshalIndent(got))
