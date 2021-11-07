@@ -132,8 +132,12 @@ func (f *Fetch) SetBasicAuth(username, password string) *Fetch {
 }
 
 func (f *Fetch) AcceptLang(v string) *Fetch {
-	f.header.Set("Accept-Language", v)
+	f.header.Add("Accept-Language", v)
+	return f
+}
 
+func (f *Fetch) ContentJSON() *Fetch {
+	f.header.Add("Content-Type", ContentJSON)
 	return f
 }
 
@@ -143,10 +147,9 @@ func (f *Fetch) Send(body io.Reader) *Fetch {
 }
 
 func (f *Fetch) StreamJSON(body io.Reader) *Fetch {
-	f.header.Add("Content-Type", ContentJSON)
 	f.body = body
 
-	return f
+	return f.ContentJSON()
 }
 
 func (f *Fetch) SendJSONBlob(b []byte) *Fetch {
@@ -157,7 +160,6 @@ func (f *Fetch) SendJSON(v interface{}) *Fetch {
 	d, err := json.Marshal(v)
 	if err != nil {
 		f.Errors = append(f.Errors, err)
-
 		return f
 	}
 
