@@ -14,7 +14,7 @@ var encoder = schema.NewEncoder()
 type WxOAuthCodeRequest struct {
 	CodeRequestURL url.URL `schema:"-"` // The base url of wechat where we ask for user consent.
 	AppID          string  `schema:"appid"`
-	CallbackURI    string  `schema:"redirect_uri"`
+	CallbackURI    string  `schema:"redirect_uri"` // Redirect to api, which will redirect back to this app.
 	ResponseType   string  `schema:"response_type"`
 	Scope          string  `schema:"scope"`
 	State          string  `schema:"state"`
