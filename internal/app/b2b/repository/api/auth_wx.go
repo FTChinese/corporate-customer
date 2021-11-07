@@ -16,7 +16,7 @@ import (
 //
 // Request header:
 // * X-App-Id: xxxx
-func (c Client) WxLogin(appID string, body io.Reader, client http.Header) (*http.Response, error) {
+func (c Client) WxLogin(appID string, body io.Reader, client http.Header) (fetch.Response, error) {
 	url := c.baseURL + pathWxLogin
 
 	resp, errs := fetch.
@@ -26,10 +26,10 @@ func (c Client) WxLogin(appID string, body io.Reader, client http.Header) (*http
 		SetHeader(keyWxAppID, appID).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
-		End()
+		EndBlob()
 
 	if errs != nil {
-		return nil, errs[0]
+		return fetch.Response{}, errs[0]
 	}
 
 	return resp, nil
