@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"github.com/FTChinese/ftacademy/pkg/fetch"
+	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 )
@@ -185,6 +186,9 @@ func (router ReaderRouter) UpdateProfile(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
+// WxSignUp handles a wechat user's intent to create a new email account
+// and link it.
+// Client should update login session since the reader.Passport is changed.
 func (router ReaderRouter) WxSignUp(c echo.Context) error {
 	claims := getReaderClaims(c)
 
@@ -196,9 +200,13 @@ func (router ReaderRouter) WxSignUp(c echo.Context) error {
 		return render.NewInternalError(err.Error())
 	}
 
-	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+	return router.handlePassport(c, resp)
 }
 
+// WxLink lets a wechat logged-in user to link an existing email,
+// or an email user to link to wechat.
+// You need to get the linking target's account before sending request here.
+// Client should update login session since the reader.Passport is changed.
 func (router ReaderRouter) WxLink(c echo.Context) error {
 	claims := getReaderClaims(c)
 
@@ -210,9 +218,20 @@ func (router ReaderRouter) WxLink(c echo.Context) error {
 		return render.NewInternalError(err.Error())
 	}
 
-	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+	if resp.StatusCode != 204 {
+		return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+	}
+
+	fetchResp, err := router.apiClient.LoadAccountByUnionID(claims.UnionID.String)
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return router.handlePassport(c, fetchResp)
 }
 
+// WxUnlink severs the link between wechat and email.
+// Client should update login session since the reader.Passport is changed.
 func (router ReaderRouter) WxUnlink(c echo.Context) error {
 	claims := getReaderClaims(c)
 
@@ -224,5 +243,21 @@ func (router ReaderRouter) WxUnlink(c echo.Context) error {
 		return render.NewInternalError(err.Error())
 	}
 
-	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+	if resp.StatusCode != 204 {
+		return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+	}
+
+	var fResp fetch.Response
+	switch claims.LoginMethod {
+	case enum.LoginMethodEmail, enum.LoginMethodMobile:
+		fResp, err = router.apiClient.LoadAccountByFtcID(claims.FtcID)
+	case enum.LoginMethodWx:
+		fResp, err = router.apiClient.LoadAccountByUnionID(claims.UnionID.String)
+	}
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return router.handlePassport(c, fResp)
 }

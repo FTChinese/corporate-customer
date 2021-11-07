@@ -28,6 +28,7 @@ func (router ReaderRouter) RequestMobileLoginSMS(c echo.Context) error {
 // Returns {id: string | null} containing uuid.
 // If
 func (router ReaderRouter) VerifyMobileLoginSMS(c echo.Context) error {
+	// Verify the code first.
 	resp, err := router.apiClient.VerifyLoginSMS(c.Request().Body)
 
 	if err != nil {
@@ -40,6 +41,7 @@ func (router ReaderRouter) VerifyMobileLoginSMS(c echo.Context) error {
 
 	log.Printf("SMS login verification result %s", resp.Body)
 
+	// The response contains an optional id.
 	var found reader.SearchResult
 	if err := json.Unmarshal(resp.Body, &found); err != nil {
 		return render.NewInternalError(err.Error())
@@ -53,6 +55,7 @@ func (router ReaderRouter) VerifyMobileLoginSMS(c echo.Context) error {
 		})
 	}
 
+	// Use this id to fetch account and return it to client.
 	resp, err = router.apiClient.LoadAccountByFtcID(found.ID.String)
 	if err != nil {
 		return render.NewInternalError(err.Error())
