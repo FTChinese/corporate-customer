@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/gorilla/schema"
 	"net/url"
@@ -90,4 +91,11 @@ func NewWxOAuthSession(params WxOAuthCodeRequest) (WxOAuthCodeSession, error) {
 		ExpiresAt:  time.Now().Unix() + 5*60,
 		RedirectTo: redirectTo,
 	}, nil
+}
+
+// WxLoginSession is the response of wechat login endpoint.
+type WxLoginSession struct {
+	ID        string      `json:"sessionId"` // use this to refresh account.
+	UnionID   string      `json:"unionId"`   // Use this to fetch account data
+	CreatedAt chrono.Time `json:"createdAt"`
 }
