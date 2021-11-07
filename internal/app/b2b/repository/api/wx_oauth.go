@@ -5,7 +5,6 @@ import (
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/gorilla/schema"
 	"net/url"
-	"time"
 )
 
 var encoder = schema.NewEncoder()
@@ -74,8 +73,7 @@ func (p WxOAuthCodeRequest) Build() (string, error) {
 // You should save it on the client side so that you could perform
 // verification after OAuth redirect.
 type WxOAuthCodeSession struct {
-	State      string `json:"state"`     // The state contains the URL that you should verify after redirect.
-	ExpiresAt  int64  `json:"expiresAt"` // Expires in 5 minutes from now.
+	State      string `json:"state"` // The state contains the URL that you should verify after redirect.
 	RedirectTo string `json:"redirectTo"`
 }
 
@@ -88,7 +86,6 @@ func NewWxOAuthSession(params WxOAuthCodeRequest) (WxOAuthCodeSession, error) {
 
 	return WxOAuthCodeSession{
 		State:      params.State,
-		ExpiresAt:  time.Now().Unix() + 5*60,
 		RedirectTo: redirectTo,
 	}, nil
 }
