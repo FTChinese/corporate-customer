@@ -270,7 +270,11 @@ func (c Client) WxSignUp(unionID string, body io.Reader) (fetch.Response, error)
 
 // WxLink lets a wechat-only user to link an existing
 // email account.
-// * ftcId: string
+// Header
+// * `X-Union-Id: <wechat union id>`
+//
+// Input: input.LinkWxParams
+// * ftcId: string;
 // Returns no data.
 func (c Client) WxLink(unionID string, body io.Reader) (*http.Response, error) {
 	url := c.baseURL + pathWxLink

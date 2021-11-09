@@ -212,7 +212,10 @@ func (router ReaderRouter) WxLink(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 	resp, err := router.apiClient.
-		WxLink(claims.FtcID, c.Request().Body)
+		WxLink(
+			claims.UnionID.String,
+			c.Request().Body,
+		)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
