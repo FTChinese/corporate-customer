@@ -194,7 +194,10 @@ func (router ReaderRouter) WxSignUp(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 	resp, err := router.apiClient.
-		WxSignUp(claims.FtcID, c.Request().Body)
+		WxSignUp(
+			claims.UnionID.String,
+			c.Request().Body,
+		)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -240,7 +243,10 @@ func (router ReaderRouter) WxUnlink(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 	resp, err := router.apiClient.
-		WxUnlink(claims.FtcID, c.Request().Body)
+		WxUnlink(
+			claims.UnionID.String,
+			c.Request().Body,
+		)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
