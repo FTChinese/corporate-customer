@@ -267,7 +267,7 @@ func main() {
 		readerAccountGroup.PATCH("/profile/", readerRouter.UpdateProfile)
 		readerAccountGroup.POST("/wx/signup/", readerRouter.WxSignUp)
 		readerAccountGroup.POST("/wx/link/", readerRouter.WxLink)
-		readerAccountGroup.POST("/wx/unlink", readerRouter.WxUnlink)
+		readerAccountGroup.POST("/wx/unlink/", readerRouter.WxUnlink)
 	}
 
 	//-------------------------------------------------
