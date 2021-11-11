@@ -10,6 +10,7 @@ const (
 	basePathMobileAuth       = "/auth/mobile"
 	basePathPwReset          = "/auth/password-reset"
 	basePathWxAuth           = "/auth/wx"
+	basePathOAuth            = "/oauth/callback"
 	pathEmailExists          = basePathEmailAuth + "/exists"
 	pathEmailLogin           = basePathEmailAuth + "/login"
 	pathEmailSignUp          = basePathEmailAuth + "/signup"
@@ -21,7 +22,7 @@ const (
 	pathPwResetVerifyToken   = basePathPwReset + "/tokens/"
 	pathWxLogin              = basePathWxAuth + "/login"
 	pathWxRefresh            = basePathWxAuth + "/refresh"
-	pathWxCallback           = basePathWxAuth + "/callback/fta-reader"
+	pathWxCallback           = basePathWxAuth + "/wx/fta-reader"
 )
 
 const (
