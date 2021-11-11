@@ -22,7 +22,7 @@ const (
 	pathPwResetVerifyToken   = basePathPwReset + "/tokens/"
 	pathWxLogin              = basePathWxAuth + "/login"
 	pathWxRefresh            = basePathWxAuth + "/refresh"
-	pathWxCallback           = basePathWxAuth + "/wx/fta-reader"
+	pathWxCallback           = basePathOAuth + "/wx/fta-reader"
 )
 
 const (
