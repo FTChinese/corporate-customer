@@ -95,13 +95,14 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 
 	// Send invitation letter
 	go func() {
-		// We
+		sugar.Info("Start sending invitation email")
 		assignee, err := router.repo.FindAssignee(params.Email)
 		if err != nil {
 			sugar.Error(err)
 			return
 		}
 		// Find admin so that we could tell user who send the invitation.
+		sugar.Info("Start retrieving b2b admin profile")
 		adminProfile, err := router.repo.LoadB2BAdminProfile(claims.AdminID)
 		if err != nil {
 			sugar.Error(err)
@@ -112,6 +113,9 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 			assignee,
 			lic,
 			adminProfile)
+
+		sugar.Infof("Invitation parcel %v", parcel)
+
 		if err != nil {
 			sugar.Error(err)
 			return
@@ -120,6 +124,8 @@ func (router SubsRouter) CreateInvitation(c echo.Context) error {
 		err = router.post.Deliver(parcel)
 		if err != nil {
 			sugar.Error(err)
+		} else {
+			sugar.Infof("Invitation letter sent to %s", assignee.Email.String)
 		}
 	}()
 
