@@ -62,7 +62,7 @@ func NewSubsAPIClient(prod bool) Client {
 	log.Printf("Client for subscription api running in production: %t", prod)
 	return Client{
 		key:     config.MustSubsAPIKey().Pick(prod),        // Pick the correct api access token
-		baseURL: config.MustSubsAPIv3BaseURL().Pick(false), // Always use localhost since this app is on the same server as API.
+		baseURL: config.MustSubsAPIv4BaseURL().Pick(false), // Always use localhost since this app is on the same server as API.
 		wxRedirectBaseURLs: map[bool]string{
 			// When this app is in production mode, we want wechat to
 			// redirect to production api.
