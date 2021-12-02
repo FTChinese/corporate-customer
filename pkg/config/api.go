@@ -61,6 +61,6 @@ func MustSubsAPIKey() API {
 	return MustLoadAPIConfig("api_keys.ftacademy")
 }
 
-func MustSubsAPIv3BaseURL() API {
-	return MustLoadAPIConfig("api_urls.subs_v3")
+func MustSubsAPIv4BaseURL() API {
+	return MustLoadAPIConfig("api_urls.subs_v4")
 }
