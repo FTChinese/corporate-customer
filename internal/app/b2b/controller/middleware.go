@@ -18,3 +18,14 @@ func DumpRequest(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+func NoCache(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		h := c.Response().Header()
+		h.Add("Cache-Control", "no-cache")
+		h.Add("Cache-Control", "no-store")
+		h.Add("Cache-Control", "must-revalidate")
+		h.Add("Pragma", "no-cache")
+		return next(c)
+	}
+}

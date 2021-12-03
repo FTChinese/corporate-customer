@@ -88,11 +88,6 @@ func main() {
 	//e.Use(middleware.CSRF())
 
 	e.GET("/corporate/*", func(c echo.Context) error {
-		c.Response().Header().Add("Cache-Control", "no-cache")
-		c.Response().Header().Add("Cache-Control", "no-store")
-		c.Response().Header().Add("Cache-Control", "must-revalidate")
-		c.Response().Header().Add("Pragma", "no-cache")
-
 		return c.Render(http.StatusOK, "b2b/home.html", pongo2.Context{
 			"footer": web.Footer{
 				Year:          time.Now().Year(),
@@ -100,14 +95,9 @@ func main() {
 				ServerVersion: version,
 			},
 		})
-	})
+	}, controller.NoCache)
 
 	e.GET("/reader/*", func(c echo.Context) error {
-		c.Response().Header().Add("Cache-Control", "no-cache")
-		c.Response().Header().Add("Cache-Control", "no-store")
-		c.Response().Header().Add("Cache-Control", "must-revalidate")
-		c.Response().Header().Add("Pragma", "no-cache")
-
 		return c.Render(http.StatusOK, "reader/home.html", pongo2.Context{
 			"footer": web.Footer{
 				Year:          time.Now().Year(),
@@ -115,7 +105,7 @@ func main() {
 				ServerVersion: version,
 			},
 		})
-	})
+	}, controller.NoCache)
 
 	apiGroup := e.Group("/api")
 
