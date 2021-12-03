@@ -33,6 +33,14 @@ var (
 	build        string
 )
 
+func newFooter() web.Footer {
+	return web.Footer{
+		Year:          time.Now().Year(),
+		ClientVersion: clientVersionB2B,
+		ServerVersion: version,
+	}
+}
+
 func init() {
 	flag.BoolVar(&isProduction, "production", false, "Indicate productions environment if present")
 	var v = flag.Bool("v", false, "print current version")
@@ -89,21 +97,13 @@ func main() {
 
 	e.GET("/corporate/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "b2b/home.html", pongo2.Context{
-			"footer": web.Footer{
-				Year:          time.Now().Year(),
-				ClientVersion: clientVersionB2B,
-				ServerVersion: version,
-			},
+			"footer": newFooter(),
 		})
 	}, controller.NoCache)
 
 	e.GET("/reader/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "reader/home.html", pongo2.Context{
-			"footer": web.Footer{
-				Year:          time.Now().Year(),
-				ClientVersion: clientVersionReader,
-				ServerVersion: version,
-			},
+			"footer": newFooter(),
 		})
 	}, controller.NoCache)
 
