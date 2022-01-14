@@ -265,6 +265,12 @@ func main() {
 		readerAccountGroup.POST("/wx/unlink/", readerRouter.WxUnlink)
 	}
 
+	subsGroup := readerAPIGroup.Group("/subs")
+	{
+		subsGroup.POST("/ali", readerRouter.CreateAliOrder)
+		subsGroup.POST("/wx", readerRouter.CreateWxOrder)
+	}
+
 	//-------------------------------------------------
 	// The following is used by internal system.
 	// It is not used by any customer-side client.
