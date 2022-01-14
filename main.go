@@ -112,7 +112,12 @@ func main() {
 	// --------------------------
 	// Paywall section is public.
 	// --------------------------
-	apiGroup.GET("/paywall/", productRouter.Paywall)
+	paywallGroup := apiGroup.Group("/paywall")
+	{
+		paywallGroup.GET("/", productRouter.Paywall)
+		paywallGroup.GET("/stripes/", productRouter.ListStripePrices)
+		paywallGroup.GET("/stripes/:id/", productRouter.StripePrice)
+	}
 
 	// -------------------------------------------------
 	// B2B section is restricted to corporate only.

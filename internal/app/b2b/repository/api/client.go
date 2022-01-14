@@ -49,6 +49,8 @@ const (
 	pathWxPayJsApi    = pathBaseWxPay + "/jsapi"  // wechat in-house browser.
 	pathAliPayDesktop = pathBaseAliPay + "/desktop"
 	pathAliPayMobile  = pathBaseAliPay + "/mobile"
+	pathPaywall       = "/paywall"
+	pathStripePrices  = "/stripe/prices"
 )
 
 type Client struct {
@@ -60,17 +62,19 @@ type Client struct {
 
 func NewSubsAPIClient(prod bool) Client {
 	log.Printf("Client for subscription api running in production: %t", prod)
+
+	baseURLs := config.MustSubsAPIv6BaseURL()
 	return Client{
-		key:     config.MustSubsAPIKey().Pick(prod),        // Pick the correct api access token
-		baseURL: config.MustSubsAPIv4BaseURL().Pick(false), // Always use localhost since this app is on the same server as API.
+		key:     config.MustSubsAPIKey().Pick(prod), // Pick the correct api access token
+		baseURL: baseURLs.Pick(false),               // Always use localhost since this app is on the same server as API.
 		wxRedirectBaseURLs: map[bool]string{
 			// When this app is in production mode, we want wechat to
 			// redirect to production api.
-			true: "https://www.ftacademy.cn/api/v3",
+			true: baseURLs.Pick(true),
 			// When this app is in development mode, we want Wechat to
 			// redirect to sandbox api so that changes won't affect current
 			// user.
-			false: "https://www.ftacademy.cn/api/sandbox",
+			false: config.MustAPISandboxURL().Pick(true),
 		},
 		isProd: prod,
 	}

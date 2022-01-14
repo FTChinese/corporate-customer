@@ -28,3 +28,23 @@ func (router ProductRouter) Paywall(c echo.Context) error {
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
+
+func (router ProductRouter) ListStripePrices(c echo.Context) error {
+	resp, err := router.apiClient.ListStripePrices()
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ProductRouter) StripePrice(c echo.Context) error {
+	id := c.QueryParam("id")
+	resp, err := router.apiClient.StripePrice(id)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
