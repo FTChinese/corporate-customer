@@ -107,6 +107,11 @@ func main() {
 		})
 	}, controller.NoCache)
 
+	serviceGroup := e.Group("/service")
+	{
+		serviceGroup.GET("/qr/", controller.GenerateQRImage)
+	}
+
 	apiGroup := e.Group("/api")
 
 	// --------------------------
@@ -265,10 +270,10 @@ func main() {
 		readerAccountGroup.POST("/wx/unlink/", readerRouter.WxUnlink)
 	}
 
-	subsGroup := readerAPIGroup.Group("/subs")
+	subsGroup := readerAPIGroup.Group("/subs", readerRouter.RequireLoggedIn)
 	{
-		subsGroup.POST("/ali", readerRouter.CreateAliOrder)
-		subsGroup.POST("/wx", readerRouter.CreateWxOrder)
+		subsGroup.POST("/ali/desktop/", readerRouter.CreateAliOrder)
+		subsGroup.POST("/wx/desktop/", readerRouter.CreateWxOrder)
 	}
 
 	//-------------------------------------------------
