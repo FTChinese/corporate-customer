@@ -120,8 +120,8 @@ func main() {
 	paywallGroup := apiGroup.Group("/paywall")
 	{
 		paywallGroup.GET("/", productRouter.Paywall)
-		paywallGroup.GET("/stripes/", productRouter.ListStripePrices)
-		paywallGroup.GET("/stripes/:id/", productRouter.StripePrice)
+		paywallGroup.GET("/stripe/", productRouter.ListStripePrices)
+		paywallGroup.GET("/stripe/:id/", productRouter.StripePrice)
 	}
 
 	// -------------------------------------------------
