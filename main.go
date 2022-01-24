@@ -33,10 +33,10 @@ var (
 	build        string
 )
 
-func newFooter() web.Footer {
+func newFooter(cv string) web.Footer {
 	return web.Footer{
 		Year:          time.Now().Year(),
-		ClientVersion: clientVersionB2B,
+		ClientVersion: cv,
 		ServerVersion: version,
 	}
 }
@@ -77,6 +77,7 @@ func main() {
 	subsRouter := controller.NewSubsRouter(myDBs, pm, logger)
 	productRouter := controller.NewProductRouter(apiClient, logger)
 	readerRouter := controller.NewReaderRouter(apiClient, version)
+	stripeRouter := controller.NewStripeRouter(isProduction)
 	cmsRouter := controller.NewCMSRouter(myDBs, pm, logger)
 
 	e := echo.New()
@@ -97,13 +98,13 @@ func main() {
 
 	e.GET("/corporate/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "b2b/home.html", pongo2.Context{
-			"footer": newFooter(),
+			"footer": newFooter(clientVersionB2B),
 		})
 	}, controller.NoCache)
 
 	e.GET("/reader/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "reader/home.html", pongo2.Context{
-			"footer": newFooter(),
+			"footer": newFooter(clientVersionReader),
 		})
 	}, controller.NoCache)
 
@@ -274,6 +275,7 @@ func main() {
 	{
 		subsGroup.POST("/ali/desktop/", readerRouter.CreateAliOrder)
 		subsGroup.POST("/wx/desktop/", readerRouter.CreateWxOrder)
+		subsGroup.GET("/stripe/key/", stripeRouter.PublishableKey)
 	}
 
 	//-------------------------------------------------

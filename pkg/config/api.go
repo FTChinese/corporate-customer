@@ -68,3 +68,11 @@ func MustSubsAPIv6BaseURL() API {
 func MustAPISandboxURL() API {
 	return MustLoadAPIConfig("api_urls.sandbox")
 }
+
+func MustStripeAPISecret() API {
+	return MustLoadAPIConfig("api_keys.stripe_secret")
+}
+
+func MustStripePubKey() API {
+	return MustLoadAPIConfig("api_keys.stripe_publishable")
+}
