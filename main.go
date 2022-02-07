@@ -121,8 +121,9 @@ func main() {
 	paywallGroup := apiGroup.Group("/paywall")
 	{
 		paywallGroup.GET("/", productRouter.Paywall)
-		paywallGroup.GET("/stripe/", productRouter.ListStripePrices)
-		paywallGroup.GET("/stripe/:id/", productRouter.StripePrice)
+		paywallGroup.GET("/stripe/prices/", productRouter.ListStripePrices)
+		paywallGroup.GET("/stripe/prices/:id/", productRouter.StripePrice)
+		paywallGroup.GET("/stripe/publishable-key/", stripeRouter.PublishableKey)
 	}
 
 	// -------------------------------------------------
@@ -275,7 +276,7 @@ func main() {
 	{
 		subsGroup.POST("/ali/desktop/", readerRouter.CreateAliOrder)
 		subsGroup.POST("/wx/desktop/", readerRouter.CreateWxOrder)
-		subsGroup.GET("/stripe/publishable-key/", stripeRouter.PublishableKey)
+
 	}
 
 	//-------------------------------------------------
