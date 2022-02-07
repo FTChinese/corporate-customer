@@ -275,7 +275,7 @@ func main() {
 	{
 		subsGroup.POST("/ali/desktop/", readerRouter.CreateAliOrder)
 		subsGroup.POST("/wx/desktop/", readerRouter.CreateWxOrder)
-		subsGroup.GET("/stripe/key/", stripeRouter.PublishableKey)
+		subsGroup.GET("/stripe/publishable-key/", stripeRouter.PublishableKey)
 	}
 
 	//-------------------------------------------------
