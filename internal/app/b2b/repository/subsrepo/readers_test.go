@@ -1,7 +1,7 @@
 package subsrepo
 
 import (
-	api2 "github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
+	api2 "github.com/FTChinese/ftacademy/internal/api"
 	"github.com/FTChinese/ftacademy/internal/mock"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"

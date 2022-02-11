@@ -53,6 +53,17 @@ const (
 	pathStripePrices  = "/stripe/prices"
 )
 
+const (
+	pathBaseStripe          = "/stripe"
+	pathStripeCustomer      = pathBaseStripe + "/customers"
+	pathStripeSubs          = pathBaseStripe + "/subs"
+	pathStripePaymentMethod = pathBaseStripe + "/payment-methods"
+)
+
+func pathCustomerOf(id string) string {
+	return pathStripeCustomer + "/" + id
+}
+
 type Client struct {
 	key                string
 	baseURL            string // Localhost for dev; otherwise online production.

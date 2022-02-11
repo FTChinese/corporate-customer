@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/api"
+	api2 "github.com/FTChinese/ftacademy/internal/api"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/go-rest/render"
@@ -12,12 +12,12 @@ import (
 
 type ReaderRouter struct {
 	guard     reader.JWTGuard
-	apiClient api.Client
+	apiClient api2.Client
 	wxApp     config.WechatApp
 	version   string
 }
 
-func NewReaderRouter(client api.Client, version string) ReaderRouter {
+func NewReaderRouter(client api2.Client, version string) ReaderRouter {
 	return ReaderRouter{
 		guard: reader.NewJWTGuard(
 			config.
@@ -31,7 +31,7 @@ func NewReaderRouter(client api.Client, version string) ReaderRouter {
 }
 
 func (router ReaderRouter) collectClientHeader(c echo.Context) http.Header {
-	return api.NewHeaderBuilder().
+	return api2.NewHeaderBuilder().
 		WithPlatformWeb().
 		WithClientVersion(router.version).
 		WithUserIP(c.RealIP()).
