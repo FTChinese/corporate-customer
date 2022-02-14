@@ -1,11 +1,12 @@
-package controller
+package b2b
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/repository/adminrepo"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
+	"github.com/FTChinese/ftacademy/internal/repository/adminrepo"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
+	"github.com/FTChinese/ftacademy/pkg/xhttp"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
@@ -43,7 +44,7 @@ func (router AdminRouter) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFun
 			return render.NewUnauthorized(err.Error())
 		}
 
-		c.Set(claimsCtxKey, claims)
+		c.Set(xhttp.KeyCtxClaims, claims)
 		return next(c)
 	}
 }
@@ -62,7 +63,7 @@ func (router AdminRouter) RequireTeamSet(next echo.HandlerFunc) echo.HandlerFunc
 			return render.NewUnauthorized("Organization team is required")
 		}
 
-		c.Set(claimsCtxKey, claims)
+		c.Set(xhttp.KeyCtxClaims, claims)
 		return next(c)
 	}
 }

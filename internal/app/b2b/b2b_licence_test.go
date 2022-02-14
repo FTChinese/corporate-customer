@@ -1,4 +1,4 @@
-package controller
+package b2b
 
 import "testing"
 

@@ -1,13 +1,13 @@
-package controller
+package b2b
 
 import (
 	"database/sql"
-	"github.com/FTChinese/ftacademy/internal/app/repository/subsrepo"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/letter"
 	"github.com/FTChinese/ftacademy/internal/pkg/licence"
 	"github.com/FTChinese/ftacademy/internal/pkg/reader"
+	"github.com/FTChinese/ftacademy/internal/repository/subsrepo"
 	"github.com/FTChinese/ftacademy/pkg/validator"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"

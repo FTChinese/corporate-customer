@@ -1,4 +1,4 @@
-package controller
+package b2b
 
 import (
 	"github.com/FTChinese/go-rest/render"

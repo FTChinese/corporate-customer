@@ -1,7 +1,7 @@
-package controller
+package b2b
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/repository/cmsrepo"
+	"github.com/FTChinese/ftacademy/internal/repository/cmsrepo"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
 	"go.uber.org/zap"
