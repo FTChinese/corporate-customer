@@ -219,6 +219,25 @@ func (c Client) StripeSubsDefaultPaymentMethod(ids reader.PassportClaims, id str
 	return resp, nil
 }
 
+func (c Client) StripeListPaymentMethods(ids reader.PassportClaims, rawQuery string) (*http.Response, error) {
+	url := c.baseURL + pathStripePaymentMethod + "?" + rawQuery
+
+	log.Printf("Fetching data from %s", url)
+
+	resp, errs := fetch.
+		New().
+		Get(url).
+		WithHeader(ReaderIDsHeader(ids).Build()).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
+
 func (c Client) StripePaymentMethodOf(ids reader.PassportClaims, id string) (*http.Response, error) {
 	url := c.baseURL + pathPaymentMethodOf(id)
 
