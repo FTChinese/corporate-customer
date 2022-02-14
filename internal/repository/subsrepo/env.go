@@ -1,8 +1,8 @@
 package subsrepo
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/repository"
-	"github.com/FTChinese/ftacademy/internal/app/repository/txrepo"
+	"github.com/FTChinese/ftacademy/internal/repository"
+	"github.com/FTChinese/ftacademy/internal/repository/txrepo"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"go.uber.org/zap"
 )
