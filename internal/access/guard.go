@@ -1,28 +1,27 @@
-package controller
+package access
 
 import (
 	"database/sql"
-	"github.com/FTChinese/ftacademy/internal/repository/access"
 	"github.com/FTChinese/ftacademy/pkg/db"
-	"github.com/FTChinese/ftacademy/pkg/oauth"
+	"github.com/FTChinese/ftacademy/pkg/xhttp"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"log"
 )
 
-type OAuthGuard struct {
-	repo access.Env
+type Guard struct {
+	repo Env
 }
 
-func NewOAuthGuard(dbs db.ReadWriteMyDBs) OAuthGuard {
-	return OAuthGuard{
-		repo: access.NewEnv(dbs),
+func NewGuard(dbs db.ReadWriteMyDBs) Guard {
+	return Guard{
+		repo: NewEnv(dbs),
 	}
 }
 
-func (g OAuthGuard) RequireToken(next echo.HandlerFunc) echo.HandlerFunc {
+func (g Guard) RequireToken(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		token, err := oauth.GetToken(c.Request())
+		token, err := xhttp.GetAccessToken(c.Request())
 		if err != nil {
 			log.Printf("Token not found: %s", err)
 			return render.NewForbidden("Invalid access token")

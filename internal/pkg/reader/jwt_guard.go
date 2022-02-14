@@ -1,7 +1,7 @@
 package reader
 
 import (
-	"github.com/FTChinese/ftacademy/pkg/oauth"
+	"github.com/FTChinese/ftacademy/pkg/xhttp"
 	"log"
 	"net/http"
 )
@@ -25,7 +25,7 @@ func (g JWTGuard) CreatePassport(a Account) (Passport, error) {
 }
 
 func (g JWTGuard) RetrievePassportClaims(req *http.Request) (PassportClaims, error) {
-	ss, err := oauth.GetBearerAuth(req.Header)
+	ss, err := xhttp.GetBearerAuth(req.Header)
 	if err != nil {
 		log.Printf("Error parsing Authorization header: %v", err)
 		return PassportClaims{}, err

@@ -1,4 +1,4 @@
-package oauth
+package xhttp
 
 import (
 	"errors"
@@ -36,27 +36,4 @@ func GetBearerAuth(header http.Header) (string, error) {
 	}
 
 	return ParseBearer(authVal)
-}
-
-func getTokenFromQuery(req *http.Request) (string, error) {
-	token := req.Form.Get("access_token")
-	if strings.TrimSpace(token) == "" {
-		return "", errTokenRequired
-	}
-
-	return token, nil
-}
-
-// GetToken extract oauth token from http request.
-// It first tries to find it from `Authorization: Bearer xxxxx`
-// header, then fallback to url query parameter `access_token`
-// field.
-// If nothing is found, returns error.
-func GetToken(req *http.Request) (string, error) {
-	authHeader, err := GetBearerAuth(req.Header)
-	if err == nil {
-		return authHeader, nil
-	}
-
-	return getTokenFromQuery(req)
 }

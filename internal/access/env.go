@@ -2,7 +2,6 @@ package access
 
 import (
 	"github.com/FTChinese/ftacademy/pkg/db"
-	"github.com/FTChinese/ftacademy/pkg/oauth"
 	"github.com/patrickmn/go-cache"
 	"time"
 )
@@ -22,7 +21,7 @@ func NewEnv(dbs db.ReadWriteMyDBs) Env {
 
 // Load tries to load an access token from cache first, then
 // retrieve from db if not found in cache.
-func (env Env) Load(token string) (oauth.OAuth, error) {
+func (env Env) Load(token string) (OAuth, error) {
 	if acc, ok := env.loadCachedToken(token); ok {
 		return acc, nil
 	}
@@ -37,29 +36,29 @@ func (env Env) Load(token string) (oauth.OAuth, error) {
 	return acc, nil
 }
 
-func (env Env) loadCachedToken(token string) (oauth.OAuth, bool) {
+func (env Env) loadCachedToken(token string) (OAuth, bool) {
 	x, found := env.cache.Get(token)
 	if !found {
-		return oauth.OAuth{}, false
+		return OAuth{}, false
 	}
 
-	if access, ok := x.(oauth.OAuth); ok {
+	if access, ok := x.(OAuth); ok {
 		return access, true
 	}
 
-	return oauth.OAuth{}, false
+	return OAuth{}, false
 }
 
-func (env Env) retrieveFromDB(token string) (oauth.OAuth, error) {
-	var access oauth.OAuth
+func (env Env) retrieveFromDB(token string) (OAuth, error) {
+	var access OAuth
 
-	if err := env.dbs.Read.Get(&access, oauth.StmtOAuth, token); err != nil {
+	if err := env.dbs.Read.Get(&access, StmtOAuth, token); err != nil {
 		return access, err
 	}
 
 	return access, nil
 }
 
-func (env Env) cacheToken(token string, access oauth.OAuth) {
+func (env Env) cacheToken(token string, access OAuth) {
 	env.cache.Set(token, access, cache.DefaultExpiration)
 }

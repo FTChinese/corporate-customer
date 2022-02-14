@@ -1,4 +1,4 @@
-package oauth
+package access
 
 import (
 	"github.com/FTChinese/go-rest/chrono"

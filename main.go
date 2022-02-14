@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
+	"github.com/FTChinese/ftacademy/internal/access"
 	"github.com/FTChinese/ftacademy/internal/api"
 	controller2 "github.com/FTChinese/ftacademy/internal/app/controller"
 	"github.com/FTChinese/ftacademy/pkg/config"
@@ -69,7 +70,7 @@ func main() {
 	pm := postman.New(config.MustGetHanqiConn())
 
 	//b2bGuard := controller.NewJWTGuard(b2bAppKey.GetJWTKey())
-	oauthGuard := controller2.NewOAuthGuard(myDBs)
+	oauthGuard := access.NewGuard(myDBs)
 
 	apiClient := api.NewSubsAPIClient(isProduction)
 
