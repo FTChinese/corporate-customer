@@ -64,6 +64,14 @@ func pathCustomerOf(id string) string {
 	return pathStripeCustomer + "/" + id
 }
 
+func pathSubsOf(id string) string {
+	return pathStripeSubs + "/" + id
+}
+
+func pathPaymentMethodOf(id string) string {
+	return pathStripePaymentMethod + "/" + id
+}
+
 type Client struct {
 	key                string
 	baseURL            string // Localhost for dev; otherwise online production.
