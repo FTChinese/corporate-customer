@@ -85,8 +85,8 @@ func (c Client) StripeNewSubs(ids reader.PassportClaims, body io.Reader) (*http.
 	return resp, nil
 }
 
-func (c Client) StripeGetSubs(ids reader.PassportClaims) (*http.Response, error) {
-	url := c.baseURL + pathStripeSubs
+func (c Client) StripeGetSubs(ids reader.PassportClaims, id string) (*http.Response, error) {
+	url := c.baseURL + pathSubsOf(id)
 
 	log.Printf("Fetching data from %s", url)
 
