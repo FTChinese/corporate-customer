@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/adminrepo"
+	"github.com/FTChinese/ftacademy/internal/app/repository/adminrepo"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"

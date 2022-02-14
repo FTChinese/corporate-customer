@@ -2,7 +2,7 @@ package controller
 
 import (
 	"database/sql"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/repository/subsrepo"
+	"github.com/FTChinese/ftacademy/internal/app/repository/subsrepo"
 	"github.com/FTChinese/ftacademy/internal/pkg/admin"
 	"github.com/FTChinese/ftacademy/internal/pkg/input"
 	"github.com/FTChinese/ftacademy/internal/pkg/letter"

@@ -39,7 +39,7 @@ LIMIT ? OFFSET ?`
 
 // StmtCountLicence is used to support pagination.
 const StmtCountLicence = `
-SELECT COUNT(*) AS total_licence
+SELECT COUNT(*) AS row_count
 FROM b2b.licence
 WHERE team_id = ?`
 

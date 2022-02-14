@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/ftacademy/internal/api"
-	"github.com/FTChinese/ftacademy/internal/app/b2b/controller"
+	controller2 "github.com/FTChinese/ftacademy/internal/app/controller"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
@@ -69,16 +69,16 @@ func main() {
 	pm := postman.New(config.MustGetHanqiConn())
 
 	//b2bGuard := controller.NewJWTGuard(b2bAppKey.GetJWTKey())
-	oauthGuard := controller.NewOAuthGuard(myDBs)
+	oauthGuard := controller2.NewOAuthGuard(myDBs)
 
 	apiClient := api.NewSubsAPIClient(isProduction)
 
-	adminRouter := controller.NewAdminRouter(myDBs, pm, logger)
-	subsRouter := controller.NewSubsRouter(myDBs, pm, logger)
-	productRouter := controller.NewProductRouter(apiClient, logger)
-	readerRouter := controller.NewReaderRouter(apiClient, version)
-	stripeRouter := controller.NewStripeRouter(isProduction)
-	cmsRouter := controller.NewCMSRouter(myDBs, pm, logger)
+	adminRouter := controller2.NewAdminRouter(myDBs, pm, logger)
+	subsRouter := controller2.NewSubsRouter(myDBs, pm, logger)
+	productRouter := controller2.NewProductRouter(apiClient, logger)
+	readerRouter := controller2.NewReaderRouter(apiClient, version)
+	stripeRouter := controller2.NewStripeRouter(isProduction)
+	cmsRouter := controller2.NewCMSRouter(myDBs, pm, logger)
 
 	e := echo.New()
 	e.Renderer = web.MustNewRenderer(webCfg)
@@ -91,7 +91,7 @@ func main() {
 
 	e.HTTPErrorHandler = web.ErrorHandler
 
-	e.Use(controller.DumpRequest)
+	e.Use(controller2.DumpRequest)
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
@@ -100,17 +100,17 @@ func main() {
 		return c.Render(http.StatusOK, "b2b/home.html", pongo2.Context{
 			"footer": newFooter(clientVersionB2B),
 		})
-	}, controller.NoCache)
+	}, controller2.NoCache)
 
 	e.GET("/reader/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "reader/home.html", pongo2.Context{
 			"footer": newFooter(clientVersionReader),
 		})
-	}, controller.NoCache)
+	}, controller2.NoCache)
 
 	serviceGroup := e.Group("/service")
 	{
-		serviceGroup.GET("/qr/", controller.GenerateQRImage)
+		serviceGroup.GET("/qr/", controller2.GenerateQRImage)
 	}
 
 	apiGroup := e.Group("/api")
