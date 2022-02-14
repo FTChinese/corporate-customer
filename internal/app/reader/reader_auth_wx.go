@@ -1,4 +1,4 @@
-package controller
+package reader
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func (router ReaderRouter) WxRequestCode(c echo.Context) error {
+func (router Router) WxRequestCode(c echo.Context) error {
 	sess, err := router.apiClient.WxOAuthSession(router.wxApp.AppID)
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -18,7 +18,7 @@ func (router ReaderRouter) WxRequestCode(c echo.Context) error {
 	return c.JSON(http.StatusOK, sess)
 }
 
-func (router ReaderRouter) WxLogin(c echo.Context) error {
+func (router Router) WxLogin(c echo.Context) error {
 	defer c.Request().Body.Close()
 
 	header := router.collectClientHeader(c)
@@ -50,7 +50,7 @@ func (router ReaderRouter) WxLogin(c echo.Context) error {
 	return router.handlePassport(c, resp)
 }
 
-func (router ReaderRouter) WxRefresh(c echo.Context) error {
+func (router Router) WxRefresh(c echo.Context) error {
 	defer c.Request().Body.Close()
 
 	header := router.collectClientHeader(c)

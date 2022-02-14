@@ -1,4 +1,4 @@
-package controller
+package reader
 
 import (
 	"github.com/FTChinese/ftacademy/pkg/fetch"
@@ -13,7 +13,7 @@ import (
 // Input:
 // * token: string;
 // * password: string.
-func (router ReaderRouter) ResetPassword(c echo.Context) error {
+func (router Router) ResetPassword(c echo.Context) error {
 	resp, err := router.apiClient.ResetPassword(c.Request().Body)
 
 	if err != nil {
@@ -33,7 +33,7 @@ func (router ReaderRouter) ResetPassword(c echo.Context) error {
 // * sourceUrl: string.
 //
 // The footprint.Client headers are required.
-func (router ReaderRouter) RequestPwResetLetter(c echo.Context) error {
+func (router Router) RequestPwResetLetter(c echo.Context) error {
 	resp, err := router.apiClient.RequestPasswordResetLetter(c.Request().Body)
 
 	if err != nil {
@@ -46,7 +46,7 @@ func (router ReaderRouter) RequestPwResetLetter(c echo.Context) error {
 // VerifyPwResetToken verifies a password reset link.
 //
 // 	GET /auth/password-reset/tokens/{token}
-func (router ReaderRouter) VerifyPwResetToken(c echo.Context) error {
+func (router Router) VerifyPwResetToken(c echo.Context) error {
 	token := c.Param("token")
 
 	resp, err := router.apiClient.VerifyResetToken(token)

@@ -1,4 +1,4 @@
-package controller
+package reader
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 // RequestMobileLoginSMS sends an SMS to user for login.
 // Input:
 // * mobile: string
-func (router ReaderRouter) RequestMobileLoginSMS(c echo.Context) error {
+func (router Router) RequestMobileLoginSMS(c echo.Context) error {
 	resp, err := router.apiClient.RequestLoginSMS(c.Request().Body)
 
 	if err != nil {
@@ -27,7 +27,7 @@ func (router ReaderRouter) RequestMobileLoginSMS(c echo.Context) error {
 // * code: string - the SMS cod of this session
 // Returns {id: string | null} containing uuid.
 // If
-func (router ReaderRouter) VerifyMobileLoginSMS(c echo.Context) error {
+func (router Router) VerifyMobileLoginSMS(c echo.Context) error {
 	// Verify the code first.
 	resp, err := router.apiClient.VerifyLoginSMS(c.Request().Body)
 
@@ -71,7 +71,7 @@ func (router ReaderRouter) VerifyMobileLoginSMS(c echo.Context) error {
 // * email: string;
 // * password: string;
 // * mobile: string;
-func (router ReaderRouter) MobileLinkExistingEmail(c echo.Context) error {
+func (router Router) MobileLinkExistingEmail(c echo.Context) error {
 	header := router.collectClientHeader(c)
 
 	log.Printf("Real IP: %v", header)
@@ -88,7 +88,7 @@ func (router ReaderRouter) MobileLinkExistingEmail(c echo.Context) error {
 // MobileSignUp creates a new mobile account.
 // Input:
 // * mobile: string;
-func (router ReaderRouter) MobileSignUp(c echo.Context) error {
+func (router Router) MobileSignUp(c echo.Context) error {
 
 	header := router.collectClientHeader(c)
 

@@ -1,6 +1,7 @@
-package controller
+package reader
 
 import (
+	"github.com/FTChinese/ftacademy/internal/api"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -11,12 +12,14 @@ type PubKey struct {
 }
 
 type StripeRouter struct {
-	pubKey string
+	pubKey    string
+	apiClient api.Client
 }
 
-func NewStripeRouter(prod bool) StripeRouter {
+func NewStripeRouter(client api.Client, prod bool) StripeRouter {
 	return StripeRouter{
-		pubKey: config.MustStripePubKey().Pick(prod),
+		pubKey:    config.MustStripePubKey().Pick(prod),
+		apiClient: client,
 	}
 }
 

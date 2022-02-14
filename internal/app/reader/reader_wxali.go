@@ -1,4 +1,4 @@
-package controller
+package reader
 
 import (
 	"github.com/FTChinese/ftacademy/pkg/fetch"
@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (router ReaderRouter) CreateWxOrder(c echo.Context) error {
+func (router Router) CreateWxOrder(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
@@ -20,7 +20,7 @@ func (router ReaderRouter) CreateWxOrder(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
-func (router ReaderRouter) CreateAliOrder(c echo.Context) error {
+func (router Router) CreateAliOrder(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
