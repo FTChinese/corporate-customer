@@ -1,4 +1,4 @@
-package controller
+package xhttp
 
 import (
 	"github.com/labstack/echo/v4"
