@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"github.com/FTChinese/ftacademy/internal/access"
 	"github.com/FTChinese/ftacademy/internal/api"
-	controller2 "github.com/FTChinese/ftacademy/internal/app/controller"
+	"github.com/FTChinese/ftacademy/internal/app/b2b"
+	"github.com/FTChinese/ftacademy/internal/app/reader"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
+	"github.com/FTChinese/ftacademy/pkg/xhttp"
 	"github.com/FTChinese/ftacademy/web"
 	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
@@ -74,12 +76,12 @@ func main() {
 
 	apiClient := api.NewSubsAPIClient(isProduction)
 
-	adminRouter := controller2.NewAdminRouter(myDBs, pm, logger)
-	subsRouter := controller2.NewSubsRouter(myDBs, pm, logger)
-	productRouter := controller2.NewProductRouter(apiClient, logger)
-	readerRouter := controller2.NewReaderRouter(apiClient, version)
-	stripeRouter := controller2.NewStripeRouter(isProduction)
-	cmsRouter := controller2.NewCMSRouter(myDBs, pm, logger)
+	adminRouter := b2b.NewAdminRouter(myDBs, pm, logger)
+	subsRouter := b2b.NewSubsRouter(myDBs, pm, logger)
+	productRouter := b2b.NewProductRouter(apiClient, logger)
+	readerRouter := reader.NewReaderRouter(apiClient, version)
+	stripeRouter := reader.NewStripeRouter(apiClient, isProduction)
+	cmsRouter := b2b.NewCMSRouter(myDBs, pm, logger)
 
 	e := echo.New()
 	e.Renderer = web.MustNewRenderer(webCfg)
@@ -92,7 +94,7 @@ func main() {
 
 	e.HTTPErrorHandler = web.ErrorHandler
 
-	e.Use(controller2.DumpRequest)
+	e.Use(xhttp.DumpRequest)
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
@@ -101,17 +103,17 @@ func main() {
 		return c.Render(http.StatusOK, "b2b/home.html", pongo2.Context{
 			"footer": newFooter(clientVersionB2B),
 		})
-	}, controller2.NoCache)
+	}, xhttp.NoCache)
 
 	e.GET("/reader/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "reader/home.html", pongo2.Context{
 			"footer": newFooter(clientVersionReader),
 		})
-	}, controller2.NoCache)
+	}, xhttp.NoCache)
 
 	serviceGroup := e.Group("/service")
 	{
-		serviceGroup.GET("/qr/", controller2.GenerateQRImage)
+		serviceGroup.GET("/qr/", reader.GenerateQRImage)
 	}
 
 	apiGroup := e.Group("/api")
@@ -273,11 +275,27 @@ func main() {
 		readerAccountGroup.POST("/wx/unlink/", readerRouter.WxUnlink)
 	}
 
-	subsGroup := readerAPIGroup.Group("/subs", readerRouter.RequireLoggedIn)
+	ftcPayGroup := readerAPIGroup.Group("/ftc-pay", readerRouter.RequireLoggedIn)
 	{
-		subsGroup.POST("/ali/desktop/", readerRouter.CreateAliOrder)
-		subsGroup.POST("/wx/desktop/", readerRouter.CreateWxOrder)
+		ftcPayGroup.POST("/ali/desktop/", readerRouter.CreateAliOrder)
+		ftcPayGroup.POST("/wx/desktop/", readerRouter.CreateWxOrder)
+	}
+	stripeGroup := readerAPIGroup.Group("/stripe")
+	{
+		stripeGroup.POST("/customers/", stripeRouter.CreateCustomer)
+		stripeGroup.GET("/customers/:id/", stripeRouter.GetCustomer)
+		stripeGroup.GET("/customers/:id/default-payment-method", stripeRouter.GetCusDefaultPaymentMethod)
 
+		stripeGroup.POST("/subs/", stripeRouter.CreateSubs)
+		stripeGroup.GET("/subs/:id/", stripeRouter.GetSubs)
+		stripeGroup.POST("/subs/:id/", stripeRouter.CreateSubs)
+		stripeGroup.POST("/subs/:id/", stripeRouter.RefreshSubs)
+		stripeGroup.POST("/subs/:id/", stripeRouter.CancelSubs)
+		stripeGroup.POST("/subs/:id/", stripeRouter.ReactivateSubs)
+		stripeGroup.GET("/subs/:id/default-payment-method/", stripeRouter.GetSubsDefaultPaymentMethod)
+
+		stripeGroup.GET("/payment-methods/", stripeRouter.ListPaymentMethods)
+		stripeGroup.GET("/payment-methods/:id/", stripeRouter.GetPaymentMethod)
 	}
 
 	//-------------------------------------------------
