@@ -58,10 +58,15 @@ const (
 	pathStripeCustomer      = pathBaseStripe + "/customers"
 	pathStripeSubs          = pathBaseStripe + "/subs"
 	pathStripePaymentMethod = pathBaseStripe + "/payment-methods"
+	pathStripeSetupIntent   = pathBaseStripe + "/setup-intents"
 )
 
 func pathCustomerOf(id string) string {
 	return pathStripeCustomer + "/" + id
+}
+
+func pathCusDefaultPaymentMethod(id string) string {
+	return pathStripeCustomer + "/" + id + "/default-payment-method"
 }
 
 func pathSubsOf(id string) string {

@@ -280,22 +280,29 @@ func main() {
 		ftcPayGroup.POST("/ali/desktop/", readerRouter.CreateAliOrder)
 		ftcPayGroup.POST("/wx/desktop/", readerRouter.CreateWxOrder)
 	}
-	stripeGroup := readerAPIGroup.Group("/stripe")
+	stripeGroup := readerAPIGroup.Group("/stripe", readerRouter.RequireLoggedIn)
 	{
-		stripeGroup.POST("/customers/", stripeRouter.CreateCustomer)
-		stripeGroup.GET("/customers/:id/", stripeRouter.GetCustomer)
-		stripeGroup.GET("/customers/:id/default-payment-method", stripeRouter.GetCusDefaultPaymentMethod)
+		customerGroup := stripeGroup.Group("/customers")
+		customerGroup.POST("/", stripeRouter.CreateCustomer)
+		customerGroup.GET("/:id/", stripeRouter.GetCustomer)
+		customerGroup.GET("/:id/default-payment-method/", stripeRouter.GetCusDefaultPaymentMethod)
+		customerGroup.POST("/:id/default-payment-method/", stripeRouter.SetCusDefaultPaymentMethod)
+		customerGroup.GET("/:id/payment-methods/", stripeRouter.ListCusPaymentMethods)
 
-		stripeGroup.POST("/subs/", stripeRouter.CreateSubs)
-		stripeGroup.GET("/subs/:id/", stripeRouter.GetSubs)
-		stripeGroup.POST("/subs/:id/", stripeRouter.CreateSubs)
-		stripeGroup.POST("/subs/:id/", stripeRouter.RefreshSubs)
-		stripeGroup.POST("/subs/:id/", stripeRouter.CancelSubs)
-		stripeGroup.POST("/subs/:id/", stripeRouter.ReactivateSubs)
-		stripeGroup.GET("/subs/:id/default-payment-method/", stripeRouter.GetSubsDefaultPaymentMethod)
+		setupGroup := stripeGroup.Group("/setup-intents")
+		setupGroup.POST("/", stripeRouter.CreateSetupIntent)
 
-		stripeGroup.GET("/payment-methods/", stripeRouter.ListPaymentMethods)
-		stripeGroup.GET("/payment-methods/:id/", stripeRouter.GetPaymentMethod)
+		pmGroup := stripeGroup.Group("/payment-methods")
+		pmGroup.GET("/:id/", stripeRouter.GetPaymentMethod)
+
+		subsGroup := stripeGroup.Group("/subs")
+		subsGroup.POST("/", stripeRouter.CreateSubs)
+		subsGroup.GET("/:id/", stripeRouter.GetSubs)
+		subsGroup.POST("/:id/", stripeRouter.UpdateSubs)
+		subsGroup.POST("/:id/refresh/", stripeRouter.RefreshSubs)
+		subsGroup.POST("/:id/cancel/", stripeRouter.CancelSubs)
+		subsGroup.POST("/:id/reactivate/", stripeRouter.ReactivateSubs)
+		subsGroup.GET("/:id/default-payment-method/", stripeRouter.GetSubsDefaultPaymentMethod)
 	}
 
 	//-------------------------------------------------
