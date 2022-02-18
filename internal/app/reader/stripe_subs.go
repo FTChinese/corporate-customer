@@ -99,29 +99,3 @@ func (router StripeRouter) GetSubsDefaultPaymentMethod(c echo.Context) error {
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
-
-func (router StripeRouter) ListPaymentMethods(c echo.Context) error {
-	claims := getReaderClaims(c)
-	rawQuery := c.QueryString()
-
-	resp, err := router.apiClient.StripeListPaymentMethods(claims, rawQuery)
-
-	if err != nil {
-		return render.NewInternalError(err.Error())
-	}
-
-	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
-}
-
-func (router StripeRouter) GetPaymentMethod(c echo.Context) error {
-	claims := getReaderClaims(c)
-	pmID := c.Param("id")
-
-	resp, err := router.apiClient.StripePaymentMethodOf(claims, pmID)
-
-	if err != nil {
-		return render.NewInternalError(err.Error())
-	}
-
-	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
-}
