@@ -291,6 +291,9 @@ func main() {
 
 		setupGroup := stripeGroup.Group("/setup-intents")
 		setupGroup.POST("/", stripeRouter.CreateSetupIntent)
+		// ?refresh=true
+		setupGroup.GET("/:id/", stripeRouter.GetSetupIntent)
+		setupGroup.GET("/:id/payment-method/", stripeRouter.GetSetupPaymentMethod)
 
 		pmGroup := stripeGroup.Group("/payment-methods")
 		pmGroup.GET("/:id/", stripeRouter.GetPaymentMethod)
