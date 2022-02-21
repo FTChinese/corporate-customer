@@ -43,3 +43,39 @@ func (router StripeRouter) CreateSetupIntent(c echo.Context) error {
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
+
+// GetSetupIntent loads a setup intent.
+func (router StripeRouter) GetSetupIntent(c echo.Context) error {
+	claims := getReaderClaims(c)
+	id := c.Param("id")
+
+	resp, err := router.apiClient.StripeGetSetupIntent(
+		claims,
+		id,
+		c.QueryParams(),
+	)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+// GetSetupPaymentMethod loads a payment method under a setup intent.
+func (router StripeRouter) GetSetupPaymentMethod(c echo.Context) error {
+	claims := getReaderClaims(c)
+	id := c.Param("id")
+
+	resp, err := router.apiClient.StripeGetSetupIntent(
+		claims,
+		id,
+		c.QueryParams(),
+	)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
