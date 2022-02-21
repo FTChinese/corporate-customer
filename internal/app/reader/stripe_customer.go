@@ -62,8 +62,9 @@ func (router StripeRouter) SetCusDefaultPaymentMethod(c echo.Context) error {
 // ListCusPaymentMethods list a customer's payment methods with pagination.
 func (router StripeRouter) ListCusPaymentMethods(c echo.Context) error {
 	claims := getReaderClaims(c)
+	cusID := c.Param("id")
 
-	resp, err := router.apiClient.StripeListCusPaymentMethods(claims, c.QueryParams())
+	resp, err := router.apiClient.StripeListCusPaymentMethods(claims, cusID, c.QueryParams())
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
