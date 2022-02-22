@@ -22,7 +22,7 @@ func (router StripeRouter) GetCustomer(c echo.Context) error {
 	claims := getReaderClaims(c)
 	subsID := c.Param("id")
 
-	resp, err := router.apiClient.StripeGetSubs(claims, subsID)
+	resp, err := router.apiClient.StripeGetCustomer(claims, subsID)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
