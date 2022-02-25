@@ -40,3 +40,8 @@ func (router Router) CreateAliOrder(c echo.Context) error {
 		resp.Body,
 	)
 }
+
+func (router Router) VerifyFtcOrder(c echo.Context) error {
+
+	return nil
+}

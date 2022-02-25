@@ -279,7 +279,9 @@ func main() {
 	{
 		ftcPayGroup.POST("/ali/desktop/", readerRouter.CreateAliOrder)
 		ftcPayGroup.POST("/wx/desktop/", readerRouter.CreateWxOrder)
+		ftcPayGroup.POST("/orders/:id/verify/", readerRouter.VerifyFtcOrder)
 	}
+
 	stripeGroup := readerAPIGroup.Group("/stripe", readerRouter.RequireLoggedIn)
 	{
 		customerGroup := stripeGroup.Group("/customers")
