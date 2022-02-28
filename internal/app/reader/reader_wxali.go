@@ -44,7 +44,7 @@ func (router Router) CreateAliOrder(c echo.Context) error {
 func (router Router) VerifyFtcOrder(c echo.Context) error {
 	claims := getReaderClaims(c)
 
-	orderID := c.QueryParam("id")
+	orderID := c.Param("id")
 
 	resp, err := router.apiClient.VerifyPaymentResult(
 		claims,
