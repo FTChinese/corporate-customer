@@ -42,6 +42,22 @@ func (router Router) CreateAliOrder(c echo.Context) error {
 }
 
 func (router Router) VerifyFtcOrder(c echo.Context) error {
+	claims := getReaderClaims(c)
 
-	return nil
+	orderID := c.QueryParam("id")
+
+	resp, err := router.apiClient.VerifyPaymentResult(
+		claims,
+		orderID,
+	)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(
+		resp.StatusCode,
+		fetch.ContentJSON,
+		resp.Body,
+	)
 }

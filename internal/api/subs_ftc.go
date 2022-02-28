@@ -112,3 +112,20 @@ func (c Client) AliPayMobile(ids reader.PassportClaims, body io.Reader) (*http.R
 
 	return resp, nil
 }
+
+func (c Client) VerifyPaymentResult(ids reader.PassportClaims, orderID string) (*http.Response, error) {
+	url := c.baseURL + pathVerifyOrder(orderID)
+
+	resp, errs := fetch.
+		New().
+		Post(url).
+		WithHeader(ReaderIDsHeader(ids).Build()).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}

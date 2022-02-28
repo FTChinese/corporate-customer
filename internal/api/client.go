@@ -54,12 +54,20 @@ const (
 )
 
 const (
+	pathBaseOrder = "/orders"
+)
+
+const (
 	pathBaseStripe          = "/stripe"
 	pathStripeCustomer      = pathBaseStripe + "/customers"
 	pathStripeSubs          = pathBaseStripe + "/subs"
 	pathStripePaymentMethod = pathBaseStripe + "/payment-methods"
 	pathStripeSetupIntent   = pathBaseStripe + "/setup-intents"
 )
+
+func pathVerifyOrder(id string) string {
+	return pathBaseOrder + "/" + pathBaseOrder + "/verify-payment"
+}
 
 func pathCustomerOf(id string) string {
 	return pathStripeCustomer + "/" + id
