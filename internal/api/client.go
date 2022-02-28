@@ -66,7 +66,7 @@ const (
 )
 
 func pathVerifyOrder(id string) string {
-	return pathBaseOrder + "/" + pathBaseOrder + "/verify-payment"
+	return pathBaseOrder + "/" + id + "/verify-payment"
 }
 
 func pathCustomerOf(id string) string {
