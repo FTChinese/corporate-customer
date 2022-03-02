@@ -275,6 +275,17 @@ func main() {
 		readerAccountGroup.POST("/wx/unlink/", readerRouter.WxUnlink)
 	}
 
+	memberGroup := readerAPIGroup.Group("/membership", readerRouter.RequireLoggedIn)
+	{
+		memberGroup.GET("/", readerRouter.LoadMembership)
+		memberGroup.POST("/addons/", readerRouter.ClaimAddon)
+	}
+
+	iapGroup := readerAPIGroup.Group("/apple", readerRouter.RequireLoggedIn)
+	{
+		iapGroup.POST("/subs/:id/", readerRouter.RefreshIAP)
+	}
+
 	ftcPayGroup := readerAPIGroup.Group("/ftc-pay", readerRouter.RequireLoggedIn)
 	{
 		ftcPayGroup.POST("/ali/desktop/", readerRouter.CreateAliOrder)

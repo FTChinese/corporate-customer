@@ -58,6 +58,19 @@ const (
 )
 
 const (
+	pathBaseMember  = "/membership"
+	pathMemberAddOn = pathBaseMember + "/addons"
+)
+
+const (
+	pathBaseApple = "/apple"
+)
+
+func pathAppleSubOf(id string) string {
+	return pathBaseApple + "/" + id
+}
+
+const (
 	pathBaseStripe          = "/stripe"
 	pathStripeCustomer      = pathBaseStripe + "/customers"
 	pathStripeSubs          = pathBaseStripe + "/subs"
