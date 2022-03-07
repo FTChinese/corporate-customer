@@ -1,3 +1,7 @@
+# FT Academy
+
+This is the server-side implementation backing the [Reader](https://github.com/FTChinese/reader-react) and [B2B](https://github.com/FTChinese/b2b-react) apps. This app relies on the [API](https://github.com/FTChinese/subscription-api) to run since it forwards most reader-related requests to the API.
+
 ## Development
 
 To build the binary, `./build/api.toml` file must exist. This file will be embedded into the resulting binary using go 1.16 embed package. Make sure your have go above 1.16.
