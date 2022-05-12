@@ -3,6 +3,7 @@ package reader
 import (
 	"github.com/FTChinese/ftacademy/internal/api"
 	"github.com/FTChinese/ftacademy/pkg/config"
+	"github.com/FTChinese/ftacademy/pkg/xhttp"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -12,17 +13,24 @@ type PubKey struct {
 }
 
 type StripeRouter struct {
-	pubKey    string
+	keyHolder config.KeyHolder
 	apiClient api.Client
 }
 
 func NewStripeRouter(client api.Client, prod bool) StripeRouter {
 	return StripeRouter{
-		pubKey:    config.MustStripePubKey().Pick(prod),
+		keyHolder: config.MustStripePubKey().KeyHolder(prod),
 		apiClient: client,
 	}
 }
 
 func (router StripeRouter) PublishableKey(c echo.Context) error {
-	return c.JSON(http.StatusOK, PubKey{Key: router.pubKey})
+	live := xhttp.GetQueryLive(c)
+
+	return c.JSON(
+		http.StatusOK,
+		PubKey{
+			Key: router.keyHolder.Select(live),
+		},
+	)
 }

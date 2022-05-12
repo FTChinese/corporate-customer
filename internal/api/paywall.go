@@ -7,7 +7,9 @@ import (
 )
 
 func (c Client) Paywall() (*http.Response, error) {
-	url := c.baseURL + pathPaywall
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathPaywall).
+		String()
 
 	log.Printf("Fetching data from %s", url)
 
@@ -24,7 +26,9 @@ func (c Client) Paywall() (*http.Response, error) {
 }
 
 func (c Client) ListStripePrices() (*http.Response, error) {
-	url := c.baseURL + pathStripePrices
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripePrices).
+		String()
 
 	log.Printf("Fetching data from %s", url)
 
@@ -41,7 +45,10 @@ func (c Client) ListStripePrices() (*http.Response, error) {
 }
 
 func (c Client) StripePrice(id string) (*http.Response, error) {
-	url := c.baseURL + pathStripePrices + "/" + id
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripePrices).
+		AddPath(id).
+		String()
 
 	log.Printf("Fetching data from %s", url)
 

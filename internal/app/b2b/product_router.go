@@ -3,25 +3,29 @@ package b2b
 import (
 	"github.com/FTChinese/ftacademy/internal/api"
 	"github.com/FTChinese/ftacademy/pkg/fetch"
+	"github.com/FTChinese/ftacademy/pkg/xhttp"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
 
 type ProductRouter struct {
-	apiClient api.Client
+	apiClient api.Client // Deprecated
+	clients   api.Clients
 	logger    *zap.Logger
 }
 
-func NewProductRouter(client api.Client, logger *zap.Logger) ProductRouter {
+func NewProductRouter(clients api.Clients, logger *zap.Logger) ProductRouter {
 	return ProductRouter{
-		apiClient: client,
-		logger:    logger,
+		clients: clients,
+		logger:  logger,
 	}
 }
 
 func (router ProductRouter) Paywall(c echo.Context) error {
-	resp, err := router.apiClient.Paywall()
+	live := xhttp.GetQueryLive(c)
+
+	resp, err := router.clients.Select(live).Paywall()
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
@@ -30,7 +34,11 @@ func (router ProductRouter) Paywall(c echo.Context) error {
 }
 
 func (router ProductRouter) ListStripePrices(c echo.Context) error {
-	resp, err := router.apiClient.ListStripePrices()
+	live := xhttp.GetQueryLive(c)
+
+	resp, err := router.clients.
+		Select(live).
+		ListStripePrices()
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
@@ -39,8 +47,12 @@ func (router ProductRouter) ListStripePrices(c echo.Context) error {
 }
 
 func (router ProductRouter) StripePrice(c echo.Context) error {
-	id := c.QueryParam("id")
-	resp, err := router.apiClient.StripePrice(id)
+	id := c.Param("id")
+	live := xhttp.GetQueryLive(c)
+
+	resp, err := router.clients.
+		Select(live).
+		StripePrice(id)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())

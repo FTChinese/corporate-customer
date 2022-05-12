@@ -75,10 +75,11 @@ func main() {
 	oauthGuard := access.NewGuard(myDBs)
 
 	apiClient := api.NewSubsAPIClient(isProduction)
+	apiClients := api.NewClients(isProduction)
 
 	adminRouter := b2b.NewAdminRouter(myDBs, pm, logger)
 	subsRouter := b2b.NewSubsRouter(myDBs, pm, logger)
-	productRouter := b2b.NewProductRouter(apiClient, logger)
+	productRouter := b2b.NewProductRouter(apiClients, logger)
 	readerRouter := reader.NewReaderRouter(apiClient, version)
 	stripeRouter := reader.NewStripeRouter(apiClient, isProduction)
 	cmsRouter := b2b.NewCMSRouter(myDBs, pm, logger)
@@ -123,6 +124,7 @@ func main() {
 	// --------------------------
 	paywallGroup := apiGroup.Group("/paywall")
 	{
+		// ?live=true
 		paywallGroup.GET("/", productRouter.Paywall)
 		paywallGroup.GET("/stripe/prices/", productRouter.ListStripePrices)
 		paywallGroup.GET("/stripe/prices/:id/", productRouter.StripePrice)
