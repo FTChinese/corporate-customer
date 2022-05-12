@@ -13,15 +13,6 @@ import (
 
 var httpClient = &http.Client{}
 
-type BasicAuth struct {
-	Username string
-	Password string
-}
-
-func (a BasicAuth) IsZero() bool {
-	return a.Username == "" || a.Password == ""
-}
-
 type Fetch struct {
 	method    string
 	url       string
