@@ -7,6 +7,7 @@ import (
 	"github.com/FTChinese/ftacademy/internal/access"
 	"github.com/FTChinese/ftacademy/internal/api"
 	"github.com/FTChinese/ftacademy/internal/app/b2b"
+	"github.com/FTChinese/ftacademy/internal/app/content"
 	"github.com/FTChinese/ftacademy/internal/app/reader"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
@@ -83,6 +84,10 @@ func main() {
 	readerRouter := reader.NewReaderRouter(apiClient, version)
 	stripeRouter := reader.NewStripeRouter(apiClient, isProduction)
 	cmsRouter := b2b.NewCMSRouter(myDBs, pm, logger)
+	legalRoutes := content.NewRoutes(
+		apiClients.Select(true),
+		version,
+		logger)
 
 	e := echo.New()
 	e.Renderer = web.MustNewRenderer(webCfg)
@@ -111,6 +116,12 @@ func main() {
 			"footer": newFooter(clientVersionReader),
 		})
 	}, xhttp.NoCache)
+
+	legalDocGroup := e.Group("/terms")
+	{
+		legalDocGroup.GET("/", legalRoutes.ListLegalDoc)
+		legalDocGroup.GET("/:id/", legalRoutes.LoadLegalDoc)
+	}
 
 	serviceGroup := e.Group("/service")
 	{

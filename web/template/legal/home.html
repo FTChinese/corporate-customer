@@ -1,0 +1,9 @@
+{% extends "legal/base.html" %}
+
+{% block main %}
+<ul>
+    {% for teaser in legalTeasers %}
+        <li><a href="/terms/{{teaser.ID}}">{{teaser.Title}}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

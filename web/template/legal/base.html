@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {% for size in head.IconSizes -%}
+    <link rel="apple-touch-icon" sizes="{{size}}" href="{{head.IconBaseURL}}/apple-touch-icon-{{size}}.png">
+    {%- endfor %}
+    <link href="{{head.IconBaseURL}}/favicon.ico" type="image/x-icon" rel="shortcut icon" />
+    <style>.page-content { min-height: 100vh;}</style>
+    {% for link in head.StyleLinks %}
+    <link href="{{link}}" rel="stylesheet">
+    {% endfor %}
+    <title>{{title}} - FT中文网</title>
+</head>
+
+<body>
+<header class="ftc-toolbar">
+    <div class="container">
+        <div class="d-flex align-items-end ftc-brand">
+            <a href="{{head.SiteURL}}" target="_blank" rel="noreferrer"
+               class="ftc-logo me-2"
+            >
+                <img src="{{head.LogoURL}}" />
+            </a>
+        </div>
+    </div>
+</header>
+<main class="page-content" role="main">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col">
+                {% block main %}{% endblock %}
+            </div>
+        </div>
+
+    </div>
+</main>
+<footer class="o-footer o-footer--theme-dark">
+    <div class="container">
+        <div class="row">
+            {% for column in footer.Matrix -%}
+            <div class="col-6 col-md-3 col-lg-2">
+                <h6 class="o-footer__matrix-title">{{column.Title}}</h6>
+                <div class="o-footer__matrix-content">
+                    {% for item in column.Items -%}
+                    <a class="o-footer__matrix-link" href="{{item.Href}}" target="_blank">{{item.Name}}</a>
+                    {%- endfor%}
+                </div>
+            </div>
+            {%- endfor %}
+        </div>
+        <div class="o-footer__copyright">
+            <small>
+                © FT中文网 {{footer.Year}}.
+                <abbr title="Financial Times" aria-label="F T">FT</abbr> and ‘Financial Times’ are trademarks of The Financial Times Ltd.
+            </small>
+        </div>
+        <div class="text-muted pb-3">
+            <small>Version {{footer.ServerVersion}}</small>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
