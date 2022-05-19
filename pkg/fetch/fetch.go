@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/FTChinese/go-rest/render"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -211,17 +212,38 @@ func (f *Fetch) EndBlob() (Response, []error) {
 
 // EndJSON decodes response body to the specified data structure.
 // It also returned the original response body as bytes.
-func (f *Fetch) EndJSON(v interface{}) (Response, []error) {
+func (f *Fetch) EndJSON(v interface{}) *render.ResponseError {
 	resp, errs := f.EndBlob()
 	if errs != nil {
-		return Response{}, f.Errors
+		return &render.ResponseError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    errs[0].Error(),
+			Invalid:    nil,
+		}
+	}
+
+	if resp.StatusCode >= 400 {
+		var re render.ResponseError
+		err := json.Unmarshal(resp.Body, &re)
+		if err != nil {
+			return &render.ResponseError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    err.Error(),
+				Invalid:    nil,
+			}
+		}
+
+		return &re
 	}
 
 	err := json.Unmarshal(resp.Body, v)
 	if err != nil {
-		f.Errors = append(f.Errors, err)
-		return Response{}, f.Errors
+		return &render.ResponseError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+			Invalid:    nil,
+		}
 	}
 
-	return resp, nil
+	return nil
 }
