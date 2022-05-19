@@ -66,7 +66,7 @@ install-go:
 .PHONY: config
 config : outdir
 	# Download configuration file
-	rsync -v tk11:/home/node/config/$(config_file_name) ./$(build_dir)/$(config_file_name)
+	rsync -v node@tk11:/home/node/config/$(config_file_name) ./$(build_dir)/$(config_file_name)
 	ls ./$(build_dir)
 
 .PHONY: publish
