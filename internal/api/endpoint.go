@@ -6,6 +6,7 @@ const (
 	basePathPwReset          = "/auth/password-reset"
 	basePathWxAuth           = "/auth/wx"
 	basePathOAuth            = "/oauth/callback"
+	basePathLegal            = "/legal"
 	pathEmailExists          = basePathEmailAuth + "/exists"
 	pathEmailLogin           = basePathEmailAuth + "/login"
 	pathEmailSignUp          = basePathEmailAuth + "/signup"
