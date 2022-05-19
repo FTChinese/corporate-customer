@@ -45,6 +45,8 @@ devconfig : outdir
 run :
 	$(default_exec)
 
+runprod :
+	$(default_exec) -production=true
 .PHONY: amd64
 amd64 :
 	@echo "Build production linux version $(version)"

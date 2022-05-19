@@ -60,11 +60,6 @@ func init() {
 }
 
 func main() {
-	webCfg := web.Config{
-		Debug:   !isProduction,
-		Version: version,
-		BuiltAt: build,
-	}
 
 	logger := config.MustGetLogger(isProduction)
 
@@ -90,7 +85,7 @@ func main() {
 		logger)
 
 	e := echo.New()
-	e.Renderer = web.MustNewRenderer(webCfg)
+	e.Renderer = web.MustNewRenderer(!isProduction)
 
 	if !isProduction {
 		e.Static("/static", "build/public/static")

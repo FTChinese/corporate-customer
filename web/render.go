@@ -16,16 +16,10 @@ import (
 //go:embed template
 var templates embed.FS
 
-type Config struct {
-	Debug   bool
-	Version string
-	BuiltAt string
-}
-
 // NewRenderer creates a new instance of Renderer based on runtime configuration.
-func NewRenderer(conf Config) (Renderer, error) {
+func NewRenderer(debug bool) (Renderer, error) {
 	// In debug mode, we use pongo's default local file system loader.
-	if conf.Debug {
+	if debug {
 		log.Info("Development environment using local file system loader")
 
 		// Relative to current working directory.
@@ -34,7 +28,7 @@ func NewRenderer(conf Config) (Renderer, error) {
 		set.Debug = true
 
 		return Renderer{
-			config:      conf,
+			debug:       debug,
 			templateSet: set,
 		}, nil
 	}
@@ -45,13 +39,13 @@ func NewRenderer(conf Config) (Renderer, error) {
 	set.Debug = false
 
 	return Renderer{
-		config:      conf,
+		debug:       debug,
 		templateSet: set,
 	}, nil
 }
 
-func MustNewRenderer(config Config) Renderer {
-	r, err := NewRenderer(config)
+func MustNewRenderer(debug bool) Renderer {
+	r, err := NewRenderer(debug)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,7 +56,7 @@ func MustNewRenderer(config Config) Renderer {
 // Renderer is used to render pong2 templates.
 type Renderer struct {
 	templateSet *pongo2.TemplateSet // Load templates from filesystem or rice.
-	config      Config
+	debug       bool
 }
 
 func (r Renderer) Render(w io.Writer, name string, data interface{}, e echo.Context) error {
@@ -79,7 +73,7 @@ func (r Renderer) Render(w io.Writer, name string, data interface{}, e echo.Cont
 	var t *pongo2.Template
 	var err error
 
-	if r.config.Debug {
+	if r.debug {
 		// In development the file is loaded from local
 		// file system.
 		t, err = r.templateSet.FromFile(name)
