@@ -31,5 +31,14 @@ func (repo LegalRepo) LoadOrFetchLegalDoc(id string, refresh bool) (pkg.LegalDoc
 		}
 	}
 
-	return repo.client.LoadLegalDoc(id)
+	doc, err := repo.client.LoadLegalDoc(id)
+	if err != nil {
+		return pkg.LegalDoc{}, err
+	}
+
+	rendered := doc.Rendered()
+
+	repo.SaveLegalDoc(rendered)
+
+	return rendered, nil
 }
