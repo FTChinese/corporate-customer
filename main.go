@@ -115,6 +115,7 @@ func main() {
 	legalDocGroup := e.Group("/terms")
 	{
 		legalDocGroup.GET("/", legalRoutes.ListLegalDoc)
+		// Optional query parameter ?refresh=true
 		legalDocGroup.GET("/:id/", legalRoutes.LoadLegalDoc)
 	}
 
