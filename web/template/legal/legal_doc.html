@@ -4,7 +4,7 @@
 <div class="mt-3 mb-3">
     <h2 class="text-center">{{legalDoc.Title}}</h2>
     <div class="mt-3">
-        <p>{{legalDoc.Body}}</p>
+        {{ legalDoc.Body|safe }}
     </div>
 </div>
 
