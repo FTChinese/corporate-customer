@@ -17,7 +17,7 @@ func TestClient_Paywall(t *testing.T) {
 	}{
 		{
 			name:    "Production paywall",
-			client:  NewSubsAPIClient(true),
+			client:  NewClients(true).Select(false),
 			wantErr: false,
 		},
 	}

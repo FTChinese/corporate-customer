@@ -14,7 +14,7 @@ import (
 
 func MockNewClient() Client {
 	faker.MustSetupViper()
-	return NewSubsAPIClient(false)
+	return NewClients(false).Select(false)
 }
 
 func (c Client) MustCreateAssignee() licence.Assignee {

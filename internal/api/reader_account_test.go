@@ -9,7 +9,7 @@ import (
 func TestClient_LoadAccountByFtcID(t *testing.T) {
 	faker.MustSetupViper()
 
-	c := NewSubsAPIClient(false)
+	c := NewClients(false).Select(false)
 
 	type args struct {
 		id string

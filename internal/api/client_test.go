@@ -20,7 +20,7 @@ func TestClient_WxOAuthSession(t *testing.T) {
 	}{
 		{
 			name:   "Generate wx oauth session",
-			fields: NewSubsAPIClient(false),
+			fields: NewClients(false).Select(false),
 			args: args{
 				appID: "app123456",
 			},
