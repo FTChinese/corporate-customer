@@ -8,7 +8,7 @@ import (
 func TestClient_RequestLoginSMS(t *testing.T) {
 	faker.MustSetupViper()
 
-	c := NewSubsAPIClient(false)
+	c := NewClients(false).Select(false)
 
 	resp, err := c.RequestLoginSMS(faker.MustMarshalToReader(map[string]string{
 		"mobile": "15011481214",
@@ -25,7 +25,7 @@ func TestClient_RequestLoginSMS(t *testing.T) {
 func TestClient_VerifyLoginSMS(t *testing.T) {
 	faker.MustSetupViper()
 
-	c := NewSubsAPIClient(false)
+	c := NewClients(false).Select(false)
 
 	resp, err := c.VerifyLoginSMS(faker.MustMarshalToReader(map[string]string{
 		"mobile": "15011481214",
