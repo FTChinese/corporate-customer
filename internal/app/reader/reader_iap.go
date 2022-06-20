@@ -11,7 +11,7 @@ func (router Router) RefreshIAP(c echo.Context) error {
 
 	originalTxID := c.Param("id")
 
-	resp, err := router.apiClient.RefreshIAP(
+	resp, err := router.clients.Select(true).RefreshIAP(
 		claims,
 		originalTxID,
 	)

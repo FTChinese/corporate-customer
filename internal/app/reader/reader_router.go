@@ -14,22 +14,22 @@ import (
 )
 
 type Router struct {
-	guard     reader.JWTGuard
-	apiClient api.Client
-	wxApp     config.WechatApp
-	version   string
+	guard   reader.JWTGuard
+	clients api.Clients
+	wxApp   config.WechatApp
+	version string
 }
 
-func NewReaderRouter(client api.Client, version string) Router {
+func NewReaderRouter(clients api.Clients, version string) Router {
 	return Router{
 		guard: reader.NewJWTGuard(
 			config.
 				MustGetReaderAppKey().
 				GetJWTKey(),
 		),
-		apiClient: client,
-		wxApp:     config.MustWxWebApp(),
-		version:   version,
+		clients: clients,
+		wxApp:   config.MustWxWebApp(),
+		version: version,
 	}
 }
 

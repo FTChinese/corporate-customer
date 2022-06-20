@@ -3,6 +3,7 @@ package reader
 import (
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
+	"strings"
 )
 
 type BaseAccount struct {
@@ -15,6 +16,11 @@ type BaseAccount struct {
 	AvatarURL    null.String `json:"avatarUrl"`
 	IsVerified   bool        `json:"isVerified"`
 	CampaignCode null.String `json:"campaignCode"`
+}
+
+// IsTest checks if an account is used for test-only.
+func (a BaseAccount) IsTest() bool {
+	return strings.HasSuffix(a.Email, ".test@ftchinese.com")
 }
 
 // Wechat contain the essential data to identify a wechat user.

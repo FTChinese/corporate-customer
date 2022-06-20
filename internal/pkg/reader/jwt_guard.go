@@ -1,6 +1,7 @@
 package reader
 
 import (
+	"errors"
 	"github.com/FTChinese/ftacademy/pkg/xhttp"
 	"log"
 	"net/http"
@@ -35,6 +36,11 @@ func (g JWTGuard) RetrievePassportClaims(req *http.Request) (PassportClaims, err
 	if err != nil {
 		log.Printf("Error parsing JWT %v", err)
 		return PassportClaims{}, err
+	}
+
+	if !claims.VersionMatched() {
+		log.Printf("Passport claims not match: got=%d", claims.Version)
+		return PassportClaims{}, errors.New("authentication session expired")
 	}
 
 	return claims, nil

@@ -9,7 +9,7 @@ import (
 func (router Router) LoadMembership(c echo.Context) error {
 	claims := getReaderClaims(c)
 
-	resp, err := router.apiClient.Membership(claims)
+	resp, err := router.clients.Select(true).Membership(claims)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -21,7 +21,7 @@ func (router Router) LoadMembership(c echo.Context) error {
 func (router Router) ClaimAddon(c echo.Context) error {
 	claims := getReaderClaims(c)
 
-	resp, err := router.apiClient.ClaimAddOn(claims)
+	resp, err := router.clients.Select(true).ClaimAddOn(claims)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())

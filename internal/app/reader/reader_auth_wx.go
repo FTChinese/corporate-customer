@@ -10,7 +10,7 @@ import (
 )
 
 func (router Router) WxRequestCode(c echo.Context) error {
-	sess, err := router.apiClient.WxOAuthSession(router.wxApp.AppID)
+	sess, err := router.clients.Select(true).WxOAuthSession(router.wxApp.AppID)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
@@ -23,7 +23,7 @@ func (router Router) WxLogin(c echo.Context) error {
 
 	header := router.collectClientHeader(c)
 
-	resp, err := router.apiClient.WxLogin(
+	resp, err := router.clients.Select(true).WxLogin(
 		router.wxApp.AppID,
 		c.Request().Body,
 		header)
@@ -42,7 +42,7 @@ func (router Router) WxLogin(c echo.Context) error {
 	}
 
 	// Now that we have wechat union id, use the id to fetch account data.
-	resp, err = router.apiClient.LoadAccountByUnionID(sess.UnionID)
+	resp, err = router.clients.Select(true).LoadAccountByUnionID(sess.UnionID)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
@@ -55,7 +55,7 @@ func (router Router) WxRefresh(c echo.Context) error {
 
 	header := router.collectClientHeader(c)
 
-	resp, err := router.apiClient.WxRefresh(
+	resp, err := router.clients.Select(true).WxRefresh(
 		router.wxApp.AppID,
 		c.Request().Body,
 		header)

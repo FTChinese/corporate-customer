@@ -17,11 +17,21 @@ func NewStandardClaims(expiresAt int64) jwt.StandardClaims {
 	}
 }
 
+// passportVersion determines whether client is using the latest
+// passport claims data structure. Invalidate a session if not.
+const passportVersion = 2
+
 type PassportClaims struct {
 	FtcID       string           `json:"fid"`
 	UnionID     null.String      `json:"wid"`
 	LoginMethod enum.LoginMethod `json:"mtd"`
+	Live        bool             `json:"live"` // Whether the account should use live API.
+	Version     int              `json:"v"`
 	jwt.StandardClaims
+}
+
+func (c PassportClaims) VersionMatched() bool {
+	return c.Version == passportVersion
 }
 
 type Passport struct {
@@ -35,6 +45,8 @@ func NewPassport(a Account, signingKey []byte) (Passport, error) {
 		FtcID:          a.FtcID,
 		UnionID:        a.UnionID,
 		LoginMethod:    a.LoginMethod,
+		Live:           !a.IsTest(),
+		Version:        passportVersion,
 		StandardClaims: NewStandardClaims(time.Now().Unix() + 86400*7),
 	}
 

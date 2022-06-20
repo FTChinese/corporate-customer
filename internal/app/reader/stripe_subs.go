@@ -11,7 +11,9 @@ func (router StripeRouter) CreateSubs(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClient.StripeNewSubs(claims, c.Request().Body)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeNewSubs(claims, c.Request().Body)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -24,7 +26,9 @@ func (router StripeRouter) GetSubs(c echo.Context) error {
 	claims := getReaderClaims(c)
 	subsID := c.Param("id")
 
-	resp, err := router.apiClient.StripeGetSubs(claims, subsID)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeGetSubs(claims, subsID)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -39,7 +43,9 @@ func (router StripeRouter) UpdateSubs(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClient.StripeUpdateSubsOf(claims, subsID, c.Request().Body)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeUpdateSubsOf(claims, subsID, c.Request().Body)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -52,7 +58,9 @@ func (router StripeRouter) RefreshSubs(c echo.Context) error {
 	claims := getReaderClaims(c)
 	subsID := c.Param("id")
 
-	resp, err := router.apiClient.StripeRefreshSubsOf(claims, subsID)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeRefreshSubsOf(claims, subsID)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -65,7 +73,9 @@ func (router StripeRouter) CancelSubs(c echo.Context) error {
 	claims := getReaderClaims(c)
 	subsID := c.Param("id")
 
-	resp, err := router.apiClient.StripeCancelSubsOf(claims, subsID)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeCancelSubsOf(claims, subsID)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -78,7 +88,9 @@ func (router StripeRouter) ReactivateSubs(c echo.Context) error {
 	claims := getReaderClaims(c)
 	subsID := c.Param("id")
 
-	resp, err := router.apiClient.StripeReactivateSubsOf(claims, subsID)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeReactivateSubsOf(claims, subsID)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -91,7 +103,9 @@ func (router StripeRouter) GetSubsDefaultPaymentMethod(c echo.Context) error {
 	claims := getReaderClaims(c)
 	subsID := c.Param("id")
 
-	resp, err := router.apiClient.StripeSubsDefaultPaymentMethod(claims, subsID)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeSubsDefaultPaymentMethod(claims, subsID)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())

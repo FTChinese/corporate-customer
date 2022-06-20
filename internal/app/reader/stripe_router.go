@@ -14,13 +14,13 @@ type PubKey struct {
 
 type StripeRouter struct {
 	keyHolder config.KeyHolder
-	apiClient api.Client
+	clients   api.Clients
 }
 
-func NewStripeRouter(client api.Client, prod bool) StripeRouter {
+func NewStripeRouter(clients api.Clients, prod bool) StripeRouter {
 	return StripeRouter{
 		keyHolder: config.MustStripePubKey().KeyHolder(prod),
-		apiClient: client,
+		clients:   clients,
 	}
 }
 

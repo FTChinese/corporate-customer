@@ -10,7 +10,7 @@ import (
 func (router Router) EmailExists(c echo.Context) error {
 	rawQuery := c.QueryString()
 
-	resp, err := router.apiClient.EmailExists(rawQuery)
+	resp, err := router.clients.Select(true).EmailExists(rawQuery)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -30,7 +30,7 @@ func (router Router) EmailLogin(c echo.Context) error {
 
 	log.Printf("Real IP: %v", header)
 
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		EmailLogin(c.Request().Body, header)
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -58,7 +58,7 @@ func (router Router) EmailSignUp(c echo.Context) error {
 
 	log.Printf("Real IP: %v", header)
 
-	resp, err := router.apiClient.EmailSignUp(c.Request().Body, header)
+	resp, err := router.clients.Select(true).EmailSignUp(c.Request().Body, header)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
@@ -69,7 +69,7 @@ func (router Router) EmailSignUp(c echo.Context) error {
 func (router Router) VerifyEmail(c echo.Context) error {
 	token := c.Param("token")
 
-	resp, err := router.apiClient.VerifyEmail(token)
+	resp, err := router.clients.Select(true).VerifyEmail(token)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}

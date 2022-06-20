@@ -14,7 +14,7 @@ import (
 // * token: string;
 // * password: string.
 func (router Router) ResetPassword(c echo.Context) error {
-	resp, err := router.apiClient.ResetPassword(c.Request().Body)
+	resp, err := router.clients.Select(true).ResetPassword(c.Request().Body)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -34,7 +34,8 @@ func (router Router) ResetPassword(c echo.Context) error {
 //
 // The footprint.Client headers are required.
 func (router Router) RequestPwResetLetter(c echo.Context) error {
-	resp, err := router.apiClient.RequestPasswordResetLetter(c.Request().Body)
+	resp, err := router.clients.Select(true).
+		RequestPasswordResetLetter(c.Request().Body)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -49,7 +50,7 @@ func (router Router) RequestPwResetLetter(c echo.Context) error {
 func (router Router) VerifyPwResetToken(c echo.Context) error {
 	token := c.Param("token")
 
-	resp, err := router.apiClient.VerifyResetToken(token)
+	resp, err := router.clients.Select(true).VerifyResetToken(token)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())

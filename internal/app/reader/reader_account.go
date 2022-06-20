@@ -15,9 +15,9 @@ func (router Router) LoadAccount(c echo.Context) error {
 	var err error
 
 	if claims.FtcID != "" {
-		resp, err = router.apiClient.LoadAccountByFtcID(claims.FtcID)
+		resp, err = router.clients.Select(true).LoadAccountByFtcID(claims.FtcID)
 	} else if claims.UnionID.Valid {
-		resp, err = router.apiClient.LoadAccountByUnionID(claims.UnionID.String)
+		resp, err = router.clients.Select(true).LoadAccountByUnionID(claims.UnionID.String)
 	} else {
 		err = errors.New("unauthorized access")
 	}
@@ -36,9 +36,9 @@ func (router Router) LoadAccountWithJWT(c echo.Context) error {
 	var err error
 
 	if claims.FtcID != "" {
-		resp, err = router.apiClient.LoadAccountByFtcID(claims.FtcID)
+		resp, err = router.clients.Select(true).LoadAccountByFtcID(claims.FtcID)
 	} else if claims.UnionID.Valid {
-		resp, err = router.apiClient.LoadAccountByUnionID(claims.UnionID.String)
+		resp, err = router.clients.Select(true).LoadAccountByUnionID(claims.UnionID.String)
 	} else {
 		err = errors.New("unauthorized access")
 	}
@@ -55,7 +55,7 @@ func (router Router) UpdateEmail(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		UpdateEmail(claims.FtcID, c.Request().Body)
 
 	if err != nil {
@@ -68,7 +68,7 @@ func (router Router) UpdateEmail(c echo.Context) error {
 func (router Router) RequestVerification(c echo.Context) error {
 	claims := getReaderClaims(c)
 
-	resp, err := router.apiClient.RequestEmailVerification(claims.FtcID)
+	resp, err := router.clients.Select(true).RequestEmailVerification(claims.FtcID)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
@@ -80,7 +80,7 @@ func (router Router) UpdateName(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		UpdateName(claims.FtcID, c.Request().Body)
 
 	if err != nil {
@@ -94,7 +94,7 @@ func (router Router) UpdatePassword(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		UpdatePassword(claims.FtcID, c.Request().Body)
 
 	if err != nil {
@@ -108,7 +108,7 @@ func (router Router) RequestMobileUpdateSMS(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		RequestMobileUpdateSMS(claims.FtcID, c.Request().Body)
 
 	if err != nil {
@@ -122,7 +122,7 @@ func (router Router) UpdateMobile(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		UpdateMobile(claims.FtcID, c.Request().Body)
 
 	if err != nil {
@@ -135,7 +135,7 @@ func (router Router) UpdateMobile(c echo.Context) error {
 func (router Router) LoadAddress(c echo.Context) error {
 	claims := getReaderClaims(c)
 
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		LoadAddress(claims.FtcID)
 
 	if err != nil {
@@ -149,7 +149,7 @@ func (router Router) UpdateAddress(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		UpdateAddress(claims.FtcID, c.Request().Body)
 
 	if err != nil {
@@ -162,7 +162,7 @@ func (router Router) UpdateAddress(c echo.Context) error {
 func (router Router) LoadProfile(c echo.Context) error {
 	claims := getReaderClaims(c)
 
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		LoadProfile(claims.FtcID)
 
 	if err != nil {
@@ -176,7 +176,7 @@ func (router Router) UpdateProfile(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		UpdateProfile(claims.FtcID, c.Request().Body)
 
 	if err != nil {
@@ -193,7 +193,7 @@ func (router Router) WxSignUp(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		WxSignUp(
 			claims.UnionID.String,
 			c.Request().Body,
@@ -214,7 +214,7 @@ func (router Router) WxLink(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		WxLink(
 			claims.UnionID.String,
 			c.Request().Body,
@@ -228,7 +228,7 @@ func (router Router) WxLink(c echo.Context) error {
 		return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 	}
 
-	fetchResp, err := router.apiClient.LoadAccountByUnionID(claims.UnionID.String)
+	fetchResp, err := router.clients.Select(true).LoadAccountByUnionID(claims.UnionID.String)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
@@ -242,7 +242,7 @@ func (router Router) WxUnlink(c echo.Context) error {
 	claims := getReaderClaims(c)
 
 	defer c.Request().Body.Close()
-	resp, err := router.apiClient.
+	resp, err := router.clients.Select(true).
 		WxUnlink(
 			claims.UnionID.String,
 			c.Request().Body,
@@ -259,9 +259,9 @@ func (router Router) WxUnlink(c echo.Context) error {
 	var fResp fetch.Response
 	switch claims.LoginMethod {
 	case enum.LoginMethodEmail, enum.LoginMethodMobile:
-		fResp, err = router.apiClient.LoadAccountByFtcID(claims.FtcID)
+		fResp, err = router.clients.Select(true).LoadAccountByFtcID(claims.FtcID)
 	case enum.LoginMethodWx:
-		fResp, err = router.apiClient.LoadAccountByUnionID(claims.UnionID.String)
+		fResp, err = router.clients.Select(true).LoadAccountByUnionID(claims.UnionID.String)
 	}
 
 	if err != nil {

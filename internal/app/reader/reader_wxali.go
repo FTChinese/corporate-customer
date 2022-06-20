@@ -11,7 +11,9 @@ func (router Router) CreateWxOrder(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClient.WxPayDesktop(claims, c.Request().Body)
+	resp, err := router.clients.
+		Select(claims.Live).
+		WxPayDesktop(claims, c.Request().Body)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -25,10 +27,12 @@ func (router Router) CreateAliOrder(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClient.AliPayDesktop(
-		claims,
-		c.Request().Body,
-	)
+	resp, err := router.clients.
+		Select(claims.Live).
+		AliPayDesktop(
+			claims,
+			c.Request().Body,
+		)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -46,10 +50,12 @@ func (router Router) VerifyFtcOrder(c echo.Context) error {
 
 	orderID := c.Param("id")
 
-	resp, err := router.apiClient.VerifyPaymentResult(
-		claims,
-		orderID,
-	)
+	resp, err := router.clients.
+		Select(claims.Live).
+		VerifyPaymentResult(
+			claims,
+			orderID,
+		)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())

@@ -12,10 +12,11 @@ func (router StripeRouter) GetPaymentMethod(c echo.Context) error {
 	claims := getReaderClaims(c)
 	pmID := c.Param("id")
 
-	resp, err := router.apiClient.StripePaymentMethodOf(
-		claims,
-		pmID,
-		c.QueryParams())
+	resp, err := router.clients.Select(claims.Live).
+		StripePaymentMethodOf(
+			claims,
+			pmID,
+			c.QueryParams())
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -32,10 +33,12 @@ func (router StripeRouter) CreateSetupIntent(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClient.StripeCreateSetupIntent(
-		claims,
-		c.Request().Body,
-	)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeCreateSetupIntent(
+			claims,
+			c.Request().Body,
+		)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -49,11 +52,13 @@ func (router StripeRouter) GetSetupIntent(c echo.Context) error {
 	claims := getReaderClaims(c)
 	id := c.Param("id")
 
-	resp, err := router.apiClient.StripeGetSetupIntent(
-		claims,
-		id,
-		c.QueryParams(),
-	)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeGetSetupIntent(
+			claims,
+			id,
+			c.QueryParams(),
+		)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -67,11 +72,13 @@ func (router StripeRouter) GetSetupPaymentMethod(c echo.Context) error {
 	claims := getReaderClaims(c)
 	id := c.Param("id")
 
-	resp, err := router.apiClient.StripeGetSetupIntent(
-		claims,
-		id,
-		c.QueryParams(),
-	)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeGetSetupIntent(
+			claims,
+			id,
+			c.QueryParams(),
+		)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())

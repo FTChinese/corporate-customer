@@ -70,14 +70,13 @@ func main() {
 	//b2bGuard := controller.NewJWTGuard(b2bAppKey.GetJWTKey())
 	oauthGuard := access.NewGuard(myDBs)
 
-	apiClient := api.NewSubsAPIClient(isProduction)
 	apiClients := api.NewClients(isProduction)
 
 	adminRouter := b2b.NewAdminRouter(myDBs, pm, logger)
 	subsRouter := b2b.NewSubsRouter(myDBs, pm, logger)
 	productRouter := b2b.NewProductRouter(apiClients, logger)
-	readerRouter := reader.NewReaderRouter(apiClient, version)
-	stripeRouter := reader.NewStripeRouter(apiClient, isProduction)
+	readerRouter := reader.NewReaderRouter(apiClients, version)
+	stripeRouter := reader.NewStripeRouter(apiClients, isProduction)
 	cmsRouter := b2b.NewCMSRouter(myDBs, pm, logger)
 	legalRoutes := content.NewRoutes(
 		apiClients.Select(true),
@@ -131,7 +130,8 @@ func main() {
 	// --------------------------
 	paywallGroup := apiGroup.Group("/paywall")
 	{
-		// ?live=true
+		// All the following routes have query parameter:
+		// - live=<boolean>, default to true
 		paywallGroup.GET("/", productRouter.Paywall)
 		paywallGroup.GET("/stripe/prices/", productRouter.ListStripePrices)
 		paywallGroup.GET("/stripe/prices/:id/", productRouter.StripePrice)

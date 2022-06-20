@@ -9,7 +9,9 @@ import (
 func (router StripeRouter) CreateCustomer(c echo.Context) error {
 	claims := getReaderClaims(c)
 
-	resp, err := router.apiClient.StripeNewCustomer(claims)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeNewCustomer(claims)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -22,7 +24,9 @@ func (router StripeRouter) GetCustomer(c echo.Context) error {
 	claims := getReaderClaims(c)
 	subsID := c.Param("id")
 
-	resp, err := router.apiClient.StripeGetCustomer(claims, subsID)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeGetCustomer(claims, subsID)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -35,7 +39,9 @@ func (router StripeRouter) GetCusDefaultPaymentMethod(c echo.Context) error {
 	claims := getReaderClaims(c)
 	cusID := c.Param("id")
 
-	resp, err := router.apiClient.StripeCusDefaultPaymentMethod(claims, cusID)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeCusDefaultPaymentMethod(claims, cusID)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -50,7 +56,9 @@ func (router StripeRouter) SetCusDefaultPaymentMethod(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClient.StripeSetCusDefaultPaymentMethod(claims, cusID, c.Request().Body)
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeSetCusDefaultPaymentMethod(claims, cusID, c.Request().Body)
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -64,7 +72,9 @@ func (router StripeRouter) ListCusPaymentMethods(c echo.Context) error {
 	claims := getReaderClaims(c)
 	cusID := c.Param("id")
 
-	resp, err := router.apiClient.StripeListCusPaymentMethods(claims, cusID, c.QueryParams())
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeListCusPaymentMethods(claims, cusID, c.QueryParams())
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
