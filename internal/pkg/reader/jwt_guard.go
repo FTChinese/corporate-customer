@@ -43,5 +43,6 @@ func (g JWTGuard) RetrievePassportClaims(req *http.Request) (PassportClaims, err
 		return PassportClaims{}, errors.New("authentication session expired")
 	}
 
+	log.Printf("Passport version %d. Live mode %t", claims.Version, claims.Live)
 	return claims, nil
 }

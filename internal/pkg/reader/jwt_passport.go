@@ -37,6 +37,8 @@ func (c PassportClaims) VersionMatched() bool {
 type Passport struct {
 	Account
 	ExpiresAt int64  `json:"expiresAt"`
+	Live      bool   `json:"live"`
+	Version   int    `json:"version"`
 	Token     string `json:"token"`
 }
 
@@ -61,6 +63,8 @@ func NewPassport(a Account, signingKey []byte) (Passport, error) {
 	return Passport{
 		Account:   a,
 		ExpiresAt: claims.ExpiresAt,
+		Live:      claims.Live,
+		Version:   claims.Version,
 		Token:     ss,
 	}, nil
 }
