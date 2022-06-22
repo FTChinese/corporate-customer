@@ -79,3 +79,18 @@ func (router Router) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+// OptionalLoggedIn is used in places where login is not required but we need
+// some default values of passport.
+func (router Router) OptionalLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		claims, err := router.guard.RetrievePassportClaims(c.Request())
+		if err != nil {
+			log.Printf("Empty passport claims. Using default value")
+			claims = reader.NewEmptyPassportClaims()
+		}
+
+		c.Set(xhttp.KeyCtxClaims, claims)
+		return next(c)
+	}
+}

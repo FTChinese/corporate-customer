@@ -133,19 +133,6 @@ func main() {
 
 	apiGroup := e.Group("/api")
 
-	// --------------------------
-	// Paywall section is public.
-	// --------------------------
-	paywallGroup := apiGroup.Group("/paywall")
-	{
-		// All the following routes have query parameter:
-		// - live=<boolean>, default to true
-		paywallGroup.GET("/", productRouter.Paywall)
-		paywallGroup.GET("/stripe/prices/", productRouter.ListStripePrices)
-		paywallGroup.GET("/stripe/prices/:id/", productRouter.StripePrice)
-		paywallGroup.GET("/stripe/publishable-key/", stripeRouter.PublishableKey)
-	}
-
 	// ---------------------------------------------
 	// Reader section is restricted to FTC user only.
 	// ---------------------------------------------
@@ -209,6 +196,23 @@ func main() {
 		iapGroup.POST("/subs/:id/", readerRouter.RefreshIAP)
 	}
 
+	// --------------------------
+	// Paywall section is public.
+	// --------------------------
+	paywallGroup := apiGroup.Group("/paywall", readerRouter.OptionalLoggedIn)
+	{
+		// All the following routes have query parameter:
+		// - live=<boolean>, default to true
+		paywallGroup.GET("/", productRouter.Paywall)
+		paywallGroup.GET("/stripe/prices/", productRouter.ListStripePrices)
+		paywallGroup.GET("/stripe/prices/:id/", productRouter.StripePrice)
+		paywallGroup.GET("/stripe/publishable-key/", stripeRouter.PublishableKey)
+	}
+
+	// For those endpoints with RequiredLoggedIn middleware, the JWT passport claims contains
+	// Live field. You do not need to send `?live=true` in url since that would be vulnerable to cheating.
+	// The passport claim is generate upon user login and always verified for each request.
+	// We could assume this is a much safer approach for critical section like payment.
 	ftcPayGroup := readerAPIGroup.Group("/ftc-pay", readerRouter.RequireLoggedIn)
 	{
 		ftcPayGroup.POST("/ali/desktop/", readerRouter.CreateAliOrder)

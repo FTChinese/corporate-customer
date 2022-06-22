@@ -30,6 +30,20 @@ type PassportClaims struct {
 	jwt.StandardClaims
 }
 
+// NewEmptyPassportClaims creates an empty PassportClaims
+// in places where user is not logged-in while we want to access
+// some default value of Live field.
+func NewEmptyPassportClaims() PassportClaims {
+	return PassportClaims{
+		FtcID:          "",
+		UnionID:        null.String{},
+		LoginMethod:    0,
+		Live:           true,
+		Version:        passportVersion,
+		StandardClaims: jwt.StandardClaims{},
+	}
+}
+
 func (c PassportClaims) VersionMatched() bool {
 	return c.Version == passportVersion
 }
