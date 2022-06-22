@@ -9,6 +9,7 @@ import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b"
 	"github.com/FTChinese/ftacademy/internal/app/content"
 	"github.com/FTChinese/ftacademy/internal/app/reader"
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
@@ -32,9 +33,10 @@ var clientVersionB2B string
 var clientVersionReader string
 
 var (
-	isProduction bool
-	version      string
-	build        string
+	version    string
+	build      string
+	production bool
+	liveMode   bool
 )
 
 func newFooter(cv string) web.Footer {
@@ -46,7 +48,8 @@ func newFooter(cv string) web.Footer {
 }
 
 func init() {
-	flag.BoolVar(&isProduction, "production", false, "Indicate productions environment if present")
+	flag.BoolVar(&production, "production", true, "Connect to production MySQL database if true, or localhost if false")
+	flag.BoolVar(&liveMode, "livemode", true, "Determine live/sandbox mode for Stripe")
 	var v = flag.Bool("v", false, "print current version")
 
 	flag.Parse()
@@ -61,22 +64,27 @@ func init() {
 
 func main() {
 
-	logger := config.MustGetLogger(isProduction)
+	logger := config.MustGetLogger(production)
 
-	myDBs := db.MustNewMyDBs(isProduction)
+	myDBs := db.MustNewMyDBs(production)
 
 	pm := postman.New(config.MustGetHanqiConn())
 
 	//b2bGuard := controller.NewJWTGuard(b2bAppKey.GetJWTKey())
 	oauthGuard := access.NewGuard(myDBs)
 
-	apiClients := api.NewClients(isProduction)
+	apiClients := api.NewClients(production)
 
 	adminRouter := b2b.NewAdminRouter(myDBs, pm, logger)
 	subsRouter := b2b.NewSubsRouter(myDBs, pm, logger)
 	productRouter := b2b.NewProductRouter(apiClients, logger)
 	readerRouter := reader.NewReaderRouter(apiClients, version)
-	stripeRouter := reader.NewStripeRouter(apiClients, isProduction)
+	stripePubKey := pkg.NewStripePubKeys().
+		Select(liveMode)
+	stripeRouter := reader.NewStripeRouter(
+		apiClients,
+		stripePubKey,
+		logger)
 	cmsRouter := b2b.NewCMSRouter(myDBs, pm, logger)
 	legalRoutes := content.NewRoutes(
 		apiClients.Select(true),
@@ -84,9 +92,9 @@ func main() {
 		logger)
 
 	e := echo.New()
-	e.Renderer = web.MustNewRenderer(!isProduction)
+	e.Renderer = web.MustNewRenderer(!production)
 
-	if !isProduction {
+	if !production {
 		e.Static("/static", "build/public/static")
 	}
 
