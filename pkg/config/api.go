@@ -6,19 +6,6 @@ import (
 	"log"
 )
 
-type KeyHolder struct {
-	Live string
-	Test string
-}
-
-func (h KeyHolder) Select(live bool) string {
-	if live {
-		return h.Live
-	}
-
-	return h.Test
-}
-
 // API is used to hold api access token or api base url.
 // Those keys are always comes in pair, one for development and one for production.
 type API struct {
@@ -43,25 +30,6 @@ func (a API) Pick(prod bool) string {
 	}
 
 	return a.Dev
-}
-
-func (a API) KeyHolder(prod bool) KeyHolder {
-	// Production server provides live/test versions.
-	// Live version uses production key;
-	// test version uses development key.
-	if prod {
-		return KeyHolder{
-			Live: a.Prod,
-			Test: a.Dev,
-		}
-	}
-
-	// If the binary is running under development environment,
-	// live/test both use development key.
-	return KeyHolder{
-		Live: a.Dev,
-		Test: a.Dev,
-	}
 }
 
 func LoadAPIConfig(name string) (API, error) {
