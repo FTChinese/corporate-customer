@@ -43,10 +43,14 @@ devconfig : outdir
 
 .PHONY: run
 run :
-	$(default_exec)
+	$(default_exec) -production=false -livemode=false
 
-runprod :
-	$(default_exec) -production=true
+# Use production db, sandbox api.
+# For online production. use -production=true -livemode=true
+.PHONY: sandbox
+sandbox :
+	$(default_exec) -production=true -livemode=false
+
 .PHONY: amd64
 amd64 :
 	@echo "Build production linux version $(version)"
