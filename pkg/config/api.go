@@ -23,7 +23,7 @@ func (a API) Validate() error {
 }
 
 func (a API) Pick(prod bool) string {
-	log.Printf("Using %s for production %t", a.name, prod)
+	log.Printf("Pick %s for %s", a.name, prodDev[prod])
 
 	if prod {
 		return a.Prod
@@ -58,17 +58,21 @@ func MustLoadAPIConfig(name string) API {
 }
 
 func MustSubsAPIKey() API {
+	log.Printf("Loading API access token...")
 	return MustLoadAPIConfig("api_keys.ftacademy")
 }
 
-func MustSubsAPIv6BaseURL() API {
+func MustProdAPIv6BaseURL() API {
+	log.Printf("Loading production API v6 base url...")
 	return MustLoadAPIConfig("api_urls.subs_v6")
 }
 
-func MustAPISandboxURL() API {
+func MustSandboxAPIURL() API {
+	log.Printf("Loading sandbox API base url...")
 	return MustLoadAPIConfig("api_urls.sandbox")
 }
 
 func MustStripePubKey() API {
+	log.Printf("Loading stripe publishable key...")
 	return MustLoadAPIConfig("api_keys.stripe_publishable")
 }
