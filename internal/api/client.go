@@ -8,7 +8,8 @@ type Client struct {
 	key                string
 	baseURL            string // Localhost for dev; otherwise online production.
 	wxRedirectBaseURLs map[bool]string
-	isProd             bool
+	wxRedirectBaseURL  string
+	isProd             bool // Used to determine which wx oauth redirect url to use.
 }
 
 type Clients struct {
@@ -33,32 +34,26 @@ func NewClients(prod bool) Clients {
 	// There are 3 urls to select:
 	// - Development always uses localhost
 	// - Production has a live mode and test mode, determined by current user account.
-	sandboxBaseURLs := config.MustAPISandboxURL()
-	liveBaseURLs := config.MustSubsAPIv6BaseURL()
-
-	// To relay wechat OAuth, localhost should never be used.
-	wxRelayBaseURLs := map[bool]string{
-		// When this app is in production mode, we want wechat to
-		// redirect to production api.
-		true: liveBaseURLs.Pick(true),
-		// When this app is in development mode, we want Wechat to
-		// redirect to sandbox api so that changes won't affect current
-		// user.
-		false: sandboxBaseURLs.Pick(true),
-	}
+	sandboxBaseURLs := config.MustSandboxAPIURL()
+	liveBaseURLs := config.MustProdAPIv6BaseURL()
 
 	return Clients{
 		Sandbox: Client{
-			key:                token,
-			baseURL:            sandboxBaseURLs.Pick(prod), // Pick localhost or production test
-			wxRedirectBaseURLs: wxRelayBaseURLs,
-			isProd:             prod,
+			key:     token,
+			baseURL: sandboxBaseURLs.Pick(prod), // Pick localhost or production test
+			// When this app is in development mode, we want Wechat to
+			// redirect to sandbox api so that changes won't affect current
+			// user.
+			wxRedirectBaseURL: sandboxBaseURLs.Pick(true),
+			isProd:            prod,
 		},
 		Live: Client{
-			key:                token,
-			baseURL:            liveBaseURLs.Pick(prod), // Pick localhost or production live.
-			wxRedirectBaseURLs: wxRelayBaseURLs,
-			isProd:             prod,
+			key:     token,
+			baseURL: liveBaseURLs.Pick(prod), // Pick localhost or production live.
+			// When this app is in production mode, we want wechat to
+			// redirect to production api.
+			wxRedirectBaseURL: liveBaseURLs.Pick(true),
+			isProd:            prod,
 		},
 	}
 }
@@ -72,8 +67,7 @@ func (c Clients) Select(live bool) Client {
 }
 
 func (c Client) WxOAuthSession(appID string) (WxOAuthCodeSession, error) {
-	midwayBaseURL := c.wxRedirectBaseURLs[c.isProd]
-	cbURL := midwayBaseURL + pathWxCallback
+	cbURL := c.wxRedirectBaseURL + pathWxCallback
 
 	req := NewWxOAuthCodeRequest(appID, cbURL)
 
