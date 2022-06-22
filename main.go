@@ -146,100 +146,6 @@ func main() {
 		paywallGroup.GET("/stripe/publishable-key/", stripeRouter.PublishableKey)
 	}
 
-	// -------------------------------------------------
-	// B2B section is restricted to corporate only.
-	// ------------------------------------------------
-	b2bAPIGroup := apiGroup.Group("/b2b")
-
-	b2bAuthGroup := b2bAPIGroup.Group("/auth")
-	{
-		b2bAuthGroup.POST("/login/", adminRouter.Login)
-		b2bAuthGroup.POST("/signup/", adminRouter.SignUp)
-		b2bAuthGroup.GET("/verify/:token/", adminRouter.VerifyEmail)
-
-		pwResetGroup := b2bAuthGroup.Group("/password-reset")
-		{
-			// Handle resetting password
-			pwResetGroup.POST("/", adminRouter.ResetPassword)
-
-			// Sending forgot-password email
-			pwResetGroup.POST("/letter/", adminRouter.ForgotPassword)
-
-			// Verify forgot-password token.
-			// If valid, redirect to /forgot-password.
-			// If invalid, redirect to /forgot-password/letter to ask
-			// user to enter email again.
-			pwResetGroup.GET("/token/:token/", adminRouter.VerifyResetToken)
-		}
-	}
-
-	b2bAccountGroup := b2bAPIGroup.Group("/account", adminRouter.RequireLoggedIn)
-	{
-		//b2bAccountGroup.GET("/", accountRouter.Account)
-		b2bAccountGroup.GET("/jwt/", adminRouter.RefreshJWT)
-		b2bAccountGroup.POST("/request-verification/", adminRouter.RequestVerification)
-		b2bAccountGroup.PATCH("/display-name/", adminRouter.ChangeName)
-		b2bAccountGroup.PATCH("/password/", adminRouter.ChangePassword)
-	}
-
-	b2bTeamGroup := b2bAPIGroup.Group("/team", adminRouter.RequireLoggedIn)
-	{
-		b2bTeamGroup.GET("/", adminRouter.LoadTeam)
-		b2bTeamGroup.POST("/", adminRouter.CreateTeam)
-		b2bTeamGroup.PATCH("/", adminRouter.UpdateTeam)
-	}
-
-	b2bSearchGroup := b2bAPIGroup.Group("/search", adminRouter.RequireLoggedIn)
-	{
-		// ?email=<string>
-		b2bSearchGroup.GET("/membership/", subsRouter.FindMembership)
-	}
-
-	orderGroup := b2bAPIGroup.Group("/orders", adminRouter.RequireTeamSet)
-	{
-		// List orders
-		orderGroup.GET("/", subsRouter.ListOrders)
-		// CreateTeam orders, or renew/upgrade in bulk.
-		orderGroup.POST("/", subsRouter.CreateOrders)
-		orderGroup.GET("/:id/", subsRouter.LoadOrder)
-	}
-
-	b2bLicenceGroup := b2bAPIGroup.Group("/licences", adminRouter.RequireTeamSet)
-	{
-		// List licences
-		b2bLicenceGroup.GET("/", subsRouter.ListLicence)
-		b2bLicenceGroup.GET("/:id/", subsRouter.LoadLicence)
-		// Revoked a licence
-		b2bLicenceGroup.POST("/:id/revoke/", subsRouter.RevokeLicence)
-	}
-
-	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", adminRouter.RequireTeamSet)
-	{
-		// List invitations
-		b2bInvitationGroup.GET("/", subsRouter.ListInvitations)
-		// Create invitation.
-		// Also update the linked licence's status.
-		b2bInvitationGroup.POST("/", subsRouter.CreateInvitation)
-		// Revoked invitation before licence is accepted.
-		// Also revert the status of a licence from invitation sent
-		// back to available.
-		b2bInvitationGroup.POST("/:id/revoke/", subsRouter.RevokeInvitation)
-	}
-
-	// Steps to accept an invitation:
-	// 1. Open token url and the token is valid;
-	// 2. Use email to find user account (If account not found, go to signup);
-	// 3. Get account data and find out if membership already exists
-	// 4. Grant licence
-	b2bGrantGroup := b2bAPIGroup.Group("/licence")
-	{
-		// Verify the invitation is valid.
-		b2bGrantGroup.GET("/invitation/verification/:token/", subsRouter.VerifyInvitation)
-
-		// Grant licence to user
-		b2bGrantGroup.POST("/grant/", subsRouter.GrantLicence)
-	}
-
 	// ---------------------------------------------
 	// Reader section is restricted to FTC user only.
 	// ---------------------------------------------
@@ -336,6 +242,100 @@ func main() {
 		subsGroup.POST("/:id/cancel/", stripeRouter.CancelSubs)
 		subsGroup.POST("/:id/reactivate/", stripeRouter.ReactivateSubs)
 		subsGroup.GET("/:id/default-payment-method/", stripeRouter.GetSubsDefaultPaymentMethod)
+	}
+
+	// -------------------------------------------------
+	// B2B section is restricted to corporate only.
+	// ------------------------------------------------
+	b2bAPIGroup := apiGroup.Group("/b2b")
+
+	b2bAuthGroup := b2bAPIGroup.Group("/auth")
+	{
+		b2bAuthGroup.POST("/login/", adminRouter.Login)
+		b2bAuthGroup.POST("/signup/", adminRouter.SignUp)
+		b2bAuthGroup.GET("/verify/:token/", adminRouter.VerifyEmail)
+
+		pwResetGroup := b2bAuthGroup.Group("/password-reset")
+		{
+			// Handle resetting password
+			pwResetGroup.POST("/", adminRouter.ResetPassword)
+
+			// Sending forgot-password email
+			pwResetGroup.POST("/letter/", adminRouter.ForgotPassword)
+
+			// Verify forgot-password token.
+			// If valid, redirect to /forgot-password.
+			// If invalid, redirect to /forgot-password/letter to ask
+			// user to enter email again.
+			pwResetGroup.GET("/token/:token/", adminRouter.VerifyResetToken)
+		}
+	}
+
+	b2bAccountGroup := b2bAPIGroup.Group("/account", adminRouter.RequireLoggedIn)
+	{
+		//b2bAccountGroup.GET("/", accountRouter.Account)
+		b2bAccountGroup.GET("/jwt/", adminRouter.RefreshJWT)
+		b2bAccountGroup.POST("/request-verification/", adminRouter.RequestVerification)
+		b2bAccountGroup.PATCH("/display-name/", adminRouter.ChangeName)
+		b2bAccountGroup.PATCH("/password/", adminRouter.ChangePassword)
+	}
+
+	b2bTeamGroup := b2bAPIGroup.Group("/team", adminRouter.RequireLoggedIn)
+	{
+		b2bTeamGroup.GET("/", adminRouter.LoadTeam)
+		b2bTeamGroup.POST("/", adminRouter.CreateTeam)
+		b2bTeamGroup.PATCH("/", adminRouter.UpdateTeam)
+	}
+
+	b2bSearchGroup := b2bAPIGroup.Group("/search", adminRouter.RequireLoggedIn)
+	{
+		// ?email=<string>
+		b2bSearchGroup.GET("/membership/", subsRouter.FindMembership)
+	}
+
+	orderGroup := b2bAPIGroup.Group("/orders", adminRouter.RequireTeamSet)
+	{
+		// List orders
+		orderGroup.GET("/", subsRouter.ListOrders)
+		// CreateTeam orders, or renew/upgrade in bulk.
+		orderGroup.POST("/", subsRouter.CreateOrders)
+		orderGroup.GET("/:id/", subsRouter.LoadOrder)
+	}
+
+	b2bLicenceGroup := b2bAPIGroup.Group("/licences", adminRouter.RequireTeamSet)
+	{
+		// List licences
+		b2bLicenceGroup.GET("/", subsRouter.ListLicence)
+		b2bLicenceGroup.GET("/:id/", subsRouter.LoadLicence)
+		// Revoked a licence
+		b2bLicenceGroup.POST("/:id/revoke/", subsRouter.RevokeLicence)
+	}
+
+	b2bInvitationGroup := b2bAPIGroup.Group("/invitations", adminRouter.RequireTeamSet)
+	{
+		// List invitations
+		b2bInvitationGroup.GET("/", subsRouter.ListInvitations)
+		// Create invitation.
+		// Also update the linked licence's status.
+		b2bInvitationGroup.POST("/", subsRouter.CreateInvitation)
+		// Revoked invitation before licence is accepted.
+		// Also revert the status of a licence from invitation sent
+		// back to available.
+		b2bInvitationGroup.POST("/:id/revoke/", subsRouter.RevokeInvitation)
+	}
+
+	// Steps to accept an invitation:
+	// 1. Open token url and the token is valid;
+	// 2. Use email to find user account (If account not found, go to signup);
+	// 3. Get account data and find out if membership already exists
+	// 4. Grant licence
+	b2bGrantGroup := b2bAPIGroup.Group("/licence")
+	{
+		// Verify the invitation is valid.
+		b2bGrantGroup.GET("/invitation/verification/:token/", subsRouter.VerifyInvitation)
+
+		// Grant licence to user
+		b2bGrantGroup.POST("/grant/", subsRouter.GrantLicence)
 	}
 
 	//-------------------------------------------------
