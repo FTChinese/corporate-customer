@@ -2,35 +2,34 @@ package reader
 
 import (
 	"github.com/FTChinese/ftacademy/internal/api"
-	"github.com/FTChinese/ftacademy/pkg/config"
-	"github.com/FTChinese/ftacademy/pkg/xhttp"
+	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 	"net/http"
 )
 
-type PubKey struct {
-	Key string `json:"key"`
-}
-
 type StripeRouter struct {
-	keyHolder config.KeyHolder
+	keyHolder pkg.StripeKeyHolder
 	clients   api.Clients
+	logger    *zap.Logger
 }
 
-func NewStripeRouter(clients api.Clients, prod bool) StripeRouter {
+func NewStripeRouter(
+	clients api.Clients,
+	keyHolder pkg.StripeKeyHolder,
+	logger *zap.Logger,
+) StripeRouter {
 	return StripeRouter{
-		keyHolder: config.MustStripePubKey().KeyHolder(prod),
+		keyHolder: keyHolder,
 		clients:   clients,
+		logger:    logger,
 	}
 }
 
 func (router StripeRouter) PublishableKey(c echo.Context) error {
-	live := xhttp.GetQueryLive(c)
 
 	return c.JSON(
 		http.StatusOK,
-		PubKey{
-			Key: router.keyHolder.Select(live),
-		},
+		router.keyHolder,
 	)
 }
