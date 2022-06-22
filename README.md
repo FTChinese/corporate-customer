@@ -20,6 +20,22 @@ For windows, open your terminal `$Env:GOPROXY=https://goproxy.io`
 
 You can use Windows Subsystem Linux to run Makefile. Or install [this tool](https://taskfile.dev/#/installation) to use the Taskfile.yml: `task build && task run`
 
+## Test Payment
+
+The payment is divided into live/test mode. They are determined differently depending on the payment method chosen. Those modes, however, only applicable to server in production mode. For local development, you are always in testing mode.
+
+### One-off payment
+
+The mode is solely determined by user's logged in account. When you are using a testing account issued by Superyard, you are in test mode; otherwise in live.
+
+### Stripe
+
+Stripe payment is determined by the publishable key the server returned to client. Stripe.js requires it to be initialized upon page loading, outside any React components, and should never be re-created afterwards. This literally restrict you from getting publishable key from backend dynamically. For production, the only solution could be setting up different backends for live/test mode respectively.
+
+My current solution is to give the app a command-line option `-livemode=<true|false>`. When `true`, the server given client Stripe's live publishable key; otherwise test key. Default value is `true` to keep backward compatible since initially the server's Supervisor is not configured with this option.
+
+This way you could test Stripe locally by launching this app `ftacademy -production=false livemode=false`. If you want to use online API locally, run `ftcademy -produciton=true -livemode=false`.
+
 ## B2B Licence Rules
 
 Ideally a licence user should have a clean account without membership and this account is dedicated to b2b licence. However, reality does not always go that way. We should follow these rules to add b2b to existing subscription:
@@ -72,35 +88,12 @@ The AJAX part is divided into multiple sections based on features.
 
 #### Paywall
 
+This section is publicly available since they must be accessed unconditionally.
+
 * GET `/api/paywall` Output paywall data.
-
-#### B2B Section
-
-* POST /api/b2b/auth/login
-* POST /api/b2b/auth/signup
-* GET /api/b2b/auth/verify/:token
-* POST /api/b2b/auth/password-reset
-* POST /api/b2b/auth/password-reset/letter
-* GET /api/b2b/auth/password-reset/token/:token
-* GET /api/b2b/account/jwt
-* POST /api/b2b/account/request-verification
-* PATCH /api/b2b/account/display-name
-* PATCH /api/b2b/account/password
-* GET /api/b2b/team
-* POST /api/b2b/team
-* PATCH /api/b2b/team
-* GET /api/b2b/search/membership?email=<string>
-* GET /api/b2b/orders
-* POST /api/b2b/orders
-* GET /api/b2b/orders/:id
-* GET /api/b2b/licences
-* GET /api/b2b/licences/:id
-* POST /api/b2b/licences/:id/revoke
-* GET /api/b2b/invitations
-* POST /api/b2b/invitations
-* POST /api/b2b/invitations/:id/revoke
-* GET /api/b2b/licence/invitation/verification/:token
-* POST /api/b2b/licence/grant
+* GET `/api/paywall/stripe/prices`
+* GET `/api/paywall/stripe/prices/:id`
+* GET `/api/paywall/stripe/publishable-key`
 
 #### Reader Section
 
@@ -132,9 +125,37 @@ This section simply forwards requests for subscription-api.
 * POST `/api/reader/account/wx/link` A wechat-login user links to existing email account.
 * POST `/api/reader/account/wx/unlink` A wechat-login user, with email account linked, unlinks the email account.
 
+#### B2B Section
+
+* POST /api/b2b/auth/login
+* POST /api/b2b/auth/signup
+* GET /api/b2b/auth/verify/:token
+* POST /api/b2b/auth/password-reset
+* POST /api/b2b/auth/password-reset/letter
+* GET /api/b2b/auth/password-reset/token/:token
+* GET /api/b2b/account/jwt
+* POST /api/b2b/account/request-verification
+* PATCH /api/b2b/account/display-name
+* PATCH /api/b2b/account/password
+* GET /api/b2b/team
+* POST /api/b2b/team
+* PATCH /api/b2b/team
+* GET /api/b2b/search/membership?email=<string>
+* GET /api/b2b/orders
+* POST /api/b2b/orders
+* GET /api/b2b/orders/:id
+* GET /api/b2b/licences
+* GET /api/b2b/licences/:id
+* POST /api/b2b/licences/:id/revoke
+* GET /api/b2b/invitations
+* POST /api/b2b/invitations
+* POST /api/b2b/invitations/:id/revoke
+* GET /api/b2b/licence/invitation/verification/:token
+* POST /api/b2b/licence/grant
+
 ### Restful API
 
-Used by another backend app "superyard".
+Used by another backend app "superyard" to access B2B data.
 
 * GET /api/cms/profile/:id
 * GET /api/cms/teams/:id
