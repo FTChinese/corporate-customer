@@ -16,7 +16,7 @@ func (router StripeRouter) GetPaymentMethod(c echo.Context) error {
 		StripePaymentMethodOf(
 			claims,
 			pmID,
-			c.QueryParams())
+			c.QueryString())
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
@@ -57,7 +57,7 @@ func (router StripeRouter) GetSetupIntent(c echo.Context) error {
 		StripeGetSetupIntent(
 			claims,
 			id,
-			c.QueryParams(),
+			c.QueryString(),
 		)
 
 	if err != nil {
@@ -77,7 +77,7 @@ func (router StripeRouter) GetSetupPaymentMethod(c echo.Context) error {
 		StripeGetSetupIntent(
 			claims,
 			id,
-			c.QueryParams(),
+			c.QueryString(),
 		)
 
 	if err != nil {

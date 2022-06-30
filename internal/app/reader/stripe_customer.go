@@ -74,7 +74,7 @@ func (router StripeRouter) ListCusPaymentMethods(c echo.Context) error {
 
 	resp, err := router.clients.
 		Select(claims.Live).
-		StripeListCusPaymentMethods(claims, cusID, c.QueryParams())
+		StripeListCusPaymentMethods(claims, cusID, c.QueryString())
 
 	if err != nil {
 		return render.NewInternalError(err.Error())
