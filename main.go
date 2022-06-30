@@ -246,6 +246,7 @@ func main() {
 		subsGroup.POST("/:id/cancel/", stripeRouter.CancelSubs)
 		subsGroup.POST("/:id/reactivate/", stripeRouter.ReactivateSubs)
 		subsGroup.GET("/:id/default-payment-method/", stripeRouter.GetSubsDefaultPaymentMethod)
+		subsGroup.POST("/:id/default-payment-method/", stripeRouter.UpdateSubsDefaultPaymentMethod)
 	}
 
 	// -------------------------------------------------
