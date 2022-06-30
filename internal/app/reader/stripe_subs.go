@@ -113,3 +113,19 @@ func (router StripeRouter) GetSubsDefaultPaymentMethod(c echo.Context) error {
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
+
+func (router StripeRouter) UpdateSubsDefaultPaymentMethod(c echo.Context) error {
+	claims := getReaderClaims(c)
+	subsID := c.Param("id")
+
+	defer c.Request().Body.Close()
+	resp, err := router.clients.
+		Select(claims.Live).
+		StripeSetSubsDefaultPaymentMethod(claims, subsID, c.Request().Body)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
