@@ -77,27 +77,3 @@ const (
 func pathVerifyOrder(id string) string {
 	return pathBaseOrder + "/" + id + "/verify-payment"
 }
-
-func pathCustomerOf(id string) string {
-	return pathStripeCustomer + "/" + id
-}
-
-func pathCusDefaultPaymentMethod(id string) string {
-	return pathStripeCustomer + "/" + id + "/default-payment-method"
-}
-
-func pathCusPaymentMethods(id string) string {
-	return pathStripeCustomer + "/" + id + "/payment-methods"
-}
-
-func pathSetupIntentOf(id string) string {
-	return pathStripeSetupIntent + "/" + id
-}
-
-func pathSubsOf(id string) string {
-	return pathStripeSubs + "/" + id
-}
-
-func pathPaymentMethodOf(id string) string {
-	return pathStripePaymentMethod + "/" + id
-}

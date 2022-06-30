@@ -6,17 +6,17 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 )
 
 func (c Client) StripeNewCustomer(ids reader.PassportClaims) (*http.Response, error) {
-	u := c.baseURL + pathStripeCustomer
 
-	log.Printf("Fetching data from %s", u)
+	url := fetch.NewURLBuilder(c.baseURL).AddPath(pathStripeCustomer).String()
+
+	log.Printf("Fetching data from %s", url)
 
 	resp, errs := fetch.
 		New().
-		Post(u).
+		Post(url).
 		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
 		End()
@@ -29,13 +29,14 @@ func (c Client) StripeNewCustomer(ids reader.PassportClaims) (*http.Response, er
 }
 
 func (c Client) StripeGetCustomer(ids reader.PassportClaims, cusID string) (*http.Response, error) {
-	u := c.baseURL + pathCustomerOf(cusID)
 
-	log.Printf("Fetching data from %s", u)
+	url := fetch.NewURLBuilder(c.baseURL).AddPath(pathStripeCustomer).AddPath(cusID).String()
+
+	log.Printf("Fetching data from %s", url)
 
 	resp, errs := fetch.
 		New().
-		Get(u).
+		Get(url).
 		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
 		End()
@@ -48,13 +49,18 @@ func (c Client) StripeGetCustomer(ids reader.PassportClaims, cusID string) (*htt
 }
 
 func (c Client) StripeCusDefaultPaymentMethod(ids reader.PassportClaims, cusID string) (*http.Response, error) {
-	u := c.baseURL + pathCusDefaultPaymentMethod(cusID)
 
-	log.Printf("Fetching data from %s", u)
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeCustomer).
+		AddPath(cusID).
+		AddPath("default-payment-method").
+		String()
+
+	log.Printf("Fetching data from %s", url)
 
 	resp, errs := fetch.
 		New().
-		Get(u).
+		Get(url).
 		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
 		End()
@@ -67,13 +73,17 @@ func (c Client) StripeCusDefaultPaymentMethod(ids reader.PassportClaims, cusID s
 }
 
 func (c Client) StripeSetCusDefaultPaymentMethod(ids reader.PassportClaims, cusID string, body io.Reader) (*http.Response, error) {
-	u := c.baseURL + pathCusDefaultPaymentMethod(cusID)
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeCustomer).
+		AddPath(cusID).
+		AddPath("default-payment-method").
+		String()
 
-	log.Printf("Fetching data from %s", u)
+	log.Printf("Fetching data from %s", url)
 
 	resp, errs := fetch.
 		New().
-		Post(u).
+		Post(url).
 		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
@@ -86,17 +96,22 @@ func (c Client) StripeSetCusDefaultPaymentMethod(ids reader.PassportClaims, cusI
 	return resp, nil
 }
 
-func (c Client) StripeListCusPaymentMethods(ids reader.PassportClaims, cusID string, q url.Values) (*http.Response, error) {
-	u := c.baseURL + pathCusPaymentMethods(cusID)
+func (c Client) StripeListCusPaymentMethods(ids reader.PassportClaims, cusID string, rawQuery string) (*http.Response, error) {
 
-	log.Printf("Fetching data from %s", u)
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeCustomer).
+		AddPath(cusID).
+		AddPath("payment-methods").
+		SetRawQuery(rawQuery).
+		String()
+
+	log.Printf("Fetching data from %s", url)
 
 	resp, errs := fetch.
 		New().
-		Get(u).
+		Get(url).
 		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
-		WithQuery(q).
 		End()
 
 	if errs != nil {
@@ -107,13 +122,14 @@ func (c Client) StripeListCusPaymentMethods(ids reader.PassportClaims, cusID str
 }
 
 func (c Client) StripeCreateSetupIntent(ids reader.PassportClaims, body io.Reader) (*http.Response, error) {
-	u := c.baseURL + pathStripeSetupIntent
 
-	log.Printf("Fetching data from %s", u)
+	url := fetch.NewURLBuilder(c.baseURL).AddPath(pathStripeSetupIntent).String()
+
+	log.Printf("Fetching data from %s", url)
 
 	resp, errs := fetch.
 		New().
-		Post(u).
+		Post(url).
 		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
@@ -126,17 +142,21 @@ func (c Client) StripeCreateSetupIntent(ids reader.PassportClaims, body io.Reade
 	return resp, nil
 }
 
-func (c Client) StripeGetSetupIntent(ids reader.PassportClaims, id string, q url.Values) (*http.Response, error) {
-	u := c.baseURL + pathSetupIntentOf(id)
+func (c Client) StripeGetSetupIntent(ids reader.PassportClaims, id string, rawQuery string) (*http.Response, error) {
 
-	log.Printf("Fetching data from %s", u)
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeSetupIntent).
+		AddPath(id).
+		SetRawQuery(rawQuery).
+		String()
+
+	log.Printf("Fetching data from %s", url)
 
 	resp, errs := fetch.
 		New().
-		Get(u).
+		Get(url).
 		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
-		WithQuery(q).
 		End()
 
 	if errs != nil {
@@ -146,17 +166,22 @@ func (c Client) StripeGetSetupIntent(ids reader.PassportClaims, id string, q url
 	return resp, nil
 }
 
-func (c Client) StripeGetSetupPaymentMethod(ids reader.PassportClaims, id string, q url.Values) (*http.Response, error) {
-	u := c.baseURL + pathSetupIntentOf(id) + "/payment-method"
+func (c Client) StripeGetSetupPaymentMethod(ids reader.PassportClaims, id string, rawQuery string) (*http.Response, error) {
 
-	log.Printf("Fetching data from %s", u)
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeSetupIntent).
+		AddPath(id).
+		AddPath("payment-method").
+		SetRawQuery(rawQuery).
+		String()
+
+	log.Printf("Fetching data from %s", url)
 
 	resp, errs := fetch.
 		New().
-		Get(u).
+		Get(url).
 		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
-		WithQuery(q).
 		End()
 
 	if errs != nil {
@@ -167,7 +192,7 @@ func (c Client) StripeGetSetupPaymentMethod(ids reader.PassportClaims, id string
 }
 
 func (c Client) StripeNewSubs(ids reader.PassportClaims, body io.Reader) (*http.Response, error) {
-	u := c.baseURL + pathStripeSubs
+	u := fetch.NewURLBuilder(c.baseURL).AddPath(pathStripeSubs).String()
 
 	log.Printf("Fetching data from %s", u)
 
@@ -187,26 +212,7 @@ func (c Client) StripeNewSubs(ids reader.PassportClaims, body io.Reader) (*http.
 }
 
 func (c Client) StripeGetSubs(ids reader.PassportClaims, id string) (*http.Response, error) {
-	u := c.baseURL + pathSubsOf(id)
-
-	log.Printf("Fetching data from %s", u)
-
-	resp, errs := fetch.
-		New().
-		Get(u).
-		WithHeader(ReaderIDsHeader(ids).Build()).
-		SetBearerAuth(c.key).
-		End()
-
-	if errs != nil {
-		return nil, errs[0]
-	}
-
-	return resp, nil
-}
-
-func (c Client) StripeGetSubsOf(ids reader.PassportClaims, id string) (*http.Response, error) {
-	u := c.baseURL + pathSubsOf(id)
+	u := fetch.NewURLBuilder(c.baseURL).AddPath(pathStripeSubs).AddPath(id).String()
 
 	log.Printf("Fetching data from %s", u)
 
@@ -225,7 +231,7 @@ func (c Client) StripeGetSubsOf(ids reader.PassportClaims, id string) (*http.Res
 }
 
 func (c Client) StripeUpdateSubsOf(ids reader.PassportClaims, id string, body io.Reader) (*http.Response, error) {
-	u := c.baseURL + pathSubsOf(id)
+	u := fetch.NewURLBuilder(c.baseURL).AddPath(pathStripeSubs).AddPath(id).String()
 
 	log.Printf("Fetching data from %s", u)
 
@@ -245,7 +251,11 @@ func (c Client) StripeUpdateSubsOf(ids reader.PassportClaims, id string, body io
 }
 
 func (c Client) StripeRefreshSubsOf(ids reader.PassportClaims, id string) (*http.Response, error) {
-	u := c.baseURL + pathSubsOf(id) + "/refresh"
+	u := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeSubs).
+		AddPath(id).
+		AddPath("refresh").
+		String()
 
 	log.Printf("Fetching data from %s", u)
 
@@ -264,7 +274,11 @@ func (c Client) StripeRefreshSubsOf(ids reader.PassportClaims, id string) (*http
 }
 
 func (c Client) StripeCancelSubsOf(ids reader.PassportClaims, id string) (*http.Response, error) {
-	u := c.baseURL + pathSubsOf(id) + "/cancel"
+	u := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeSubs).
+		AddPath(id).
+		AddPath("cancel").
+		String()
 
 	log.Printf("Fetching data from %s", u)
 
@@ -283,7 +297,11 @@ func (c Client) StripeCancelSubsOf(ids reader.PassportClaims, id string) (*http.
 }
 
 func (c Client) StripeReactivateSubsOf(ids reader.PassportClaims, id string) (*http.Response, error) {
-	u := c.baseURL + pathSubsOf(id) + "/reactivate"
+	u := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeSubs).
+		AddPath(id).
+		AddPath("reactivate").
+		String()
 
 	log.Printf("Fetching data from %s", u)
 
@@ -302,7 +320,11 @@ func (c Client) StripeReactivateSubsOf(ids reader.PassportClaims, id string) (*h
 }
 
 func (c Client) StripeSubsDefaultPaymentMethod(ids reader.PassportClaims, id string) (*http.Response, error) {
-	u := c.baseURL + pathSubsOf(id) + "/default-payment-method"
+	u := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeSubs).
+		AddPath(id).
+		AddPath("default-payment-method").
+		String()
 
 	log.Printf("Fetching data from %s", u)
 
@@ -320,8 +342,37 @@ func (c Client) StripeSubsDefaultPaymentMethod(ids reader.PassportClaims, id str
 	return resp, nil
 }
 
-func (c Client) StripePaymentMethodOf(ids reader.PassportClaims, id string, query url.Values) (*http.Response, error) {
-	u := c.baseURL + pathPaymentMethodOf(id)
+func (c Client) StripeSetSubsDefaultPaymentMethod(ids reader.PassportClaims, subsID string, body io.Reader) (*http.Response, error) {
+
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeSubs).
+		AddPath(subsID).
+		AddPath("default-payment-method").
+		String()
+
+	log.Printf("Fetching data from %s", url)
+
+	resp, errs := fetch.
+		New().
+		Post(url).
+		WithHeader(ReaderIDsHeader(ids).Build()).
+		SetBearerAuth(c.key).
+		StreamJSON(body).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
+
+func (c Client) StripePaymentMethodOf(ids reader.PassportClaims, id string, rawQuery string) (*http.Response, error) {
+	u := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripePaymentMethod).
+		AddPath(id).
+		SetRawQuery(rawQuery).
+		String()
 
 	log.Printf("Fetching data from %s", u)
 
@@ -330,7 +381,6 @@ func (c Client) StripePaymentMethodOf(ids reader.PassportClaims, id string, quer
 		Get(u).
 		WithHeader(ReaderIDsHeader(ids).Build()).
 		SetBearerAuth(c.key).
-		WithQuery(query).
 		End()
 
 	if errs != nil {
