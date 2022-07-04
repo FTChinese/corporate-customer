@@ -9,7 +9,6 @@ import (
 	"github.com/FTChinese/ftacademy/internal/app/b2b"
 	"github.com/FTChinese/ftacademy/internal/app/content"
 	"github.com/FTChinese/ftacademy/internal/app/reader"
-	"github.com/FTChinese/ftacademy/internal/pkg"
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/FTChinese/ftacademy/pkg/db"
 	"github.com/FTChinese/ftacademy/pkg/postman"
@@ -79,7 +78,7 @@ func main() {
 	subsRouter := b2b.NewSubsRouter(myDBs, pm, logger)
 	productRouter := b2b.NewProductRouter(apiClients, logger)
 	readerRouter := reader.NewReaderRouter(apiClients, version)
-	stripePubKey := pkg.NewStripePubKeys().
+	stripePubKey := config.NewStripePubKeys().
 		Select(liveMode)
 	stripeRouter := reader.NewStripeRouter(
 		apiClients,

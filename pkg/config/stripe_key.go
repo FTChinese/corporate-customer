@@ -1,6 +1,8 @@
-package pkg
+package config
 
-import "github.com/FTChinese/ftacademy/pkg/config"
+import (
+	"log"
+)
 
 type StripeKeyHolder struct {
 	Key  string `json:"key"`
@@ -13,7 +15,7 @@ type StripeKeyStore struct {
 }
 
 func NewStripePubKeys() StripeKeyStore {
-	keys := config.MustStripePubKey()
+	keys := MustStripePubKey()
 	return StripeKeyStore{
 		Sandbox: StripeKeyHolder{
 			Key:  keys.Dev,
@@ -27,6 +29,7 @@ func NewStripePubKeys() StripeKeyStore {
 }
 
 func (s StripeKeyStore) Select(live bool) StripeKeyHolder {
+	log.Printf("Selecting stripe publishable key for %s\n", liveTest[live])
 	if live {
 		return s.Live
 	}
