@@ -78,11 +78,9 @@ func main() {
 	subsRouter := b2b.NewSubsRouter(myDBs, pm, logger)
 	productRouter := b2b.NewProductRouter(apiClients, logger)
 	readerRouter := reader.NewReaderRouter(apiClients, version)
-	stripePubKey := config.NewStripePubKeys().
-		Select(liveMode)
 	stripeRouter := reader.NewStripeRouter(
 		apiClients,
-		stripePubKey,
+		production,
 		logger)
 	cmsRouter := b2b.NewCMSRouter(myDBs, pm, logger)
 	legalRoutes := content.NewRoutes(
