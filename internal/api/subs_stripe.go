@@ -367,6 +367,53 @@ func (c Client) StripeSetSubsDefaultPaymentMethod(ids reader.PassportClaims, sub
 	return resp, nil
 }
 
+// StripeSubsLatestInvoice loads a subscription's latest invoice.
+func (c Client) StripeSubsLatestInvoice(claims reader.PassportClaims, subsID string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeSubs).
+		AddPath(subsID).
+		AddPath("latest-invoice").
+		String()
+
+	log.Printf("Fetching data from %s", url)
+
+	resp, errs := fetch.
+		New().
+		Get(url).
+		WithHeader(ReaderIDsHeader(claims).Build()).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
+
+func (c Client) CouponOfLatestSubsInvoice(claims reader.PassportClaims, subsID string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripeSubs).
+		AddPath(subsID).
+		AddPath("latest-invoice/any-coupon").
+		String()
+
+	log.Printf("Fetching data from %s", url)
+
+	resp, errs := fetch.
+		New().
+		Get(url).
+		WithHeader(ReaderIDsHeader(claims).Build()).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
+
 func (c Client) StripePaymentMethodOf(ids reader.PassportClaims, id string, rawQuery string) (*http.Response, error) {
 	u := fetch.NewURLBuilder(c.baseURL).
 		AddPath(pathStripePaymentMethod).

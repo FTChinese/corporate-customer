@@ -196,13 +196,17 @@ func main() {
 	// --------------------------
 	// Paywall section is public.
 	// --------------------------
-	paywallGroup := apiGroup.Group("/paywall", readerRouter.OptionalLoggedIn)
+	paywallGroup := apiGroup.Group("/paywall")
 	{
 		// All the following routes have query parameter:
 		// - live=<boolean>, default to true
 		paywallGroup.GET("/", productRouter.Paywall)
-		paywallGroup.GET("/stripe/prices/", productRouter.ListStripePrices)
 		paywallGroup.GET("/stripe/prices/:id/", productRouter.StripePrice)
+		// If client passed `?live=true` via url query, the test publishable key will be returned.
+		// When client is using test key, it must also use a test account so that the serve
+		// knows it should send request to sandbox api.
+		// By default, all requests are forwarded to production live server.
+		// All endpoints requiring logged-in state get live/test mode from Json Web Token's claim field.
 		paywallGroup.GET("/stripe/publishable-key/", stripeRouter.PublishableKey)
 	}
 
@@ -244,6 +248,8 @@ func main() {
 		subsGroup.POST("/:id/reactivate/", stripeRouter.ReactivateSubs)
 		subsGroup.GET("/:id/default-payment-method/", stripeRouter.GetSubsDefaultPaymentMethod)
 		subsGroup.POST("/:id/default-payment-method/", stripeRouter.UpdateSubsDefaultPaymentMethod)
+		subsGroup.GET("/:id/latest-invoice/", stripeRouter.GetLatestInvoice)
+		subsGroup.GET("/:id/latest-invoice/any-coupon/", stripeRouter.CouponOfLatestInvoice)
 	}
 
 	// -------------------------------------------------
