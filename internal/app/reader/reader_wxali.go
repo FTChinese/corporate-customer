@@ -45,6 +45,27 @@ func (router Router) CreateAliOrder(c echo.Context) error {
 	)
 }
 
+func (router Router) LoadOneOffDiscount(c echo.Context) error {
+	claims := getReaderClaims(c)
+	discountID := c.Param("id")
+
+	resp, err := router.clients.
+		Select(claims.Live).
+		DiscountRedeemed(
+			claims,
+			discountID)
+
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(
+		resp.StatusCode,
+		fetch.ContentJSON,
+		resp.Body,
+	)
+}
+
 func (router Router) VerifyFtcOrder(c echo.Context) error {
 	claims := getReaderClaims(c)
 

@@ -49,7 +49,8 @@ const (
 )
 
 const (
-	pathBaseOrder = "/orders"
+	pathBaseOrder      = "/orders"
+	pathOneOffDiscount = "/ftc-pay/discounts"
 )
 
 const (
