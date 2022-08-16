@@ -14,6 +14,8 @@ import (
 // * token: string;
 // * password: string.
 func (router Router) ResetPassword(c echo.Context) error {
+	defer c.Request().Body.Close()
+
 	resp, err := router.clients.Select(true).ResetPassword(c.Request().Body)
 
 	if err != nil {
