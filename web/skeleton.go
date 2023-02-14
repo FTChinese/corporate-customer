@@ -70,7 +70,7 @@ var DefaultFooterCols = []FooterColumn{
 		Items: []HyperLink{
 			{
 				Name: "服务条款",
-				Href: "https://www.ftchinese.com/m/corp/service.html",
+				Href: "https://next.ftacademy.cn/terms/f45ed52a307bda7b",
 			},
 			{
 				Name: "版权声明",
