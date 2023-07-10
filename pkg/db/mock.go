@@ -10,7 +10,7 @@ import (
 
 func MockMySQL() ReadWriteMyDBs {
 	faker.MustSetupViper()
-	return MustNewMyDBs(false)
+	return MustNewMyDBs()
 }
 
 func MockTx() *sqlx.Tx {

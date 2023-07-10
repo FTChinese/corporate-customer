@@ -2,11 +2,12 @@ package db
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/FTChinese/ftacademy/pkg/config"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"log"
-	"time"
 )
 
 // NewMySQL creates opens a new sql connection.
@@ -56,10 +57,10 @@ type ReadWriteMyDBs struct {
 	Delete *sqlx.DB
 }
 
-func MustNewMyDBs(prod bool) ReadWriteMyDBs {
+func MustNewMyDBs() ReadWriteMyDBs {
 	return ReadWriteMyDBs{
-		Read:   MustNewMySQL(config.MustMySQLReadConn(prod)),
-		Write:  MustNewMySQL(config.MustMySQLWriteConn(prod)),
-		Delete: MustNewMySQL(config.MustMySQLDeleteConn(prod)),
+		Read:   MustNewMySQL(config.MustMySQLReadConn()),
+		Write:  MustNewMySQL(config.MustMySQLWriteConn()),
+		Delete: MustNewMySQL(config.MustMySQLDeleteConn()),
 	}
 }
