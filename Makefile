@@ -33,7 +33,7 @@ builddir :
 
 .PHONY: devenv
 devenv : builddir
-	rsync $(local_config_file) $(build_dir)/$(config_file_name)
+	rsync $(HOME)/config/env.dev.toml $(build_dir)/$(config_file_name)
 
 .PHONY: version
 version :
