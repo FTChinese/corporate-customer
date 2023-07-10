@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/spf13/viper"
 	"log"
+
+	"github.com/spf13/viper"
 )
 
 // Connect represents a connection to a server or database.
@@ -23,15 +24,11 @@ func GetConn(key string) (Connect, error) {
 	return conn, nil
 }
 
-func MustMySQLConn(key string, prod bool) Connect {
+func MustMySQLConn(key string) Connect {
 	var conn Connect
 	var err error
 
-	if prod {
-		conn, err = GetConn(key)
-	} else {
-		conn, err = GetConn("mysql.dev")
-	}
+	conn, err = GetConn(key)
 
 	if err != nil {
 		log.Fatal(err)
@@ -42,19 +39,16 @@ func MustMySQLConn(key string, prod bool) Connect {
 	return conn
 }
 
-func MustMySQLReadConn(prod bool) Connect {
-	log.Printf("Initializting MySQL read DB in %s", prodDev[prod])
-	return MustMySQLConn("mysql.read", prod)
+func MustMySQLReadConn() Connect {
+	return MustMySQLConn("mysql.read")
 }
 
-func MustMySQLWriteConn(prod bool) Connect {
-	log.Printf("Intializng MySQL write DB in %s", prodDev[prod])
-	return MustMySQLConn("mysql.write", prod)
+func MustMySQLWriteConn() Connect {
+	return MustMySQLConn("mysql.write")
 }
 
-func MustMySQLDeleteConn(prod bool) Connect {
-	log.Printf("Intializng MySQL delete DB in %s", prodDev[prod])
-	return MustMySQLConn("mysql.delete", prod)
+func MustMySQLDeleteConn() Connect {
+	return MustMySQLConn("mysql.delete")
 }
 
 func MustGetHanqiConn() Connect {
