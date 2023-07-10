@@ -4,6 +4,10 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/FTChinese/ftacademy/internal/access"
 	"github.com/FTChinese/ftacademy/internal/api"
 	"github.com/FTChinese/ftacademy/internal/app/b2b"
@@ -17,13 +21,16 @@ import (
 	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/http"
-	"os"
-	"time"
 )
 
 //go:embed build/api.toml
 var tomlConfig string
+
+//go:embed build/version
+var version string
+
+//go:embed build/build_time
+var build string
 
 //go:embed client_version_b2b
 var clientVersionB2B string
@@ -32,8 +39,6 @@ var clientVersionB2B string
 var clientVersionReader string
 
 var (
-	version    string
-	build      string
 	production bool
 	liveMode   bool
 )
@@ -65,7 +70,7 @@ func main() {
 
 	logger := config.MustGetLogger(production)
 
-	myDBs := db.MustNewMyDBs(production)
+	myDBs := db.MustNewMyDBs()
 
 	pm := postman.New(config.MustGetHanqiConn())
 
