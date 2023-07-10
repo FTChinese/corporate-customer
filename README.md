@@ -4,7 +4,15 @@ This is the server-side implementation backing the [Reader](https://github.com/F
 
 ## Development
 
-To build the binary, `./build/api.toml` file must exist. This file will be embedded into the resulting binary using go 1.16 embed package. Make sure your have go above 1.16.
+完全同[API](https://github.com/FTChinese/subscription-api/blob/master/_doc/development.md)项目。
+
+差异之处如下：
+
+1. 本程序是web app，因此包含了HTML模版文件，放在`web`文件夹下，使用的模版引擎是[https://github.com/flosch/pongo2](https://github.com/flosch/pongo2)，语法和Django、Nunjucks类似。这些模版文件在build时嵌入到二进制文件中，见`web/render.go`文件。
+2. 模版文件`web/template/reader/home.html`并非手写，而是用[reader-react](https://github.com/FTChinese/reader-react)中的脚本生成。
+3. 模版文件`web/template/legal`是法律文件的模版文件，与前端无关，查看https://next.ftacademy.cn/terms，原本计划用于Android中嵌入的法律条款。这些文档存储在数据库中，可以在superyard中生成。
+3. 跟目录下的`client_version_b2b`和`client_version_reader`也由前端项目的脚本生成。
+
 
 ### Go get
 
@@ -14,11 +22,6 @@ Linux/Max: `export GOPROXY=https://goproxy.io`
 
 For windows, open your terminal `$Env:GOPROXY=https://goproxy.io`
 
-### Run
-
-`make build && make run`
-
-You can use Windows Subsystem Linux to run Makefile. Or install [this tool](https://taskfile.dev/#/installation) to use the Taskfile.yml: `task build && task run`
 
 ## Test Payment
 
